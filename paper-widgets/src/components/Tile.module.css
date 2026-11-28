@@ -1,0 +1,15 @@
+.tile {
+  position: absolute;
+  left: calc(var(--grid-margin) + var(--col) * var(--grid-step));
+  top: calc(var(--grid-margin) + var(--row) * var(--grid-step));
+  width: var(--cell);
+  height: var(--cell);
+  border-radius: var(--tile-radius);
+  background: var(--tile);
+  overflow: hidden;
+  box-shadow: var(--tile-shadow);
+}
+
+.wide {
+  width: var(--cell-wide);
+}

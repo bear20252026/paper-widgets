@@ -1,0 +1,21 @@
+{
+  "name": "puzzlecard",
+  "private": true,
+  "version": "0.1.0",
+  "description": "A photo cut into a jigsaw with a letter on the back — plain ES modules, no build step.",
+  "type": "module",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "node server/index.mjs",
+    "start": "node server/index.mjs",
+    "test": "node --test",
+    "lint": "oxlint .",
+    "check": "npm run lint && npm test"
+  },
+  "devDependencies": {
+    "oxlint": "^1.94.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Minion Lab · Pixel Town</title>
+<meta name="description" content="A deck of little pixel towns full of Minions: a gumball machine on a candy-shop roof, an apartment block with Minions at every window, a drive-in cinema. Swipe the cards; click inside to play.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Minion Lab">
+<meta property="og:title" content="Minion Lab · Pixel Town">
+<meta property="og:description" content="A deck of little pixel towns full of Minions: a gumball machine on a candy-shop roof, an apartment block with Minions at every window, a drive-in cinema. Swipe the cards; click inside to play.">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Minion Lab · Pixel Town">
+<meta name="twitter:description" content="A deck of little pixel towns full of Minions. Swipe the cards; click inside to play.">
+<meta name="theme-color" content="#F2F0EE">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../bosshistory/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../bosshistory/favicon-64.png">
+<link rel="apple-touch-icon" href="../bosshistory/apple-touch-icon.png">
+<style>
+  /* the card is the anatomy pages' plate: paper card, one hairline, mono corner labels — the same object as Teardown's */
+  :root { --page:#F2F0EE; --card:#ffffff; --line:#9b9487; --text:#5c574f; --muted:#948d80; --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; }
+  body { background:var(--page); color:var(--text); font-family:ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold","Helvetica Neue",sans-serif; -webkit-font-smoothing:antialiased;
+    min-height:100vh; min-height:100dvh; padding:40px 16px 98px; display:flex; flex-direction:column; overflow:hidden; }
+  body > * { grid-area:1 / 1; }
+  main { margin:auto; width:min(580px, 100vw - 32px); }
+  /* the deck: three cards in one frame, stacked like index cards; back cards peek out below and to the right */
+  /* the deck is a grid with every card in the one cell, so its height is simply a card's natural height */
+  .deck { position:relative; display:grid; width:100%; margin-right:16px; touch-action:pan-y; user-select:none; -webkit-user-select:none; }
+  .card { grid-area:1 / 1; background:var(--card); box-shadow:0 0 0 1px var(--line); display:flex; flex-direction:column;
+    transition:transform .38s cubic-bezier(.3,.7,.3,1), opacity .38s; will-change:transform; }
+  .card[data-slot="0"] { z-index:3; transform:translate(0,0); cursor:grab; }
+  .card[data-slot="1"] { z-index:2; transform:translate(8px,10px); cursor:pointer; }
+  .card[data-slot="2"] { z-index:1; transform:translate(16px,20px); cursor:pointer; }
+  .card.drag { transition:none; cursor:grabbing; }
+  .card.dive { transition:transform .17s ease-in; }                                   /* the first part of the tuck: out to the left, on top */
+  .card.under { transition:transform .34s cubic-bezier(.3,.7,.3,1); }                 /* the second: back in under the others, to the last slot */
+  .card.in { transition:none; }
+  .row { height:40px; flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; padding:0 18px; font-family:var(--mono); font-size:10.5px; line-height:1; letter-spacing:.04em; white-space:nowrap; color:var(--muted); }
+  .row .readout { color:var(--text); font-variant-numeric:tabular-nums; flex:0 0 auto; }
+  .row .scene-readout { color:var(--text); text-transform:uppercase; letter-spacing:.1em; }   /* what the live scene reports, e.g. "Caught 3" */
+  .row .title { text-transform:uppercase; letter-spacing:.1em; flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; margin-right:14px; }
+  /* the scene floats inside the card with air round it (about 83% of the card's width), like a figure on a plate */
+  .mat { padding:22px 48px; }
+  .stage { position:relative; width:100%; aspect-ratio:1 / 1; overflow:hidden; }
+  .stage img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; image-rendering:pixelated; display:block; transition:opacity .25s; }
+  .stage.live img { opacity:0; }
+  .stage iframe { position:absolute; inset:0; width:100%; height:100%; border:0; display:block; background:transparent; opacity:0; transition:opacity .25s; }
+  .stage iframe.ready { opacity:1; }
+  /* back cards don't take the pointer inside the stage; the whole card is the "bring me forward" target */
+  .card:not([data-slot="0"]) .stage { pointer-events:none; }
+
+  @media (max-width:520px){ .deck { margin-right:12px; } .mat { padding:14px 28px; } .card[data-slot="1"] { transform:translate(6px,8px); } .card[data-slot="2"] { transform:translate(12px,16px); } .row { padding:0 14px; } }
+</style>
+</head>
+<body>
+<script src="../ml-chrome.js" data-page="town"></script>
+<main>
+  <div class="deck" id="deck" aria-roledescription="carousel" aria-label="Pixel Town: a deck of three scenes. Drag sideways, or use the arrow keys, for the next card."></div>
+</main>
+<script>
+/* the three scenes. A scene with a page is live when it is in front (loaded in a frame with ?embed=1); the others show their still. */
+const SCENES = [
+  { key:'gumball',    title:'Gumball Slide',   page:'../gumball/?embed=1', still:'stills/gumball.png' },
+  { key:'trampoline', title:'Trampoline',      page:'../windows/?embed=1', still:'stills/windows.png' },
+  { key:'cinema',     title:'Drive-In Cinema', page:'../drivein/?embed=1', still:'stills/drivein.png' },
+];
+const deck = document.getElementById('deck');
+let order = SCENES.map((_, i) => i);                        // order[0] is the front card
+const start = SCENES.findIndex(s => s.key === location.hash.slice(1)); if (start > 0) order = [...order.slice(start), ...order.slice(0, start)];
+const cards = SCENES.map((s, i) => {
+  const c = document.createElement('article'); c.className = 'card'; c.dataset.i = i;
+  c.innerHTML = `<div class="row"><span class="scene-readout"></span></div>
+    <div class="mat"><div class="stage"><img src="${s.still}" alt="${s.title}"></div></div>
+    <div class="row"><span class="title">${s.title}</span><span class="readout">${i + 1} / ${SCENES.length}</span></div>`;
+  deck.appendChild(c); return c;
+});
+let frame = null;                                           // the live scene's frame, only ever one
+function layout(){
+  order.forEach((i, slot) => { cards[i].dataset.slot = slot; });
+  const front = SCENES[order[0]];
+  history.replaceState(null, '', '#' + front.key);
+  if (frame && frame.dataset.key !== front.key){ frame.parentElement.classList.remove('live'); frame.remove(); frame = null; }
+  cards.forEach(c => { c.querySelector('.scene-readout').textContent = ''; });   // a card's readout belongs to its live scene
+  if (front.page && !frame){
+    frame = document.createElement('iframe'); frame.dataset.key = front.key; frame.src = front.page; frame.title = front.title; frame.setAttribute('scrolling', 'no');
+    frame.addEventListener('load', () => setTimeout(() => { frame.classList.add('ready'); frame.parentElement.classList.add('live'); }, 350));   // after the scene's own fade-in
+    cards[order[0]].querySelector('.stage').appendChild(frame);
+  }
+}
+layout();
+
+/* ---------- swiping: the front card follows the finger; past the threshold it leaves and goes to the back ---------- */
+const W = () => deck.getBoundingClientRect().width;
+let dx = 0, dragging = false;
+const front = () => cards[order[0]];
+function move(x){ dx = x; const c = front(); c.classList.add('drag'); c.style.transform = `translate(${x < 0 ? x : x * 0.25}px, 0)`; }   // rightwards only gives a little
+function release(){
+  const c = front(); c.classList.remove('drag'); dragging = false;
+  if (dx < -Math.min(80, W() * 0.2)) cycle(1); else c.style.transform = '';     // only a leftward swipe turns the deck; anything else springs back
+  dx = 0;
+}
+let busy = false;
+function cycle(dir){
+  if (busy) return; busy = true;
+  if (dir > 0){                                            // next: the front card slides out to the left, then dives under the stack to the back
+    const c = front();
+    c.classList.add('dive'); c.style.transform = `translate(${-0.62 * W()}px, 14px)`;
+    setTimeout(() => {
+      c.classList.remove('dive'); c.classList.add('under'); c.style.zIndex = 0;   // now beneath every other card
+      order.push(order.shift()); c.style.transform = ''; layout();              // the others step forward; this one travels to the last slot
+      setTimeout(() => { c.classList.remove('under'); c.style.zIndex = ''; busy = false; }, 360);
+    }, 170);
+  } else {                                                 // previous (arrow key): the back card slips out to the left from under, then lands on top
+    const b = cards[order[order.length - 1]];
+    b.classList.add('under'); b.style.transform = `translate(${-0.62 * W()}px, 14px)`;
+    setTimeout(() => {
+      b.classList.remove('under'); b.classList.add('dive'); b.style.zIndex = 4;
+      order.unshift(order.pop()); b.style.transform = ''; layout();
+      setTimeout(() => { b.classList.remove('dive'); b.style.zIndex = ''; busy = false; }, 200);
+    }, 340);
+  }
+}
+let sx = 0, sy = 0, down = false;
+deck.addEventListener('pointerdown', e => {
+  if (e.button !== 0) return;
+  const card = e.target.closest('.card'); if (!card) return;
+  if (card !== front()){ e.preventDefault(); cycle(card.dataset.slot === '1' ? 1 : -1); return; }   // tap a back card: the deck turns until it is in front
+  sx = e.clientX; sy = e.clientY; down = true; dragging = false; deck.setPointerCapture(e.pointerId);
+});
+deck.addEventListener('pointermove', e => {
+  if (!down) return; const x = e.clientX - sx, y = e.clientY - sy;
+  if (!dragging && Math.abs(x) > 12 && Math.abs(x) > Math.abs(y) * 1.2) dragging = true;
+  if (dragging) move(x);
+});
+const up = () => { if (!down) return; down = false; if (dragging) release(); };
+deck.addEventListener('pointerup', up); deck.addEventListener('pointercancel', up);
+// a drag that starts on the live scene arrives from its frame
+addEventListener('message', e => {
+  if (e.origin !== location.origin || !e.data || !frame || e.source !== frame.contentWindow) return;
+  if (e.data.t === 'mlc-swipe'){ dragging = true; move(e.data.dx); }
+  if (e.data.t === 'mlc-swipe-end'){ release(); }
+  if (e.data.t === 'mlc-readout'){ front().querySelector('.scene-readout').textContent = String(e.data.text || ''); }
+});
+addEventListener('keydown', e => { if (e.key === 'ArrowRight') cycle(1); if (e.key === 'ArrowLeft') cycle(-1); });
+
+/* fit the deck between the header and the keys, like the anatomy pages */
+function fit(){ const m = document.querySelector('main'); m.style.zoom = 1; const avail = innerHeight - 138 - 36; m.style.zoom = Math.max(.6, Math.min(1, avail / m.offsetHeight)).toFixed(3); }
+fit(); addEventListener('resize', fit); addEventListener('load', fit);
+</script>
+</body>
+</html>

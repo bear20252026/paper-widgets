@@ -1,0 +1,999 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Paper — a shelf of finished pieces in six categories</title>
+    <meta name="description" content="A shelf of 78 finished, self-contained pieces in six categories — data, widget, page, object, scene and play — with a separate workshop of 24 cuts, studies and prototypes." />
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="./gallery.css" />
+  </head>
+  <body data-total="78">
+    <div class="page">
+      <header class="mast">
+        <div class="brand"><i></i>Paper</div>
+        <nav>
+          <a href="#data" data-sec>Data</a>
+          <a href="#widget" data-sec>Widget</a>
+          <a href="#page" data-sec>Page</a>
+          <a href="#object" data-sec>Object</a>
+          <a href="#scene" data-sec>Scene</a>
+          <a href="#play" data-sec>Play</a>
+          <a href="./workshop/">Workshop ↗</a>
+          <a href="https://bear20252026.github.io/frontier-atlas/">Atlas ↗</a>
+          <a href="https://github.com/bear20252026/paper-widgets">GitHub ↗</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="intro">
+          <p class="eyebrow">Finished shelf · 78 pieces · updated November 2026</p>
+          <h1>Finished pieces, kept together.</h1>
+          <p class="lead">
+            Every piece here is a complete, self-contained browser app you can lift out and run on its own — data
+            desks and finance tables, small tools and sign-ins, product and editorial pages, 3D objects and spatial
+            interactions, scenes and animations, games and toys. No shared package, no monorepo: a piece is a folder,
+            its README, and the code it needs. The 24 early cuts, source cuts, prototypes, server-dependent demos
+            and studies are in a <a href="./workshop/">separate Workshop</a>, so they do not dilute the shelf.
+          </p>
+          <div class="tools">
+            <label class="search">
+              <span>Filter</span>
+              <input id="q" type="search" placeholder="name, stack, mood — try “three”" autocomplete="off" />
+            </label>
+            <span class="count" id="count">78 pieces</span>
+          </div>
+        <div class="filters" data-filter-field="category" aria-label="Filter by category">
+          <button class="chip is-active" type="button" data-filter="all" aria-pressed="true">All</button>
+          <button class="chip" type="button" data-filter="data" aria-pressed="false">Data</button>
+          <button class="chip" type="button" data-filter="widget" aria-pressed="false">Widget</button>
+          <button class="chip" type="button" data-filter="page" aria-pressed="false">Page</button>
+          <button class="chip" type="button" data-filter="object" aria-pressed="false">Object</button>
+          <button class="chip" type="button" data-filter="scene" aria-pressed="false">Scene</button>
+          <button class="chip" type="button" data-filter="play" aria-pressed="false">Play</button>
+        </div>
+        </section>
+
+        <section class="section" id="data" data-category="data">
+          <div class="sec-head">
+            <h2>Data</h2>
+            <span class="sec-note">12 pieces · Dashboards, finance, tables and analytical views · 数据 / 财务 / 表格</span>
+          </div>
+          <div class="grid">
+          <a class="piece" href="./finance-dashboard/" data-text="finance dashboard twelve cards on warm cream, cut from a reference at 1624 × 900 — sparklines, dot matrices, and buttons that answer back. react 19 inline svg motion" data-kind="finished" data-category="data">
+            <div class="plate plate--interface" style="--a:#eaeae6;--b:#ff5b14;--m:rgba(20,20,22,0.38)">
+              <span class="no">01</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Finance Dashboard</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>Twelve cards on warm cream, cut from a reference at 1624 × 900 — sparklines, dot matrices, and buttons that answer back.</p>
+              <ul class="tags"><li>React 19</li><li>inline SVG</li><li>motion</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./interactive-data-dashboard/" data-text="folio — data dashboard a data-visualisation template with responsive svg charts, live filters, scrollytelling columns and seven wcag-aa themes; switch the edition and export the table. svg scrollytelling 7 themes" data-kind="finished" data-category="data">
+            <div class="plate plate--interface" style="--a:#ede7dd;--b:#6c50f6;--m:rgba(20,20,22,0.38)">
+              <span class="no">02</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Folio — Data Dashboard</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A data-visualisation template with responsive SVG charts, live filters, scrollytelling columns and seven WCAG-AA themes; switch the edition and export the table.</p>
+              <ul class="tags"><li>SVG</li><li>scrollytelling</li><li>7 themes</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./sundrel-metrics/" data-text="sundrel metrics a project manager's dashboard: a lime hero, seven cards on a sage field, a ball made of gradients, and a task that drops into the roadmap. one html file inline js dashboard" data-kind="finished" data-category="data">
+            <div class="plate plate--interface" style="--a:#e4ecd4;--b:#bfd94a;--m:rgba(20,20,22,0.38)">
+              <span class="no">03</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Sundrel Metrics</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A project manager's dashboard: a lime hero, seven cards on a sage field, a ball made of gradients, and a task that drops into the roadmap.</p>
+              <ul class="tags"><li>one HTML file</li><li>inline JS</li><li>dashboard</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./orbend-dashboard/" data-text="orbend a two-page sales dashboard: revenue and channels, a dense order table, and a drawer that opens on a row. react tailwind dashboard" data-kind="finished" data-category="data">
+            <div class="plate plate--interface" style="--a:#0e1116;--b:#9ae6b4;--m:rgba(255,255,255,0.55)">
+              <span class="no">04</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Orbend</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A two-page sales dashboard: revenue and channels, a dense order table, and a drawer that opens on a row.</p>
+              <ul class="tags"><li>React</li><li>Tailwind</li><li>dashboard</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./amara-dashboard/" data-text="amara a finance dashboard in a warm paper palette: balances, cards, a spending timeline and a quiet navigation rail. react tailwind dashboard" data-kind="finished" data-category="data">
+            <div class="plate plate--interface" style="--a:#f4efe6;--b:#b4553a;--m:rgba(20,20,22,0.38)">
+              <span class="no">05</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Amara</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A finance dashboard in a warm paper palette: balances, cards, a spending timeline and a quiet navigation rail.</p>
+              <ul class="tags"><li>React</li><li>Tailwind</li><li>dashboard</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./wetrust-console/" data-text="wetrust console an enterprise wechat-ecosystem governance console: a china tile map, dense tables, a command palette and a guided tour. react tailwind console" data-kind="finished" data-category="data">
+            <div class="plate plate--interface" style="--a:#101828;--b:#ff8a3d;--m:rgba(255,255,255,0.55)">
+              <span class="no">06</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>WeTrust Console</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>An enterprise WeChat-ecosystem governance console: a China tile map, dense tables, a command palette and a guided tour.</p>
+              <ul class="tags"><li>React</li><li>Tailwind</li><li>console</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./alphaqubit/" data-text="alphaqubit a quantum error-decoding visualisation: a 3d surface-code lattice, decoder diagrams and the numbers behind them. react react-three-fiber science" data-kind="finished" data-category="data">
+            <div class="plate plate--interface" style="--a:#05070f;--b:#6ee7ff;--m:rgba(255,255,255,0.55)">
+              <span class="no">07</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>AlphaQubit</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A quantum error-decoding visualisation: a 3D surface-code lattice, decoder diagrams and the numbers behind them.</p>
+              <ul class="tags"><li>React</li><li>react-three-fiber</li><li>science</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./client-dashboard/" data-text="client dashboard a client-management dashboard cut from a reference at 794 x 444: a lavender pro plan card with a floating prism, a week of worked hours in bars, virtual cards, a spending line and a contract-type bubble field. one html file inline svg dashboard" data-kind="finished" data-category="data">
+            <div class="plate plate--interface" style="--a:#dfe3f2;--b:#cfe03c;--m:rgba(20,20,22,0.38)">
+              <span class="no">08</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Client Dashboard</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A client-management dashboard cut from a reference at 794 x 444: a lavender plan card with a floating prism, a week of worked hours in bars, virtual cards, a spending line and a contract-type bubble field.</p>
+              <ul class="tags"><li>one HTML file</li><li>inline SVG</li><li>dashboard</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./rollbank-dashboard/" data-text="rollbank dashboard a finance dashboard cut from a reference at 832 x 482: a dark frame around a pale room with a balance chart, a periwinkle credit card, a half-ring 90% gauge, three transactions and a 60/40 spending bar. one html file inline svg dashboard" data-kind="finished" data-category="data">
+            <div class="plate plate--interface" style="--a:#a3b8ee;--b:#17171e;--m:rgba(20,20,22,0.38)">
+              <span class="no">09</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>RollBank Dashboard</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A finance dashboard cut from a reference at 832 × 482: a dark frame around a pale room — a balance chart, a periwinkle credit card, a half-ring 90% gauge, three transactions and a two-tone spending bar.</p>
+              <ul class="tags"><li>one HTML file</li><li>inline SVG</li><li>dashboard</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./zemu-dashboard/" data-text="zemu dashboard a personal-finance dashboard cut from a reference at 770 x 424: a mint-to-lime balance card, a five-month bar chart, a spending ring, stacked cards over a lavender one, a subscription list and a transaction ledger. one html file inline svg dashboard" data-kind="finished" data-category="data">
+            <div class="plate plate--interface" style="--a:#0d0d10;--b:#cbeb6e;--m:rgba(255,255,255,0.55)">
+              <span class="no">10</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Zemü Dashboard</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A personal-finance dashboard cut from a reference at 770 × 424: a mint-to-lime balance card, a five-month bar chart, a spending ring, stacked cards over a lavender one and a subscription list.</p>
+              <ul class="tags"><li>one HTML file</li><li>inline SVG</li><li>dashboard</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./yuanshan-crm/" data-text="yuanshan crm a consultancy client desk: an ink-green monthly overview and five-stage funnel, a pipeline advanced by dragging, a searchable client ledger, a communication timeline and six languages, on warm paper. react 19 vite 7 tailwind 4 dnd-kit" data-kind="finished" data-category="data">
+            <div class="plate plate--interface" style="--a:#f6f5f0;--b:#1e3a32;--m:rgba(255,255,255,0.55)">
+              <span class="no">11</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Yuanshan CRM</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A consultancy's client desk: an ink-green monthly overview and five-stage funnel, a pipeline advanced by dragging, a searchable client ledger and a communication timeline, in six languages.</p>
+              <ul class="tags"><li>React 19</li><li>Vite 7</li><li>Tailwind 4</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./xiaolu-staff/?locale=zh-CN#/staff" data-text="xiaolu art studio class notebook a children's art-studio notebook: today's lessons, a weekly timetable, young-artist profiles, roll call, lesson balances and a small artwork wall. react 19 trpc in-page six languages" data-kind="finished" data-category="data">
+            <div class="plate plate--interface" style="--a:#fff8ec;--b:#e8a26a;--m:rgba(20,20,22,0.38)">
+              <span class="no">12</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>小鹿美术 · 教务小本子</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A children's art-studio class notebook: today's lessons, a weekly timetable, young-artist profiles, roll call, lesson balances and a small artwork wall.</p>
+              <ul class="tags"><li>React 19</li><li>tRPC in-page</li><li>6 languages</li></ul>
+            </div>
+          </a>
+          </div>
+        </section>
+
+        <section class="section" id="widget" data-category="widget">
+          <div class="sec-head">
+            <h2>Widget</h2>
+            <span class="sec-note">8 pieces · Small tools, toggles, sign-in prototypes and utilities · 小组件 / 工具 / 登录原型</span>
+          </div>
+          <div class="grid">
+          <a class="piece" href="./paper-widgets/" data-text="paper widgets seven everyday widgets in one paper-white style, on an 11-second loop. every frame is a pure function of time, so it exports frame-exact. react 19 vite 8 css modules" data-kind="finished" data-category="widget">
+            <div class="plate plate--interface" style="--a:#f4f2ec;--b:#2b36ff;--m:rgba(255,255,255,0.55)">
+              <span class="no">13</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Paper Widgets</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>Seven everyday widgets in one paper-white style, on an 11-second loop. Every frame is a pure function of time, so it exports frame-exact.</p>
+              <ul class="tags"><li>React 19</li><li>Vite 8</li><li>CSS Modules</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./aquarium-toggle/" data-text="aquarium toggle a light/dark switch that is a glass pill holding a pixel aquarium: 144 × 76 cells at 30 hz, drawn by one webgl2 shader. react 19 webgl2 canvas" data-kind="finished" data-category="widget">
+            <div class="plate plate--interface" style="--a:#a9e0d3;--b:#287a88;--m:rgba(20,20,22,0.38)">
+              <span class="no">14</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Aquarium Toggle</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A light/dark switch that is a glass pill holding a pixel aquarium: 144 × 76 cells at 30 Hz, drawn by one WebGL2 shader.</p>
+              <ul class="tags"><li>React 19</li><li>WebGL2</li><li>Canvas</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./pip-login/" data-text="pip login a sign-in card with a little robot: led eyes read along as you type, cross out a bad email and turn to hearts on sign-in. react 19 canvas led 14 s loop" data-kind="finished" data-category="widget">
+            <div class="plate plate--interface" style="--a:#f4f2ee;--b:#141416;--m:rgba(255,255,255,0.55)">
+              <span class="no">15</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Pip Login</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A sign-in card with a little robot: LED eyes read along as you type, cross out a bad email and turn to hearts on sign-in.</p>
+              <ul class="tags"><li>React 19</li><li>Canvas LED</li><li>14 s loop</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./night-dial/" data-text="night dial a sleep schedule dial wrapped around a day-and-night sphere: set bedtime and wake, turn the hours, watch the light change. react vite svg" data-kind="finished" data-category="widget">
+            <div class="plate plate--interface" style="--a:#0d1730;--b:#efc775;--m:rgba(255,255,255,0.55)">
+              <span class="no">16</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Night Dial</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A sleep schedule dial wrapped around a day-and-night sphere: set bedtime and wake, turn the hours, watch the light change.</p>
+              <ul class="tags"><li>React</li><li>Vite</li><li>SVG</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./ming-ming-name/" data-text="明名 ming ming write your chinese name a calligraphy desk: type a name in any language, swap the characters, set it in kai, xing, cao or li, add a seal, watch the strokes and download a png. hanzi-writer calligraphy no build" data-kind="finished" data-category="widget">
+            <div class="plate plate--interface" style="--a:#efe7d4;--b:#1c1a17;--m:rgba(20,20,22,0.35)">
+              <span class="no">17</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>明名 · Ming Ming</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A calligraphy desk: type a name in any language, swap the characters, set it down in kai, xing, cao or li, add a seal, watch the strokes arrive and take a PNG away.</p>
+              <ul class="tags"><li>hanzi-writer</li><li>calligraphy</li><li>no build</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./text-grow/" data-text="text grow type a word and it sprouts into flowers, trees, grass or a crowd of minions — the bloom sweeps left to right, then settles back into ink. canvas 2d vanilla js emoji" data-kind="finished" data-category="widget">
+            <div class="plate plate--play" style="--a:#f2eee4;--b:#232320;--m:rgba(255,255,255,0.55)">
+              <span class="no">18</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Text Grow</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>Type a word and it sprouts into flowers, trees, grass or a crowd of minions — the bloom sweeps left to right, then settles back into ink.</p>
+              <ul class="tags"><li>Canvas 2D</li><li>vanilla JS</li><li>emoji</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./heart-lab/" data-text="heart lab a heart-shaped formula lab: ink, motion, duration and line weight, a scrubbable timeline, and svg export, still or animated. svg matter-js toy" data-kind="finished" data-category="widget">
+            <div class="plate plate--play" style="--a:#f4ece6;--b:#c0392b;--m:rgba(20,20,22,0.38)">
+              <span class="no">19</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>heart lab</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A heart-shaped formula lab: choose ink, motion, duration and line weight, scrub the drawing, then export it still or animated as SVG.</p>
+              <ul class="tags"><li>SVG</li><li>matter-js</li><li>toy</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./fluid-simulation/" data-text="fluid simulation a webgl fluid field that follows the pointer: dye blooms, curls and settles under bloom and sunrays, with a panel for every term. webgl glsl gpu toy pavel dobryakov" data-kind="finished" data-category="widget">
+            <div class="plate plate--play" style="--a:#05060a;--b:#2b36ff;--m:rgba(255,255,255,0.55)">
+              <span class="no">20</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Fluid Simulation</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A WebGL fluid field that follows the pointer: dye blooms, curls and settles under bloom and sunrays, with a panel for every term.</p>
+              <ul class="tags"><li>WebGL</li><li>GLSL</li><li>toy</li></ul>
+            </div>
+          </a>
+          </div>
+        </section>
+
+        <section class="section" id="page" data-category="page">
+          <div class="sec-head">
+            <h2>Page</h2>
+            <span class="sec-note">7 pieces · Product, editorial and content pages · 产品 / 内容网页</span>
+          </div>
+          <div class="grid">
+          <a class="piece" href="./wechat-unfolded/" data-text="微信 unfolded a dual-platform wechat ui archive: 12 desktop screens and 26 phone screens, live-synced, with dark mode, type-size controls and design-spec overlays. react 38 screens design system" data-kind="finished" data-category="page">
+            <div class="plate plate--interface" style="--a:#eef1ea;--b:#07c160;--m:rgba(20,20,22,0.38)">
+              <span class="no">21</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>微信 unfolded</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A dual-platform WeChat UI archive: 12 desktop screens and 26 phone screens, live-synced, with dark mode, type-size controls and design-spec overlays.</p>
+              <ul class="tags"><li>React</li><li>38 screens</li><li>design system</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./every-joule/" data-text="every joule a three-page science lesson: a pop-up book on energy stores that turns its own pages, sources and teachers' notes. three.js book education" data-kind="finished" data-category="page">
+            <div class="plate plate--interface" style="--a:#f7f2e7;--b:#d97706;--m:rgba(20,20,22,0.38)">
+              <span class="no">22</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Every Joule</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A three-page science lesson: a pop-up book on energy stores that turns its own pages, sources and teachers' notes.</p>
+              <ul class="tags"><li>three.js</li><li>book</li><li>education</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./anywhere/" data-text="anywhere a paper globe of forty-eight places: spin it, open a place card, read where the picture was taken. the shelf cut includes an illustrated sample traveller. react globe photography" data-kind="finished" data-category="page">
+            <div class="plate plate--interface" style="--a:#0b1220;--b:#66e3b4;--m:rgba(255,255,255,0.55)">
+              <span class="no">23</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Anywhere</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A paper globe of forty-eight places: spin it, open a place card and read where the picture was taken. The shelf cut includes an illustrated sample traveller.</p>
+              <ul class="tags"><li>React</li><li>globe</li><li>photography</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./earshot-fennec/" data-text="earshot a game-marketing site for a fennec fox that outruns a morphing world: a salt-flat hero, three auto-advancing worlds, the kit, routes, league and a live distance counter. react 19 tailwind 4 site" data-kind="finished" data-category="page">
+            <div class="plate plate--interface" style="--a:#e2b08a;--b:#2b2320;--m:rgba(255,255,255,0.55)">
+              <span class="no">24</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>EARSHOT</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A game-marketing site for a fennec fox that outruns a morphing world: a salt-flat hero, three auto-advancing worlds, the kit, routes, league and a live distance counter.</p>
+              <ul class="tags"><li>React 19</li><li>Tailwind 4</li><li>site</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./e-commerce-landing-page/" data-text="material flask a water-bottle brand cut as an editorial product page: a matte flask, macro photography, scroll-driven chapters and a quiet purchase path. react gsap commerce" data-kind="finished" data-category="page">
+            <div class="plate plate--interface" style="--a:#f2efe7;--b:#8c9b7a;--m:rgba(20,20,22,0.38)">
+              <span class="no">25</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Material Flask</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A water-bottle brand cut as an editorial product page: a matte flask, macro photography, scroll-driven chapters and a quiet purchase path.</p>
+              <ul class="tags"><li>React</li><li>GSAP</li><li>commerce</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./lumina-festival/" data-text="lumina festival an immersive festival landing page in deep indigo: a fluid light field, glitch type, artist cards and a small ai concierge. react motion festival" data-kind="finished" data-category="page">
+            <div class="plate plate--interface" style="--a:#1b1c4a;--b:#ec7dc0;--m:rgba(255,255,255,0.55)">
+              <span class="no">26</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Lumina Festival</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>An immersive festival landing page in deep indigo: a fluid light field, glitch type, artist cards and a small AI concierge.</p>
+              <ul class="tags"><li>React</li><li>motion</li><li>festival</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./espresso-bench/" data-text="espresso bench — bean to cup an eight-step isometric cutaway of a home espresso bench: grind, wdt, level, tamp, lock in, brew and cup, with a small puck model driving the gauge and the verdict. svg isometric espresso generative" data-kind="finished" data-category="page">
+            <div class="plate plate--interface" style="--a:#f4f0e8;--b:#b4663b;--m:rgba(20,20,22,0.38)">
+              <span class="no">27</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Espresso Bench — Bean to Cup</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A bean-to-cup espresso bench in eight isometric steps: grind, WDT, level, tamp, lock in, brew, cup. The bench and machine are generated geometry, and a small puck model drives the gauge and the verdict.</p>
+              <ul class="tags"><li>SVG</li><li>isometric</li><li>espresso</li><li>generative</li></ul>
+            </div>
+          </a>
+          </div>
+        </section>
+
+        <section class="section" id="object" data-category="object">
+          <div class="sec-head">
+            <h2>Object</h2>
+            <span class="sec-note">10 pieces · 3D objects, characters, products and spatial interactions · 3D 物件 / 空间交互</span>
+          </div>
+          <div class="grid">
+          <a class="piece" href="./vinyl-archive/" data-text="sable — disc archive a 3d record archive: sleeves on a shelf, a disc you can pull out and spin, and a sleeve that opens into a release page. react three.js audio" data-kind="finished" data-category="object">
+            <div class="plate plate--interface" style="--a:#111013;--b:#d9cfbf;--m:rgba(255,255,255,0.55)">
+              <span class="no">28</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Sable — Disc Archive</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A 3D record archive: sleeves on a shelf, a disc you can pull out and spin, and a sleeve that opens into a release page.</p>
+              <ul class="tags"><li>React</li><li>three.js</li><li>audio</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./discography/" data-text="discography a rack of cds you can handle: pull a jewel case off the shelf, turn it over, open the booklet and put the disc on a player for a thirty-second preview. solidjs three.js cd archive" data-kind="finished" data-category="object">
+            <div class="plate plate--interface" style="--a:#17151a;--b:#d9c3a0;--m:rgba(255,255,255,0.55)">
+              <span class="no">29</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Discography</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A rack of CDs you can handle: pull a jewel case off the shelf, turn it over, open the booklet and put the disc on a player for a thirty-second preview.</p>
+              <ul class="tags"><li>SolidJS</li><li>three.js</li><li>CD archive</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./vinyl-player/" data-text="vinyl — record player a record player simulated from the groove up: the music is cut into a spiral, and a stylus on a cantilever reads the two walls back on the audio thread. hiss, crackle and scratches are the geometry, not effects; drop a file in and the lathe cuts it. web audio webgl2 no dependencies" data-kind="finished" data-category="object">
+            <div class="plate plate--interface" style="--a:#0d0f13;--b:#cdbfa6;--m:rgba(255,255,255,0.55)">
+              <span class="no">30</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Vinyl — Record Player</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A record player simulated from the groove up: the music is cut into a spiral, and a stylus on a cantilever reads the two walls back on the audio thread. Hiss, crackle and scratches are the geometry, not effects; drop a file in and the lathe cuts it.</p>
+              <ul class="tags"><li>Web Audio</li><li>WebGL2</li><li>no dependencies</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./mochi-puff/" data-text="mochi-puff a gpu fur simulation: comb a fluffy creature, then switch scenes and paint grass across a meadow. three.js webgl gpu" data-kind="finished" data-category="object">
+            <div class="plate plate--scene" style="--a:#f6e8ef;--b:#c98bb0;--m:rgba(20,20,22,0.38)">
+              <span class="no">31</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Mochi-Puff</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A GPU fur simulation: comb a fluffy creature, then switch scenes and paint grass across a meadow.</p>
+              <ul class="tags"><li>three.js</li><li>WebGL</li><li>GPU</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./saltus-sx8/" data-text="saltus sx-8 a procedural robotic jumping spider: rappel, walk, leap, open every assembly and tear it down. three.js simulator one file" data-kind="finished" data-category="object">
+            <div class="plate plate--scene" style="--a:#0e1412;--b:#9ee37d;--m:rgba(255,255,255,0.55)">
+              <span class="no">32</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Saltus SX-8</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A procedural robotic jumping spider: rappel, walk, leap, open every assembly and tear it down.</p>
+              <ul class="tags"><li>three.js</li><li>simulator</li><li>one file</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./nautilus-nx-12/" data-text="nautilus nx-12 a chambered-nautilus submersible you can open up, part by part, and read the live sim. three.js simulator one file" data-kind="finished" data-category="object">
+            <div class="plate plate--scene" style="--a:#0a1a22;--b:#63d3c9;--m:rgba(255,255,255,0.55)">
+              <span class="no">33</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Nautilus NX-12</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A chambered-nautilus submersible you can open up, part by part, and read the live sim.</p>
+              <ul class="tags"><li>three.js</li><li>simulator</li><li>one file</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./splat-fashion/" data-text="splat fashion three real outfits captured as gaussian splats on one figure: it breathes, its head follows the camera, every piece is labelled, and one outfit morphs into the next — a rig with no mesh. playcanvas. playcanvas gaussian splats webgpu" data-kind="finished" data-category="object">
+            <div class="plate plate--scene" style="--a:#efe6dc;--b:#15161a;--m:rgba(20,20,22,0.38)">
+              <span class="no">34</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Splat Fashion</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>Three real outfits captured as Gaussian splats on one figure: it breathes, its head follows the camera, every piece is labelled, and one outfit morphs into the next — a rig with no mesh. PlayCanvas.</p>
+              <ul class="tags"><li>PlayCanvas</li><li>Gaussian splats</li><li>WebGPU</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./building-configurator-threejs/" data-text="volumecraft parametric building configurator a split-view cad studio: drag an exposed face to extrude, carve, split or setback, while a full pbr building with hollow interiors, fresnel glazing, terraces, pilotis and hdri light rebuilds live beside the view. three.js webgpu tsl react 19 typescript vite" data-kind="finished" data-category="object">
+            <div class="plate plate--scene" style="--a:#d9c6a5;--b:#6b5540;--m:rgba(255,255,255,0.55)">
+              <span class="no">35</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>VolumeCraft — Parametric Building Configurator</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A split-view parametric building studio: drag an exposed face to extrude, carve, split or setback, and a full-PBR building with hollow interiors, Fresnel glazing, terraces, pilotis and HDRI light rebuilds live beside the CAD view.</p>
+              <ul class="tags"><li>Three.js WebGPU</li><li>React 19</li><li>TypeScript</li><li>Procedural</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./vessel-threejs-showcase/" data-text="the vessel procedural showcase a procedural honeycomb staircase for hudson yards: 88 landings, 160 flights and 2,240 steps rebuilt from 32 live parameters, with five cameras, four lighting moods and glb export. three.js react 19 typescript procedural" data-kind="finished" data-category="object">
+            <div class="plate plate--scene" style="--a:#171310;--b:#c9835b;--m:rgba(255,255,255,0.5)">
+              <span class="no">36</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>The Vessel — Procedural Showcase</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A procedural honeycomb staircase for Hudson Yards: 88 landings, 160 flights and 2,240 steps rebuilt from 32 live parameters, with five cameras, four lighting moods and GLB export.</p>
+              <ul class="tags"><li>Three.js</li><li>React 19</li><li>Procedural</li><li>116K tris</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./seraphina-frostweaver/" data-text="seraphina frostweaver interactive 3d champion character showcase frost armor portrait sky realm three.js real time webgl orbit pose animation" data-kind="finished" data-category="object">
+            <div class="plate plate--scene" style="--a:#07131c;--b:#54e6ff;--m:rgba(255,255,255,0.55)">
+              <span class="no">37</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Seraphina — The Frostweaver</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>An interactive 3D champion showcase: a high-fidelity frost-armored character, a portrait plate and a painted sky realm, rendered in real time with Three.js. Orbit the figure and change its pose and animation.</p>
+              <ul class="tags"><li>React 19</li><li>Three.js</li><li>Character</li><li>Vite</li></ul>
+            </div>
+          </a>
+          </div>
+        </section>
+
+        <section class="section" id="scene" data-category="scene">
+          <div class="sec-head">
+            <h2>Scene</h2>
+            <span class="sec-note">26 pieces · 3D environments, rooms, skies and animation · 3D 场景 / 动画</span>
+          </div>
+          <div class="grid">
+          <a class="piece" href="./cathedral-walk/" data-text="cathedral walk a first-person walk down a reconstructed cathedral nave — stone, glass, time of day — in plain three.js. three.js no build walk" data-kind="finished" data-category="scene">
+            <div class="plate plate--interface" style="--a:#1b1a17;--b:#d9c7a3;--m:rgba(255,255,255,0.55)">
+              <span class="no">38</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Cathedral Walk</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A first-person walk down a reconstructed cathedral nave — stone, glass, time of day — in plain three.js.</p>
+              <ul class="tags"><li>three.js</li><li>no build</li><li>walk</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./sunlit-crown/" data-text="the sunlit crown a throne hall in one file: columns, hanging banners, dust in the light, and a crown at the far end. three.js one file architecture" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#d9b26a;--b:#6b2a1e;--m:rgba(255,255,255,0.55)">
+              <span class="no">39</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>The Sunlit Crown</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A throne hall in one file: columns, hanging banners, dust in the light, and a crown at the far end.</p>
+              <ul class="tags"><li>three.js</li><li>one file</li><li>architecture</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./aetheria/" data-text="aetheria a whale carrying a castle through a pastel sky; drag to look around, scroll to drift closer. react three.js procedural" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#9fd8e8;--b:#f4d9b0;--m:rgba(20,20,22,0.38)">
+              <span class="no">40</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Aetheria</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A whale carrying a castle through a pastel sky; drag to look around, scroll to drift closer.</p>
+              <ul class="tags"><li>React</li><li>three.js</li><li>procedural</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./ivory-sanctuary/" data-text="the ivory sanctuary a white-domed sanctuary on a stair between earth and sky, above a sea of clouds. enter it, drag to look around, and walk the quiet terrace. three.js sanctuary one file" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#dce7f1;--b:#f6efdf;--m:rgba(20,20,22,0.38)">
+              <span class="no">41</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>The Ivory Sanctuary</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A white-domed sanctuary on a stair between earth and sky, above a sea of clouds. Enter it, drag to look around, and walk the quiet terrace.</p>
+              <ul class="tags"><li>three.js</li><li>sanctuary</li><li>one file</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./aetherwick-dormitory/" data-text="the dormitory a witch's dormitory in golden-hour light: a lived-in room, a desk, a field journal and a portrait that follows. react css interior" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#2a1d14;--b:#d9b98a;--m:rgba(255,255,255,0.55)">
+              <span class="no">42</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>The Dormitory</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A witch's dormitory in golden-hour light: a lived-in room, a desk, a field journal and a portrait that follows.</p>
+              <ul class="tags"><li>React</li><li>CSS</li><li>interior</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./lumiloom/" data-text="lumiloom a dressmaker's room after dark: a gown in simulated tulle, a wand for a cursor, and a pattern book of ten finished dresses. webgl2 cloth one file" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#181420;--b:#e79ab5;--m:rgba(255,255,255,0.55)">
+              <span class="no">43</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Lumiloom</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A dressmaker's room after dark: a gown in simulated tulle, a wand for a cursor, and a pattern book of ten finished dresses.</p>
+              <ul class="tags"><li>WebGL2</li><li>cloth</li><li>one file</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./prism/" data-text="prism white light through rings of glass prisms, diffraction film and dichroic cubes, landing as a flower of spectra on a plaster wall. three.js optics one file" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#0a0a0f;--b:#8b7cf6;--m:rgba(255,255,255,0.55)">
+              <span class="no">44</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Prism</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>White light through rings of glass prisms, diffraction film and dichroic cubes, landing as a flower of spectra on a plaster wall.</p>
+              <ul class="tags"><li>three.js</li><li>optics</li><li>one file</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./koi-cloud-sea/" data-text="koi of the cloud sea an animated voxel diorama: a koi swimming over a sea of clouds with a small garden on its back. three.js voxel one file" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#dfe9f5;--b:#e0654f;--m:rgba(20,20,22,0.38)">
+              <span class="no">45</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Koi of the Cloud Sea</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>An animated voxel diorama: a koi swimming over a sea of clouds with a small garden on its back.</p>
+              <ul class="tags"><li>three.js</li><li>voxel</li><li>one file</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./koi-garden/" data-text="koi garden a voxel koi carrying a japanese garden over a sea of clouds — about fifteen thousand voxels, one html file. three.js voxel one file" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#ffe9d2;--b:#d9543d;--m:rgba(20,20,22,0.38)">
+              <span class="no">46</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Koi Garden</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A voxel koi carrying a Japanese garden over a sea of clouds — about fifteen thousand voxels, one HTML file.</p>
+              <ul class="tags"><li>three.js</li><li>voxel</li><li>one file</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./rain-dance/" data-text="eight beats of rain eight scenes of love in the rain, cut together as one three.js poem. react three.js sequence" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#171a22;--b:#8ab4ff;--m:rgba(255,255,255,0.55)">
+              <span class="no">47</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Eight Beats of Rain</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>Eight scenes of love in the rain, cut together as one three.js poem.</p>
+              <ul class="tags"><li>React</li><li>three.js</li><li>sequence</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./rain-waltz/" data-text="rain waltz a single-file poem in eight scenes: a girl under a lamplight, rain and a red-lit street, moved through by a waltz. three.js one file poem" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#2a1114;--b:#c4553d;--m:rgba(255,255,255,0.55)">
+              <span class="no">48</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Rain Waltz</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A single-file poem in eight scenes: a girl under a lamplight, rain and a red-lit street, moved through by a waltz.</p>
+              <ul class="tags"><li>three.js</li><li>one file</li><li>poem</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./blossom-valley/" data-text="sakura storm valley a procedural anime valley of cherry blossoms: wind, falling petals and hills that keep going. react three.js procedural" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#fbe9ef;--b:#e26d9a;--m:rgba(20,20,22,0.38)">
+              <span class="no">49</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Sakura Storm Valley</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A procedural anime valley of cherry blossoms: wind, falling petals and hills that keep going.</p>
+              <ul class="tags"><li>React</li><li>three.js</li><li>procedural</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./chaco-canyon/" data-text="chaco canyon a 3d digital twin of pueblo bonito: lidar stages, archival plates and an archaeoastronomy view of the great house. three.js data heritage" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#d9a06a;--b:#5b3a24;--m:rgba(255,255,255,0.55)">
+              <span class="no">50</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Chaco Canyon</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A 3D digital twin of Pueblo Bonito: LiDAR stages, archival plates and an archaeoastronomy view of the great house.</p>
+              <ul class="tags"><li>three.js</li><li>data</li><li>heritage</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./golden-hour-fox/" data-text="golden hour fox a voxel fox on a ridge at golden hour, built block by block. three.js voxel one file" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#f3c27a;--b:#8a4b2a;--m:rgba(255,255,255,0.55)">
+              <span class="no">51</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Golden Hour Fox</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A voxel fox on a ridge at golden hour, built block by block.</p>
+              <ul class="tags"><li>three.js</li><li>voxel</li><li>one file</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./lamplighter/" data-text="the lamplighter a tiny voxel planet, its lamplighter and the lights he keeps. three.js voxel one file" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#131a2b;--b:#ffcf7a;--m:rgba(255,255,255,0.55)">
+              <span class="no">52</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>The Lamplighter</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A tiny voxel planet, its lamplighter and the lights he keeps.</p>
+              <ul class="tags"><li>three.js</li><li>voxel</li><li>one file</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./asteroid-b612/" data-text="asteroid b612 a clay asteroid, a rose and a quiet twilight sky. three.js voxel one file" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#2a2233;--b:#e2618a;--m:rgba(255,255,255,0.55)">
+              <span class="no">53</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Asteroid B612</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A clay asteroid, a rose and a quiet twilight sky.</p>
+              <ul class="tags"><li>three.js</li><li>voxel</li><li>one file</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./rose-garden/" data-text="rose garden a clay rose pavilion, still and warm, in a single file. three.js clay one file" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#e8c9c2;--b:#7a3b3b;--m:rgba(255,255,255,0.55)">
+              <span class="no">54</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Rose Garden</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A clay rose pavilion, still and warm, in a single file.</p>
+              <ul class="tags"><li>three.js</li><li>clay</li><li>one file</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./hollywood-sky-island/" data-text="hollywood — voxel sky island a floating hollywood built block by block: the hills and sign, a chinese theatre, a ferris wheel, palms and a pool on a slab of layered earth over a pastel cloud sea. three.js voxel one file" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#f0c6c8;--b:#8c5848;--m:rgba(255,255,255,0.55)">
+              <span class="no">55</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Hollywood — Voxel Sky Island</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A floating Hollywood built block by block: the hills and sign, a Chinese Theatre, a ferris wheel, palms and a pool on a slab of layered earth over a pastel cloud sea.</p>
+              <ul class="tags"><li>three.js</li><li>voxel</li><li>one file</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./sunny-well/" data-text="sunny well a bright voxel meadow with a stone well under a wooden roof: scroll to lower the bucket, drag the crank to wind it back up, and orbit the clearing. three.js voxel one file" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#8ecae6;--b:#f4e7b8;--m:rgba(20,20,22,0.38)">
+              <span class="no">56</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Sunny Well</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A bright voxel meadow with a stone well under a wooden roof: scroll to lower the bucket, drag the crank to wind it back up, and orbit the clearing.</p>
+              <ul class="tags"><li>three.js</li><li>voxel</li><li>one file</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./a-small-light/" data-text="a small light an animated voxel prince alone on a rose-coloured dune: a crown-shaped constellation gathers above him, motes rise from the sand, and dusk turns into night. three.js voxel particles" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#8b5d68;--b:#211a2a;--m:rgba(255,255,255,0.55)">
+              <span class="no">57</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>A Small Light</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>An animated voxel prince alone on a rose-coloured dune: a crown-shaped constellation gathers above him, motes rise from the sand, and dusk turns into night.</p>
+              <ul class="tags"><li>three.js</li><li>voxel</li><li>particles</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./koerner-hall/" data-text="koerner hall — spatial acoustics toronto's koerner hall as a 3d acoustic model: a c. 1780 stein-schule fortepiano, five period recordings and seat-by-seat listening across 1,135 seats. three.js acoustics fortepiano" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#1a1510;--b:#c4a272;--m:rgba(255,255,255,0.55)">
+              <span class="no">58</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Koerner Hall — Spatial Acoustics</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>Toronto's Koerner Hall as a 3D acoustic model: a c. 1780 Stein-Schule fortepiano, five period recordings and seat-by-seat listening across 1,135 seats.</p>
+              <ul class="tags"><li>three.js</li><li>acoustics</li><li>fortepiano</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./eiffel-construction/" data-text="eiffel tower — 14-second build the 1887–1889 construction compressed into fourteen seconds: eight cranes, 285 figures, five lifts, a scrubbable timeline and a live source panel. three.js glsl construction" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#0b1327;--b:#d9a24b;--m:rgba(255,255,255,0.55)">
+              <span class="no">59</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Eiffel Tower — 14-Second Build</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>The 1887–1889 construction compressed into fourteen seconds: eight cranes, 285 figures, five lifts, a scrubbable timeline and a live source panel.</p>
+              <ul class="tags"><li>three.js</li><li>GLSL</li><li>construction</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./eiffel-tower-3d/" data-text="eiffel tower 3d gustave eiffel's 1889 tower as a walkable reconstruction from the original engineering plates: climb the galleries, inspect the lifts and read the archive. three.js architecture archive" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#0c1624;--b:#d2a65b;--m:rgba(255,255,255,0.55)">
+              <span class="no">60</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Eiffel Tower 3D</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>Gustave Eiffel's 1889 tower as a walkable reconstruction from the original engineering plates: climb the galleries, inspect the lifts and read the archive.</p>
+              <ul class="tags"><li>three.js</li><li>architecture</li><li>archive</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./slop-newyork/" data-text="slop new york mrdoob's new york simulation: manhattan on foot, by car, by bicycle or by helicopter, built from building footprints, trees, subway entrances and the road network, in three.js webgpu and tsl. three.js webgpu city" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#c8d6e4;--b:#20242b;--m:rgba(20,20,22,0.38)">
+              <span class="no">61</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Slop New York</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>mrdoob's New York simulation: Manhattan on foot, by car, by bicycle or by helicopter, built from building footprints, trees, subway entrances and the road network, in three.js WebGPU and TSL.</p>
+              <ul class="tags"><li>three.js</li><li>WebGPU</li><li>city</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./half-the-sky/" data-text="half the sky a wall of thirty-two women carved in low relief: walk the hall, open a figure for her portrait and chronology, or talk to the host. one html file python backend" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#efe6d3;--b:#2a2622;--m:rgba(20,20,22,0.38)">
+              <span class="no">62</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Half the Sky</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>Thirty-two women carved in low relief, in a hall you can walk: open a figure for her portrait and chronology, or talk to the host at the end of the wall. One HTML file, with an optional Python backend for the conversation.</p>
+              <ul class="tags"><li>One HTML file</li><li>32 reliefs</li><li>conversation</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./westbrook-central/" data-text="westbrook central procedural photoreal train station barrel vault canopy island platform track signal footbridge live train parametric geometry canvas textures rulebook review" data-kind="finished" data-category="scene">
+            <div class="plate plate--scene" style="--a:#121417;--b:#c98b4f;--m:rgba(255,255,255,0.55)">
+              <span class="no">63</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Westbrook Central</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A procedural photoreal train station: a barrel-vault canopy, island platforms, track and signals, a glazed footbridge and a live train, rebuilt from a measured rulebook and reviewed against reference photography. No downloaded scene assets.</p>
+              <ul class="tags"><li>React 19</li><li>Three.js</li><li>Procedural</li><li>Vite</li></ul>
+            </div>
+          </a>
+          </div>
+        </section>
+
+        <section class="section" id="play" data-category="play">
+          <div class="sec-head">
+            <h2>Play</h2>
+            <span class="sec-note">15 pieces · Games and playable toys · 游戏</span>
+          </div>
+          <div class="grid">
+          <a class="piece" href="./yarn-world/" data-text="yarn world a knitted island you can pull apart: tug the yarn ball to knit the quilt, house, sheep and river into place, then unravel the loose end and send it all back. three.js procedural knit island" data-kind="finished" data-category="play">
+            <div class="plate plate--scene" style="--a:#8db56b;--b:#f4d7b2;--m:rgba(20,20,22,0.38)">
+              <span class="no">64</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Yarn World</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A knitted island you can pull apart: tug the yarn ball to knit the quilt, house, sheep and river into place, then unravel the loose end and send it all back.</p>
+              <ul class="tags"><li>three.js</li><li>procedural knit</li><li>island</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./jelly-zoo/" data-text="jelly zoo a basket of needle-felted animals that are all soft body: poke, squash, drag, pet and toss them, or tip the basket over and pour them out. three.js soft body toy" data-kind="finished" data-category="play">
+            <div class="plate plate--scene" style="--a:#f1ddd8;--b:#d89ca8;--m:rgba(20,20,22,0.38)">
+              <span class="no">65</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Jelly Zoo</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A basket of needle-felted animals that are all soft body: poke, squash, drag, pet and toss them, or tip the basket over and pour them out.</p>
+              <ul class="tags"><li>three.js</li><li>soft body</li><li>toy</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./minionslab/" data-text="minion lab six rooms around one squishy yellow character: a brick portrait, eleven bosses, an exploded teardown, a banana line, a pixel town, a rubber sheet. three.js whole site no build" data-kind="finished" data-category="play">
+            <div class="plate plate--play" style="--a:#ffe14d;--b:#2b2b2b;--m:rgba(255,255,255,0.55)">
+              <span class="no">66</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Minion Lab</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>Six rooms around one squishy yellow character: a brick portrait, eleven bosses, an exploded teardown, a banana line, a pixel town, a rubber sheet.</p>
+              <ul class="tags"><li>Three.js</li><li>whole site</li><li>no build</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./puzzlecard/" data-text="puzzle card a photo cut into a jigsaw, and a letter on the back of the print. assemble it and the card turns over. the one piece that runs in the dark. webgl2 no build sealed link" data-kind="finished" data-category="play">
+            <div class="plate plate--play" style="--a:#17171a;--b:#ff7a45;--m:rgba(255,255,255,0.55)">
+              <span class="no">67</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Puzzle Card</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A photo cut into a jigsaw, and a letter on the back of the print. Assemble it and the card turns over. The one piece that runs in the dark.</p>
+              <ul class="tags"><li>WebGL2</li><li>no build</li><li>sealed link</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./skyhoop-cup/" data-text="skyhoop cup broomstick hoops over a floating isle: pick a role, a match length and the weather, then fly. three.js game one file" data-kind="finished" data-category="play">
+            <div class="plate plate--play" style="--a:#ffd166;--b:#ef476f;--m:rgba(20,20,22,0.38)">
+              <span class="no">68</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Skyhoop Cup</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>Broomstick hoops over a floating isle: pick a role, a match length and the weather, then fly.</p>
+              <ul class="tags"><li>three.js</li><li>game</li><li>one file</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./argon-tennis/" data-text="argon tennis a 3d arcade tennis match with expressive mii players, frantic racket kinematics, a stadium crowd and optional webcam or phone motion controls. three.js tennis game" data-kind="finished" data-category="play">
+            <div class="plate plate--play" style="--a:#12331f;--b:#d4e157;--m:rgba(255,255,255,0.55)">
+              <span class="no">69</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Argon Tennis</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A 3D arcade tennis match with expressive Mii players, frantic racket kinematics, a stadium crowd and optional webcam or phone motion controls.</p>
+              <ul class="tags"><li>three.js</li><li>tennis</li><li>game</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./chamonix-ski-sim/" data-text="chamonix — off-piste a first-person freeride run on real chamonix / mont blanc terrain: carve powder, launch rollers, pole the flats and ski switch. three.js terrain ski" data-kind="finished" data-category="play">
+            <div class="plate plate--play" style="--a:#dbe8f4;--b:#8ea7bf;--m:rgba(20,20,22,0.38)">
+              <span class="no">70</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Chamonix — Off-Piste</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A first-person freeride run on real Chamonix / Mont Blanc terrain: carve powder, launch rollers, pole the flats and ski switch.</p>
+              <ul class="tags"><li>three.js</li><li>terrain</li><li>ski</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./dusk-patrol/" data-text="dusk patrol last light over lake country: steer with the mouse, roll, boost, and keep the patrol. three.js game one file" data-kind="finished" data-category="play">
+            <div class="plate plate--play" style="--a:#2b1d2e;--b:#ff9e6d;--m:rgba(255,255,255,0.55)">
+              <span class="no">71</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Dusk Patrol</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>Last light over lake country: steer with the mouse, roll, boost, and keep the patrol.</p>
+              <ul class="tags"><li>three.js</li><li>game</li><li>one file</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./sparrow-sim/" data-text="sparrow a house sparrow out of an attic studio and across a four-block storybook neighbourhood: swoop rooftops, canals and bistro terraces through twelve small deeds. three.js flight story" data-kind="finished" data-category="play">
+            <div class="plate plate--play" style="--a:#f4d9a8;--b:#8c6d4f;--m:rgba(20,20,22,0.38)">
+              <span class="no">72</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Sparrow</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A house sparrow out of an attic studio and across a four-block storybook neighbourhood: swoop rooftops, canals and bistro terraces through twelve small deeds.</p>
+              <ul class="tags"><li>three.js</li><li>flight</li><li>story</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./wizard-chess/" data-text="wizard chess chess in a wizard hall, with animated pieces and a board that answers every move. react three.js chess" data-kind="finished" data-category="play">
+            <div class="plate plate--play" style="--a:#1a1424;--b:#c9a227;--m:rgba(255,255,255,0.55)">
+              <span class="no">73</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Wizard Chess</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>Chess in a wizard hall, with animated pieces and a board that answers every move.</p>
+              <ul class="tags"><li>React</li><li>three.js</li><li>chess</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./paper-snake/" data-text="paper snake 纸格竞技场 — a paper-cut snake arena with skins, missions, ranks, power-ups and a chinese/english interface. pixi react game" data-kind="finished" data-category="play">
+            <div class="plate plate--play" style="--a:#f4f1ea;--b:#1f6feb;--m:rgba(20,20,22,0.38)">
+              <span class="no">74</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Paper Snake</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>纸格竞技场 — a paper-cut snake arena with skins, missions, ranks, power-ups and a Chinese/English interface.</p>
+              <ul class="tags"><li>Pixi</li><li>React</li><li>game</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./pixel-jazz/" data-text="pixel jazz band a pixel-art jazz club: five animals on stage, a set generated in the browser, a scrolling score and a mixer for every instrument. react web audio pixel art" data-kind="finished" data-category="play">
+            <div class="plate plate--play" style="--a:#1b1410;--b:#d9a441;--m:rgba(255,255,255,0.55)">
+              <span class="no">75</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>Pixel Jazz Band</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A pixel-art jazz club: five animals on stage, a set generated in the browser, a scrolling score and a mixer for every instrument.</p>
+              <ul class="tags"><li>React</li><li>Web Audio</li><li>pixel art</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./carrot-defense/" data-text="保卫萝卜 · carrot defense a full tower-defense game: 100 levels over four chapters, 35 tower types at three tiers, 25 enemy types, boss waves, endless mode and relics — all drawn in canvas, all sound synthesised. canvas 2d 100 levels game" data-kind="finished" data-category="play">
+            <div class="plate plate--play" style="--a:#4e8b3f;--b:#25452a;--m:rgba(255,255,255,0.55)">
+              <span class="no">76</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>保卫萝卜 · Carrot Defense</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A full tower-defense game: 100 levels over four chapters, 35 tower types at three tiers, 25 enemy types, boss waves, endless mode and relics — all drawn in Canvas, all sound synthesised.</p>
+              <ul class="tags"><li>Canvas 2D</li><li>100 levels</li><li>game</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./huarongdao/" data-text="华容道 huarongdao klotski a wooden klotski board: slide the blocks, walk the red one out through the gate, and every solve becomes an ink painting. canvas 2d wood ink puzzle" data-kind="finished" data-category="play">
+            <div class="plate plate--play" style="--a:#2b2320;--b:#a63b2c;--m:rgba(255,255,255,0.55)">
+              <span class="no">77</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>华容道 · Klotski</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>A wooden klotski board: slide the blocks, walk the red one out through the gate, and every solve becomes an ink painting.</p>
+              <ul class="tags"><li>Canvas 2D</li><li>wood &amp; ink</li><li>puzzle</li></ul>
+            </div>
+          </a>
+          <a class="piece" href="./qr-pet/" data-text="qr pet type a link, let it become a qr code, then let the code become a 3d cat or dog: coat, pose, a drag-to-spin stage, share and download. three.js qr toy" data-kind="finished" data-category="play">
+            <div class="plate plate--play" style="--a:#161819;--b:#efe1c8;--m:rgba(255,255,255,0.55)">
+              <span class="no">78</span>
+              <span class="motif" aria-hidden="true"></span>
+            </div>
+            <div class="copy">
+              <div class="line"><h3>QR Pet</h3><span class="arrow" aria-hidden="true">↗</span></div>
+              <p>Type a link, let it become a QR code, then let the code become a 3D cat or dog: coat, pose, a drag-to-spin stage, share and download.</p>
+              <ul class="tags"><li>three.js</li><li>QR code</li><li>toy</li></ul>
+            </div>
+          </a>
+          </div>
+        </section>
+
+        <p class="empty" id="empty">Nothing on the shelf matches that. Try a shorter word, or open the Workshop.</p>
+      </main>
+
+      <footer>
+        <p class="eyebrow">Run a piece on its own</p>
+        <p class="cmds">
+          <code>npm run install:pieces</code><code>npm run dev -- night-dial</code><code>npm run site</code><code>npm run serve</code>
+        </p>
+        <p class="fine">
+          Vite pieces build with a relative base; static pieces are copied as they are. Some static scenes load
+          three.js from a CDN, so they need a network connection. Everything else is in the folder.
+        </p>
+        <p class="fine">
+          The <a href="./workshop/">Workshop</a> keeps the other 24 — early cuts, source cuts,
+          prototypes, server-dependent shelf cuts, alternate editions and single-technique studies. Same category
+          taxonomy, separate room; nothing is deleted.
+        </p>
+        <p class="fine">
+          Pieces arrive as they were published, or recovered from a public deployment when no repository exists. All
+          are kept with their credit intact; unless a piece says otherwise, no licence is granted beyond reading and
+          learning. Six arrivals name their authors in their own READMEs: mrdoob's New York, Guillermo Rauch's record
+          player, Will Eastcott's splat shop, Robin Payot's Codrops tutorial, Yuri Artiukh's eighteen Codevember days
+          and curllmooha's twenty-three.
+        </p>
+        <p class="fine"><b>Linked arrival, not counted above:</b> <a href="https://mjurczyk.github.io/openvdb/">OpenVDB</a> (Object / tool, <a href="https://github.com/bear20252026/openvdb">own fork</a>). Rain Alley’s film stays upstream; its <a href="./rain-alley-source/">source layer</a> is in the Workshop.</p>
+      </footer>
+    </div>
+    <script src="./gallery.js"></script>
+  </body>
+</html>

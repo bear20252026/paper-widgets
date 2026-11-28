@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AlphaQubit: Quantum Error Decoding</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              serif: ['"Playfair Display"', 'serif'],
+              sans: ['"Inter"', 'sans-serif'],
+            },
+            colors: {
+              nobel: {
+                gold: '#C5A059',
+                dark: '#1a1a1a',
+                cream: '#F9F8F4',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 100px;
+      }
+      body {
+        background-color: #F9F8F4;
+        color: #1a1a1a;
+      }
+      @media print {
+        nav, footer, button {
+          display: none !important;
+        }
+      }
+
+      /* Pre-React fallback: visible immediately, removed once React mounts. */
+      #boot-fallback{
+        position:fixed;inset:0;z-index:80;background:#F9F8F4;color:#1a1a1a;
+        font-family:Inter,Arial,sans-serif;display:flex;align-items:center;justify-content:center;
+        overflow:hidden;
+      }
+      #boot-fallback .boot-nav{
+        position:absolute;left:24px;right:24px;top:22px;display:flex;align-items:center;justify-content:space-between;
+      }
+      #boot-fallback .boot-brand{display:flex;align-items:center;gap:12px;color:#292524;font-size:17px;font-weight:700;letter-spacing:.06em}
+      #boot-fallback .boot-mark{width:34px;height:34px;border-radius:50%;background:#C5A059;color:#fff;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-size:23px;font-weight:700;padding-bottom:3px}
+      #boot-fallback .boot-menu{width:24px;height:18px;display:flex;flex-direction:column;justify-content:space-between}
+      #boot-fallback .boot-menu i{display:block;height:2px;background:#292524;border-radius:2px}
+      #boot-fallback .boot-copy{width:min(100%,560px);padding:0 30px;text-align:center}
+      #boot-fallback .boot-kicker{display:inline-block;border:1px solid #C5A059;color:#C5A059;border-radius:999px;padding:7px 14px;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;margin-bottom:26px}
+      #boot-fallback h1{font-family:Georgia,'Times New Roman',serif;font-size:clamp(48px,12vw,76px);line-height:1.05;margin:0 0 22px;color:#1c1917;font-weight:500}
+      #boot-fallback h1 span{display:block;font-style:italic;font-weight:400;color:#57534e;font-size:clamp(24px,6.5vw,36px);line-height:1.2;margin-top:14px}
+      #boot-fallback p{max-width:470px;margin:0 auto 32px;color:#57534e;font-size:16px;line-height:1.65;font-weight:300}
+      #boot-fallback .boot-discover{color:#78716c;font-size:11px;font-weight:700;letter-spacing:.16em}
+      #boot-fallback .boot-arrow{width:46px;height:46px;border:1px solid #d6d3d1;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:12px auto 0;color:#57534e;font-size:21px}
+      @media(max-width:480px){#boot-fallback .boot-nav{left:18px;right:18px;top:18px}#boot-fallback .boot-copy{padding:0 24px}}
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.0/",
+    "react/": "https://esm.sh/react@^19.2.0/",
+    "@react-three/fiber": "https://esm.sh/@react-three/fiber@^9.4.0",
+    "@react-three/drei": "https://esm.sh/@react-three/drei@^10.7.7",
+    "three": "https://esm.sh/three@^0.181.1",
+    "framer-motion": "https://esm.sh/framer-motion@^12.23.24",
+    "lucide-react": "https://esm.sh/lucide-react@^0.553.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="boot-fallback" aria-hidden="true">
+      <div class="boot-nav">
+        <div class="boot-brand"><span class="boot-mark">α</span>ALPHAQUBIT <small style="font-weight:400;color:#78716c">2024</small></div>
+        <span class="boot-menu"><i></i><i></i><i></i></span>
+      </div>
+      <div class="boot-copy">
+        <span class="boot-kicker">Nature · Nov 2024</span>
+        <h1>AlphaQubit<span>AI for Quantum Error Correction</span></h1>
+        <p>A recurrent, transformer-based neural network that learns to decode the surface code with unprecedented accuracy.</p>
+        <span class="boot-discover">DISCOVER</span>
+        <div class="boot-arrow">↓</div>
+      </div>
+    </div>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

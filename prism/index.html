@@ -1,0 +1,2025 @@
+<!doctype html>
+<!--
+  prism — light through patterns of glass
+  MIT License · (c) 2026 bear20252026
+  Parts of the glass and wall rendering are ported from vercel-labs/vgpu
+  (MIT, (c) Vercel, Inc.); see THIRD-PARTY-NOTICES.md.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>prism — light through patterns of glass</title>
+<meta name="description" content="A small light toy. White light goes through rings of glass prisms, diffraction film or dichroic cubes and comes out as colour on a plaster wall. Turn the light, add a ring, let it slowly spin.">
+<meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/geist@5.3.0/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/geist@5.3.0/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/geist-mono@5.3.0/500.css">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="https://cdn.jsdelivr.net/npm/geist@1.9.0/dist/fonts/geist-serif/GeistSerif-Triangle.woff2">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="prism — light through patterns of glass">
+<meta property="og:description" content="White light goes through rings of glass prisms and comes out as colour on a plaster wall. A small toy to turn, spin and stare at.">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="prism — light through patterns of glass">
+<meta name="twitter:description" content="White light goes through rings of glass prisms and comes out as colour on a plaster wall. A small toy to turn, spin and stare at.">
+<script>
+  // Pick the interface theme before anything paints. The main script runs only
+  // once three.js has arrived from the CDN, and until then the page would sit
+  // in the default dark tokens: that was the black flash on every open.
+  try {
+    document.documentElement.dataset.theme = localStorage.getItem('prism-theme')
+      || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  } catch (e) {}
+</script>
+<style>
+  /* The wordmark is Geist Serif in its Triangle variant: the dot on the i is a tiny prism. */
+  @font-face {
+    font-family: "Geist Serif Triangle";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("https://cdn.jsdelivr.net/npm/geist@1.9.0/dist/fonts/geist-serif/GeistSerif-Triangle.woff2") format("woff2");
+  }
+  /* Colour and type follow Vercel's Geist: its gray scale, 6/8/12px radii, Geist Sans + Mono. */
+  :root {
+    --bg: #000000;
+    --panel: #0a0a0a;
+    --panel-2: #1a1a1a;
+    --line: #1f1f1f;
+    --text: #ededed;
+    --muted: #8f8f8f;
+    --dim: #3d3d3d;
+    --thumb: #ededed;
+    --track: #1a1a1a;
+    --stage: #d9d6d0;
+    --pill: #2e2e2e;
+    --radius: 12px;
+  }
+  :root[data-theme="light"] {
+    --bg: #fafafa;
+    --panel: #ffffff;
+    --panel-2: #f2f2f2;
+    --line: #ebebeb;
+    --text: #171717;
+    --muted: #8f8f8f;
+    --dim: #d1d1d1;
+    --thumb: #a1a1a1;
+    --track: #f2f2f2;
+    --stage: #d9d6d0;
+    --pill: #fcfcfc;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.4 Geist, Inter, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+  .app {
+    max-width: 1680px;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: grid;
+    grid-template-rows: 80px minmax(0, 1fr) 56px;
+  }
+
+  .top { display: flex; align-items: center; gap: 18px; }
+  .logo { font: 400 24px/1 "Geist Serif Triangle", "Geist Mono", Georgia, serif; letter-spacing: 0; color: color-mix(in srgb, var(--text) 62%, var(--muted)); }
+  .top .right { margin-left: auto; display: flex; gap: 4px; color: var(--muted); }
+  .top .right button {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 6px;
+    transition: color 0.15s, background 0.15s;
+  }
+  .top .right button:hover { color: var(--text); background: var(--panel); }
+  .top .right svg { width: 16px; height: 16px; stroke-width: 1.6; }
+  .icon-off { display: none; }
+  .app.no-side .side { display: none; }
+  .app.no-side .main { grid-template-columns: minmax(0, 1fr); }
+  .app.no-side #side-toggle, .app.fs #fs-toggle { color: var(--text); }
+  #spin-toggle:not(.on) .icon-on { display: none; }
+  #spin-toggle:not(.on) .icon-off { display: inline; }
+  .app.no-side #side-toggle .icon-on, .app.fs #fs-toggle .icon-on { display: none; }
+  .app.no-side #side-toggle .icon-off, .app.fs #fs-toggle .icon-off { display: inline; }
+  :root[data-theme="light"] #theme .icon-on { display: none; }
+  :root[data-theme="light"] #theme .icon-off { display: inline; }
+
+  .main {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 10px;
+  }
+
+  .preview {
+    position: relative;
+    min-height: 0;
+    display: flex;
+  }
+  .label {
+    font-size: 10px;
+    letter-spacing: 0.34em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  #stage {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--stage);
+    touch-action: none;
+  }
+  #stage.pseudo-fs { border-radius: 0; }
+  /* Fallback when the Fullscreen API is refused (embedded views, some
+     mobile browsers): the stage simply covers the window. */
+  #stage.pseudo-fs { position: fixed; inset: 0; z-index: 50; }
+  .app.fs .top {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+    height: 80px; max-width: 1680px; margin: 0 auto; padding: 0 24px;
+  }
+  .app.fs .top .right button { background: color-mix(in srgb, var(--panel) 55%, transparent); }
+  .app.fs .top .right button:hover { background: var(--panel); }
+  #stage { cursor: grab; }
+  #stage canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; opacity: 0; transition: opacity 0.9s ease; }
+  #stage.ready canvas { opacity: 1; }
+  /* Light source: one quiet dot. The beam itself says where the light goes. */
+  /* The beam's source is a bar as wide as the beam, turned with it; a point light is a dot. */
+  #src {
+    position: absolute;
+    width: 28px; height: var(--bar, 28px);
+    margin: calc(var(--bar, 28px) / -2) 0 0 -14px;
+    transform: rotate(var(--aim, 0rad));
+    cursor: grab;
+    touch-action: none;
+  }
+  #src::before {
+    content: "";
+    position: absolute; left: 12px; right: 12px; top: 0; bottom: 0;
+    border-radius: 3px;
+    background: #fff;
+    box-shadow: 0 0 0 1px rgba(50, 46, 42, 0.35), 0 0 10px 3px rgba(255, 255, 255, 0.7);
+    transition: transform 0.15s;
+  }
+  #src.point::before { left: 9px; right: 9px; top: 9px; bottom: 9px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(50, 46, 42, 0.45), 0 0 10px 3px rgba(255, 255, 255, 0.7); }
+  #src:hover::before { transform: scaleX(1.4); }
+  #src.point:hover::before { transform: scale(1.3); }
+  #src:active { cursor: grabbing; }
+  #stage.dark #src::before { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35), 0 0 12px 4px rgba(255, 255, 255, 0.5); }
+  #err {
+    position: absolute; inset: 0;
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 40px; text-align: center;
+    color: var(--muted);
+  }
+
+  .side {
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: clamp(8px, 1vh, 18px);
+    scrollbar-width: none;
+  }
+  .side::-webkit-scrollbar { display: none; }
+  .card { background: var(--panel); border-radius: var(--radius); padding: clamp(14px, 1.6vh, 26px) clamp(14px, 1.5vh, 22px) clamp(13px, 1.5vh, 24px); }
+  .card > .label { display: block; margin-bottom: clamp(11px, 1.2vh, 20px); }
+
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 2px; margin-bottom: clamp(10px, 1vh, 16px); padding: 3px; border-radius: 8px; background: var(--panel-2); }
+  .seg:last-child { margin-bottom: 0; }
+  .seg button { padding: clamp(6px, 0.75vh, 11px) 4px; border-radius: 6px; color: var(--muted); font-size: 12px; white-space: nowrap; text-transform: lowercase; transition: background 0.15s, color 0.15s; }
+  .seg button:hover { color: var(--text); }
+  .seg button.on { background: var(--pill); color: var(--text); }
+
+  .row { position: relative; margin-bottom: clamp(6px, 0.7vh, 12px); border-radius: 8px; background: var(--track); }
+  .row::before {
+    content: ""; position: absolute; left: 3px; top: 3px; bottom: 3px;
+    width: calc(81px + (100% - 134px) * var(--pf, 0.5) + 6px);
+    border-radius: 6px; background: var(--pill);
+  }
+  .row:last-child { margin-bottom: 0; }
+  .row .head {
+    position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 12px; font-size: 12px; font-weight: 500; text-transform: lowercase;
+  }
+  .row .head output { color: var(--muted); font-weight: 400; font-family: "Geist Mono", ui-monospace, monospace; font-size: 11px; }
+
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    position: relative; z-index: 1;
+    display: block;
+    width: 100%; height: clamp(36px, 3.7vh, 50px); margin: 0; padding: 0 48px 0 84px;
+    border-radius: 8px;
+    background: transparent;
+    cursor: ew-resize;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 2px; height: 20px;
+    border-radius: 2px;
+    background: var(--thumb);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 2px; height: 20px;
+    border: 0; border-radius: 2px;
+    background: var(--thumb);
+  }
+  input[type=range]:hover::-webkit-slider-thumb { transform: scaleY(1.15); }
+
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: clamp(10px, 1vh, 16px); }
+  .pair button { padding: clamp(7px, 0.8vh, 12px); border-radius: 6px; background: var(--panel-2); color: var(--muted); font-size: 12px; text-transform: lowercase; }
+  .pair button:hover { color: var(--text); }
+  .pair button:active { transform: scale(0.98); }
+
+  .foot {
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    color: var(--muted); font-size: 12px; letter-spacing: 0.08em; user-select: none;
+  }
+  .foot a { color: inherit; text-decoration: none; transition: color 0.2s; }
+  .foot a:hover { color: var(--text); }
+  #heart {
+    display: inline-flex; align-items: center; padding: 0 2px; margin: 0 1px;
+    color: inherit; vertical-align: -1px;
+  }
+  #heart svg { display: block; transition: transform 0.2s; transform-origin: center; overflow: visible; }
+  #heart .outline { fill: none; stroke: currentColor; stroke-width: 1.7; transition: opacity 0.25s; }
+  #heart .glass { opacity: 0; transition: opacity 0.3s; }
+  /* Liked: the outline becomes a small block of frosted glass with a beam of split light inside. */
+  #heart.liked .outline { opacity: 0; }
+  #heart.liked .glass { opacity: 1; }
+  #heart.liked svg { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35)); }
+  :root[data-theme="light"] #heart.liked svg { filter: drop-shadow(0 1px 2px rgba(60, 50, 40, 0.28)); }
+  #heart.pop svg { animation: heartPop 0.35s ease; }
+  #heart:hover svg { animation: heartSway 0.7s ease-in-out infinite; }
+  @keyframes heartSway {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(-11deg) scale(1.12); }
+    75% { transform: rotate(11deg) scale(1.12); }
+  }
+  @keyframes heartPop {
+    0% { transform: scale(1); }
+    45% { transform: scale(1.4); }
+    100% { transform: scale(1); }
+  }
+
+  @media (max-width: 900px) {
+    html, body { height: 100%; overflow: hidden; }
+    .app { display: block; height: 100%; padding: 0; max-width: none; }
+    .top {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 5;
+      height: 56px; padding: 0 10px 0 16px;
+      padding-top: env(safe-area-inset-top);
+    }
+    .top .right button { background: color-mix(in srgb, var(--panel) 70%, transparent); }
+    .top .right button:hover { background: var(--panel); }
+    #fs-toggle { display: none; }
+    .main { display: block; }
+    .preview { position: fixed; inset: 0; }
+    #stage { border-radius: 0; }
+    .side {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
+      max-height: min(64vh, 64dvh);
+      padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+      background: var(--bg);
+      border-radius: 12px 12px 0 0;
+      transform: translateY(100%);
+      transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+      overflow-y: auto;
+    }
+    .app.sheet-open .side { transform: translateY(0); }
+    .side.dragging { transition: none; }
+    /* grab handle */
+    .side::before {
+      content: ""; display: block; flex: 0 0 4px; width: 36px; height: 4px; margin: 2px auto 6px;
+      border-radius: 2px; background: var(--dim);
+    }
+    .app.no-side .side { display: flex; }
+    .side .foot { padding: 14px 0 4px; }
+    .foot { display: none; }
+    .side .foot { display: flex; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="logo">prism</div>
+    <div class="right">
+      <button id="reset" title="reset" aria-label="reset">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      </button>
+      <button id="side-toggle" title="show / hide controls" aria-label="controls">
+        <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/></svg>
+        <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/><path d="M15 12h6" /></svg>
+      </button>
+      <button id="spin-toggle" title="rotate / hold still" aria-label="rotate">
+        <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="14" y="3" width="5" height="18" rx="1"/><rect x="5" y="3" width="5" height="18" rx="1"/></svg>
+        <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></svg>
+      </button>
+      <button id="theme" title="light / dark interface" aria-label="theme">
+        <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </button>
+      <button id="fs-toggle" title="fill the window" aria-label="fill the window">
+        <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="m21 3-7 7"/><path d="m3 21 7-7"/><path d="M9 21H3v-6"/></svg>
+        <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m14 10 7-7"/><path d="M20 10h-6V4"/><path d="m3 21 7-7"/><path d="M4 14h6v6"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="preview">
+      <div id="stage">
+        <div id="src" title="Drag to move the light"></div>
+        <div id="err"></div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <div class="card">
+        <span class="label">Element</span>
+        <div class="seg" data-key="mode">
+          <button data-val="p">Prism</button>
+          <button data-val="s">Film</button>
+          <button data-val="c">Cube</button>
+        </div>
+        <div class="row"><div class="head"><span>Size</span><output></output></div>
+          <input type="range" data-key="size" min="10" max="100" step="1"></div>
+      </div>
+
+      <div class="card">
+        <span class="label">Pattern</span>
+        <div class="seg" data-key="lay">
+          <button data-val="rings">Rings</button>
+          <button data-val="ring">Circle</button>
+          <button data-val="spiral">Spiral</button>
+          <button data-val="grid">Grid</button>
+          <button data-val="hex">Hex</button>
+        </div>
+        <div class="seg" data-key="ori">
+          <button data-val="in">Inward</button>
+          <button data-val="out">Outward</button>
+          <button data-val="same">Aligned</button>
+          <button data-val="alt">Alternate</button>
+        </div>
+        <div class="pair">
+          <button id="ring-less">− Remove ring</button>
+          <button id="ring-more">+ Add ring</button>
+        </div>
+        <div class="row"><div class="head"><span>Count</span><output></output></div>
+          <input type="range" data-key="count" min="1" max="90" step="1"></div>
+        <div class="row"><div class="head"><span>Spacing</span><output></output></div>
+          <input type="range" data-key="gap" min="30" max="220" step="1"></div>
+      </div>
+
+      <div class="card">
+        <span class="label">Light</span>
+        <div class="seg" data-key="src">
+          <button data-val="beam">Beam</button>
+          <button data-val="point">Point</button>
+        </div>
+        <div class="row"><div class="head"><span>Width</span><output></output></div>
+          <input type="range" data-key="width" min="10" max="700" step="5"></div>
+        <div class="row"><div class="head"><span>Brightness</span><output></output></div>
+          <input type="range" data-key="bright" min="20" max="300" step="5"></div>
+        <div class="row"><div class="head"><span>Dispersion</span><output></output></div>
+          <input type="range" data-key="disp" min="0" max="100" step="1"></div>
+        <div class="row"><div class="head"><span>Direction</span><output id="dir-out"></output></div>
+          <input type="range" id="dir" min="-40" max="40" step="1" value="0"></div>
+      </div>
+
+      <div class="card">
+        <span class="label">Surface</span>
+        <div class="seg" data-key="bg">
+          <button data-val="wall">White wall</button>
+          <button data-val="trees">Tree shade</button>
+          <button data-val="dark">Dark room</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="foot">
+    made with
+    <button id="heart" aria-label="like">
+      <svg width="15" height="15" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <path id="heart-shape" d="M2 9.1371C2 14 6.01943 16.5914 8.96173 18.9109C10 19.7294 11 20.5 12 20.5C13 20.5 14 19.7294 15.0383 18.9109C17.9806 16.5914 22 14 22 9.1371C22 4.27416 16.4998 0.825464 12 5.50063C7.50016 0.825464 2 4.27416 2 9.1371Z"/>
+          <clipPath id="heart-clip"><use href="#heart-shape"/></clipPath>
+          <linearGradient id="heart-body" x1="0.15" y1="0" x2="0.85" y2="1">
+            <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
+            <stop offset="0.45" stop-color="#c9c6c0" stop-opacity="0.85"/>
+            <stop offset="1" stop-color="#eeece8" stop-opacity="0.95"/>
+          </linearGradient>
+          <linearGradient id="heart-beam" x1="0" y1="0.3" x2="1" y2="0.7">
+            <stop offset="0" stop-color="#ffffff" stop-opacity="0"/>
+            <stop offset="0.3" stop-color="#ffffff" stop-opacity="0.9"/>
+            <stop offset="0.5" stop-color="#ffd6a8"/>
+            <stop offset="0.62" stop-color="#bff2c9"/>
+            <stop offset="0.74" stop-color="#b3d4ff"/>
+            <stop offset="0.86" stop-color="#d9c4ff"/>
+            <stop offset="1" stop-color="#d9c4ff" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <use class="outline" href="#heart-shape"/>
+        <g class="glass">
+          <use href="#heart-shape" fill="url(#heart-body)"/>
+          <g clip-path="url(#heart-clip)">
+            <path d="M1 7 L23 12 L23 15.5 L1 10.5 Z" fill="url(#heart-beam)" opacity="0.85"/>
+            <use href="#heart-shape" fill="none" stroke="#ffffff" stroke-width="3.2" opacity="0.7"/>
+            <path d="M5.2 9.4 C5.6 6.8 7.6 5.4 9.6 5.5" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+          </g>
+          <use href="#heart-shape" fill="none" stroke="rgba(90,84,76,0.35)" stroke-width="0.9"/>
+        </g>
+      </svg>
+    </button>
+   
+  </footer>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+} }
+</script>
+<script>
+  window.addEventListener('error', function (e) {
+    var el = document.getElementById('err');
+    if (!el) return;
+    // The analytics script only exists on Vercel; its 404 elsewhere is not a failure.
+    if (e.target && e.target.src && e.target.src.indexOf('_vercel') !== -1) return;
+    el.style.display = 'flex';
+    el.textContent = 'Could not start: ' + (e.message || 'three.js failed to load (needs internet for the CDN).');
+  }, true);
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+
+// ---------- state ----------
+const DEFAULTS = {
+  src: 'beam', width: 260, bright: 100, disp: 60,
+  mode: 'p', size: 38,
+  lay: 'rings', ori: 'in', count: 18, gap: 92,
+  bg: 'wall', spin: 'on',
+};
+const S = { ...DEFAULTS };
+
+// Simulation space: fixed height, width follows the stage aspect.
+const SH = 760;
+let SW = 1100, CX = SW / 2, CY = SH / 2;
+const MAXN = 90;
+
+let aim = 0, theta = 0, lastT = 0, quality = 1, dirty = true;
+let touching = 0;
+let traceEvery = 1, frameNo = 0;
+let lastRayWidth = 1.8;
+let lastThinBoost = 1;
+const source = { x: 46, y: SH / 2 };
+let base = [], born = [], items = [], edges = [];
+
+// ---------- spectrum ----------
+const NW = 24, lams = [], cols = [], us = [];
+function wavelengthRGB(l) {
+  let r = 0, g = 0, b = 0;
+  if (l < 440) { r = -(l - 440) / 60; b = 1; }
+  else if (l < 490) { g = (l - 440) / 50; b = 1; }
+  else if (l < 510) { g = 1; b = -(l - 510) / 20; }
+  else if (l < 580) { r = (l - 510) / 70; g = 1; }
+  else if (l < 645) { r = 1; g = -(l - 645) / 65; }
+  else { r = 1; }
+  let f = 1;
+  if (l < 420) f = 0.3 + 0.7 * (l - 380) / 40;
+  else if (l > 680) f = 0.3 + 0.7 * (780 - l) / 100;
+  return [r * f, g * f, b * f];
+}
+const rawCols = [], sum = [0, 0, 0];
+for (let i = 0; i < NW; i++) {
+  const l = 690 - (280 * i) / (NW - 1);
+  lams.push(l);
+  const c = wavelengthRGB(l);
+  rawCols.push(c);
+  sum[0] += c[0]; sum[1] += c[1]; sum[2] += c[2];
+  us.push((1 / (l * l) - 1 / (700 * 700)) / (1 / (400 * 400) - 1 / (700 * 700)));
+}
+// Balance channels so that all wavelengths together add up to white.
+const SUM = Math.min(sum[0], sum[1], sum[2]);
+for (let i = 0; i < NW; i++) {
+  const c = rawCols[i];
+  cols.push(`rgb(${Math.round(255 * c[0] * SUM / sum[0])},${Math.round(255 * c[1] * SUM / sum[1])},${Math.round(255 * c[2] * SUM / sum[2])})`);
+}
+
+// ---------- layout ----------
+function ringCap(k, sp) {
+  const R = sp * (1 + k * 1.07);
+  return [R, Math.max(3, Math.floor(2 * Math.PI * R / (sp * 0.95)))];
+}
+function ringStep(n, sp, dir) {
+  let left = n, k = 0, last = null;
+  while (left > 0) {
+    const cap = ringCap(k, sp)[1], m = Math.min(cap, left);
+    last = [cap, m]; left -= m; k++;
+  }
+  if (dir > 0) {
+    if (last && last[1] < last[0]) return n + last[0] - last[1];
+    return n + ringCap(k, sp)[1];
+  }
+  return Math.max(1, n - (last ? last[1] : 0));
+}
+// Narrow screens (phones) get the same pattern scaled down to fit.
+const fit = () => Math.min(1, SW / 820);
+function layout() {
+  const n = S.count, sp = S.gap * fit(), L = S.lay, P = [];
+  if (n === 1) {
+    P.push([0, 0]);
+  } else if (L === 'rings') {
+    let left = n, k = 0;
+    while (left > 0) {
+      const [R, cap] = ringCap(k, sp), m = Math.min(cap, left);
+      for (let i = 0; i < m; i++) {
+        const a = -Math.PI / 2 + i / m * Math.PI * 2 + (k % 2 ? Math.PI / m : 0);
+        P.push([Math.cos(a) * R, Math.sin(a) * R]);
+      }
+      left -= m; k++;
+    }
+  } else if (L === 'ring') {
+    const R = Math.max(sp, n * sp * 0.9 / (2 * Math.PI));
+    for (let i = 0; i < n; i++) {
+      const a = -Math.PI / 2 + i / n * Math.PI * 2;
+      P.push([Math.cos(a) * R, Math.sin(a) * R]);
+    }
+  } else if (L === 'spiral') {
+    const g = Math.PI * (3 - Math.sqrt(5));
+    for (let i = 0; i < n; i++) {
+      const R = sp * 0.6 * Math.sqrt(i + 0.6), a = i * g;
+      P.push([Math.cos(a) * R, Math.sin(a) * R]);
+    }
+  } else {
+    const hex = L === 'hex', s = sp * 1.05, sy = hex ? s * 0.866 : s;
+    const c = Math.max(1, Math.ceil(Math.sqrt(n * SW / SH))), rows = Math.ceil(n / c);
+    for (let i = 0; i < n; i++) {
+      const r = Math.floor(i / c), k = i % c, inRow = r === rows - 1 ? n - c * (rows - 1) : c;
+      P.push([(k - (inRow - 1) / 2) * s + (hex && r % 2 ? s / 2 : 0) - (hex ? s / 4 : 0), (r - (rows - 1) / 2) * sy]);
+    }
+  }
+  const now = performance.now();
+  if (born.length > P.length) born.length = P.length;
+  while (born.length < P.length) born.push(base.length ? now + (born.length - base.length) * 18 : 0);
+  base = P;
+  dirty = true;
+}
+
+function place(now) {
+  const ct = Math.cos(theta), sn = Math.sin(theta);
+  items = []; edges = [];
+  let popping = false;
+  base.forEach((b, i) => {
+    let sc = (now - born[i]) / 520;
+    if (sc < 1) popping = true;
+    if (sc <= 0.02) return;
+    if (sc > 1) sc = 1;
+    const e = sc - 1;
+    sc = 1 + 2.2 * e * e * e + 1.2 * e * e;
+    const x = CX + b[0] * ct - b[1] * sn, y = CY + b[0] * sn + b[1] * ct;
+    const type = S.mode === 'mix' ? (i % 2 ? 's' : 'p') : S.mode;
+    const centered = Math.abs(b[0]) < 0.01 && Math.abs(b[1]) < 0.01;
+    const ang = centered ? -Math.PI / 2 + theta : Math.atan2(CY - y, CX - x);
+    let rot;
+    if (type === 'p') {
+      rot = S.ori === 'in' ? ang : S.ori === 'out' ? ang + Math.PI
+        : S.ori === 'same' ? -Math.PI / 2 + theta : (i % 2 ? Math.PI / 2 : -Math.PI / 2) + theta;
+    } else if (type === 'c') {
+      // A face looks at the centre; "outward" turns the cube half way round,
+      // which swaps the sides its red and blue leave from.
+      rot = S.ori === 'in' ? ang : S.ori === 'out' ? ang + Math.PI
+        : S.ori === 'same' ? theta : (i % 2 ? Math.PI / 4 : 0) + theta;
+    } else {
+      rot = S.ori === 'in' ? ang + Math.PI / 2 : S.ori === 'out' ? ang
+        : S.ori === 'same' ? Math.PI / 2 + theta : (i % 2 ? Math.PI / 4 : -Math.PI / 4) + theta;
+    }
+    items.push({ x, y, r: Math.max(2, S.size * fit() * sc), rot, type });
+  });
+  for (const it of items) {
+    if (it.type === 'p') {
+      const v = [];
+      for (let k = 0; k < 3; k++) {
+        const a = it.rot + k * Math.PI * 2 / 3;
+        v.push([it.x + Math.cos(a) * it.r, it.y + Math.sin(a) * it.r]);
+      }
+      it.v = v;
+      for (let k = 0; k < 3; k++) {
+        const a = v[k], b = v[(k + 1) % 3];
+        const ex = b[0] - a[0], ey = b[1] - a[1], L = Math.hypot(ex, ey);
+        let nx = ey / L, ny = -ex / L;
+        const mx = (a[0] + b[0]) / 2 - it.x, my = (a[1] + b[1]) / 2 - it.y;
+        if (nx * mx + ny * my < 0) { nx = -nx; ny = -ny; }
+        edges.push({ x1: a[0], y1: a[1], ex, ey, nx, ny, tx: ex / L, ty: ey / L, type: 'p' });
+      }
+    } else if (it.type === 'c') {
+      // Dichroic cube (the X-cube of a projector): a square of glass with two
+      // coatings crossing on its diagonals. One reflects red, one reflects blue.
+      const v = [];
+      for (let k = 0; k < 4; k++) {
+        const a = it.rot + Math.PI / 4 + k * Math.PI / 2;
+        v.push([it.x + Math.cos(a) * it.r, it.y + Math.sin(a) * it.r]);
+      }
+      it.v = v;
+      for (let k = 0; k < 4; k++) {
+        const a = v[k], b = v[(k + 1) % 4];
+        const ex = b[0] - a[0], ey = b[1] - a[1], L = Math.hypot(ex, ey);
+        let nx = ey / L, ny = -ex / L;
+        const mx = (a[0] + b[0]) / 2 - it.x, my = (a[1] + b[1]) / 2 - it.y;
+        if (nx * mx + ny * my < 0) { nx = -nx; ny = -ny; }
+        edges.push({ x1: a[0], y1: a[1], ex, ey, nx, ny, tx: ex / L, ty: ey / L, type: 'p' });
+      }
+      for (let k = 0; k < 2; k++) {
+        const a = v[k], b = v[k + 2];
+        const ex = b[0] - a[0], ey = b[1] - a[1], L = Math.hypot(ex, ey);
+        edges.push({ x1: a[0], y1: a[1], ex, ey, nx: ey / L, ny: -ex / L, tx: ex / L, ty: ey / L, type: 'x', band: k === 0 ? 'r' : 'b' });
+      }
+    } else {
+      const cx = Math.cos(it.rot), sy = Math.sin(it.rot);
+      const a = [it.x - cx * it.r, it.y - sy * it.r], b = [it.x + cx * it.r, it.y + sy * it.r];
+      it.v = [a, b];
+      edges.push({ x1: a[0], y1: a[1], ex: b[0] - a[0], ey: b[1] - a[1], nx: -sy, ny: cx, tx: cx, ty: sy, type: 's' });
+    }
+  }
+  return popping;
+}
+
+// ---------- light: 2D spectral ray trace ----------
+const lightCv = document.createElement('canvas');
+const glowCv = document.createElement('canvas');
+const shadowCv = document.createElement('canvas');
+const lx = lightCv.getContext('2d');
+// Light that has already bounced or refracted is drawn apart and softened,
+// so the dispersed fans read as light, not as a bundle of coloured threads.
+const light2Cv = document.createElement('canvas');
+const lx2 = light2Cv.getContext('2d');
+const gx = glowCv.getContext('2d');
+const sx = shadowCv.getContext('2d');
+const SHADOW_SCALE = 0.5;
+
+// Canvas `filter: blur()` is what makes the light soft. iOS Safari does not
+// support it (the property is silently ignored), which left the phone with
+// hard, stripy light. Detect that once and fall back to a shrink-and-enlarge
+// blur, which the GPU's bilinear sampling turns into a cheap, soft blur.
+const HAS_CANVAS_FILTER = (() => {
+  if (/[?&]nofilter=1/.test(location.search)) return false;
+  try {
+    const c = document.createElement('canvas').getContext('2d');
+    c.filter = 'blur(2px)';
+    return c.filter === 'blur(2px)';
+  } catch (_) { return false; }
+})();
+const shrinkCv = [document.createElement('canvas'), document.createElement('canvas')];
+const shrinkCx = shrinkCv.map(c => c.getContext('2d'));
+// Draws `src` onto `dst` blurred by `radius` (in src pixels), with `alpha`, additively.
+function drawBlurred(dst, src, radius, alpha) {
+  dst.globalAlpha = alpha;
+  if (HAS_CANVAS_FILTER || radius < 1) {
+    dst.filter = radius < 1 ? 'none' : 'blur(' + radius.toFixed(1) + 'px)';
+    dst.drawImage(src, 0, 0);
+    dst.filter = 'none';
+    return;
+  }
+  // Two shrink steps approximate a Gaussian far better than one.
+  const f = Math.max(1.5, radius / 1.4);
+  const w1 = Math.max(2, Math.round(src.width / Math.sqrt(f))), h1 = Math.max(2, Math.round(src.height / Math.sqrt(f)));
+  const w2 = Math.max(2, Math.round(src.width / f)), h2 = Math.max(2, Math.round(src.height / f));
+  const [a, b] = shrinkCv, [ax, bx] = shrinkCx;
+  if (a.width !== w1 || a.height !== h1) { a.width = w1; a.height = h1; }
+  if (b.width !== w2 || b.height !== h2) { b.width = w2; b.height = h2; }
+  ax.globalCompositeOperation = 'copy'; ax.imageSmoothingEnabled = true; ax.imageSmoothingQuality = 'high';
+  ax.drawImage(src, 0, 0, w1, h1);
+  bx.globalCompositeOperation = 'copy'; bx.imageSmoothingEnabled = true; bx.imageSmoothingQuality = 'high';
+  bx.drawImage(a, 0, 0, w2, h2);
+  dst.imageSmoothingEnabled = true; dst.imageSmoothingQuality = 'high';
+  dst.drawImage(b, 0, 0, src.width, src.height);
+}
+
+function trace() {
+  lx.setTransform(1, 0, 0, 1, 0, 0);
+  lx.globalCompositeOperation = 'source-over';
+  lx.globalAlpha = 1;
+  lx.fillStyle = '#000';
+  lx.fillRect(0, 0, SW, SH);
+  lx.globalCompositeOperation = 'lighter';
+  lx.lineCap = 'butt';
+
+  const point = S.src === 'point';
+  const disp = S.disp / 100, bright = S.bright / 100, bw = S.width;
+  const hasFilm = edges.some(e => e.type !== 'p');
+  const rays = [];
+  let cover, lw;
+  if (point) {
+    const NR = hasFilm ? 150 : 280;
+    lw = 1.8;
+    for (let i = 0; i < NR; i++) {
+      const a = (i + 0.37) / NR * Math.PI * 2;
+      rays.push([source.x, source.y, Math.cos(a), Math.sin(a), 1]);
+    }
+    cover = NR * lw / (2 * Math.PI * 120);
+  } else {
+    const NR = Math.round(Math.max(30, Math.min(hasFilm ? 130 : 240, bw * 0.9)));
+    // Fewer rays (slow devices) means wider strokes, so the beam never
+    // separates into stripes.
+    lw = Math.max(1.8, bw / NR * 1.3);
+    const dx = Math.cos(aim), dy = Math.sin(aim);
+    for (let i = 0; i < NR; i++) {
+      const f = (i + 0.5) / NR - 0.5, o = f * bw;
+      // Gaussian profile: soft beam edges instead of a hard-edged slab.
+      rays.push([source.x - dy * o, source.y + dx * o, dx, dy, 1.35 * Math.exp(-12 * f * f)]);
+    }
+    cover = Math.max(1, NR * lw / bw);
+  }
+  lx.lineWidth = lw;
+  lastRayWidth = lw;
+  const spawnEvery = Math.max(1, Math.round(1 / quality));
+  // Fewer continuing rays: each is a little stronger and a little wider, not n times.
+  const thinBoost = Math.sqrt(spawnEvery);
+  lx2.lineWidth = lw * thinBoost;
+  lastThinBoost = thinBoost;
+  lx2.setTransform(1, 0, 0, 1, 0, 0);
+  lx2.globalCompositeOperation = 'source-over';
+  lx2.globalAlpha = 1;
+  lx2.fillStyle = '#000';
+  lx2.fillRect(0, 0, SW, SH);
+  lx2.globalCompositeOperation = 'lighter';
+  lx2.lineCap = 'butt';
+  const aBase = bright * 0.38 / (cover * SUM);
+  const grating = 2600 - 1500 * disp, cut = 0.05, CHUNK = 120, FADE = 900, FAR = 1500;
+  let budget = 160000;
+  const ne = edges.length;
+
+  for (let wi = 0; wi < NW; wi++) {
+    lx.strokeStyle = cols[wi];
+    lx2.strokeStyle = cols[wi];
+    const n = 1.5 + (0.02 + 0.16 * disp) * us[wi], lam = lams[wi];
+    for (let ri = 0; ri < rays.length; ri++) {
+      const r0 = rays[ri];
+      const stack = [[r0[0], r0[1], r0[2], r0[3], r0[4], 0, -1, 0]];
+      while (stack.length && budget > 0) {
+        const r = stack.pop();
+        const ox = r[0], oy = r[1], dx = r[2], dy = r[3], I = r[4], depth = r[5], last = r[6], dist = r[7];
+        let bt = 1e9, bi = -1;
+        for (let i = 0; i < ne; i++) {
+          if (i === last) continue;
+          const e = edges[i];
+          const den = dx * e.ey - dy * e.ex;
+          if (den > -1e-9 && den < 1e-9) continue;
+          const wx = e.x1 - ox, wy = e.y1 - oy;
+          const t = (wx * e.ey - wy * e.ex) / den;
+          if (t < 0.01 || t >= bt) continue;
+          const u = (wx * dy - wy * dx) / den;
+          if (u < 0 || u > 1) continue;
+          bt = t; bi = i;
+        }
+        const tt = bi < 0 ? FAR : bt, px = ox + dx * tt, py = oy + dy * tt;
+        const nc = Math.max(1, Math.ceil(tt / CHUNK));
+        for (let c = 0; c < nc; c++) {
+          const t0 = tt * c / nc, t1 = tt * (c + 1) / nc;
+          const mid = dist + (t0 + t1) / 2;
+          // A short ease-in at the source; a long one made the beam peak just
+          // before the first thing it hit, which read as a bright blob there.
+          const al = I * aBase * Math.exp(-mid / FADE) * Math.min(1, 0.6 + mid / 60);
+          if (al < 0.003) break;
+          const x0 = ox + dx * t0, y0 = oy + dy * t0;
+          if ((x0 < -20 && dx < 0) || (x0 > SW + 20 && dx > 0) || (y0 < -20 && dy < 0) || (y0 > SH + 20 && dy > 0)) break;
+          const cx = depth === 0 ? lx : lx2;
+          cx.globalAlpha = Math.min(1, al);
+          cx.beginPath();
+          cx.moveTo(x0, y0);
+          cx.lineTo(ox + dx * t1, oy + dy * t1);
+          cx.stroke();
+          budget--;
+        }
+        if (bi < 0 || depth >= 14) continue;
+        if (depth === 0 && ri % spawnEvery !== 0) continue;
+        const nd = dist + tt;
+        const e = edges[bi];
+        let nx = e.nx, ny = e.ny, c = dx * nx + dy * ny;
+        const I2 = depth === 0 ? I * thinBoost : I;
+        if (e.type === 'p') {
+          let n1 = 1, n2 = n;
+          if (c > 0) { nx = -nx; ny = -ny; n1 = n; n2 = 1; } else { c = -c; }
+          const eta = n1 / n2, k = 1 - eta * eta * (1 - c * c);
+          const rx = dx + 2 * c * nx, ry = dy + 2 * c * ny;
+          if (k < 0) {
+            stack.push([px, py, rx, ry, I2 * 0.98, depth + 1, bi, nd]);
+          } else {
+            const ct = Math.sqrt(k), R0 = Math.pow((n1 - n2) / (n1 + n2), 2);
+            const cc = n1 > n2 ? ct : c, R = R0 + (1 - R0) * Math.pow(1 - cc, 5);
+            const Rk = n1 < n2 ? 0.5 : 1.0;
+            if (I2 * R * Rk > cut) stack.push([px, py, rx, ry, I2 * R * Rk, depth + 1, bi, nd]);
+            if (I2 * (1 - R) > cut) {
+              const f = eta * c - ct;
+              stack.push([px, py, eta * dx + f * nx, eta * dy + f * ny, I2 * (1 - R), depth + 1, bi, nd]);
+            }
+          }
+        } else if (e.type === 'x') {
+          // A dichroic coating inside the glass: it mirrors one end of the
+          // spectrum and lets the rest straight through, with a soft edge.
+          const u = e.band === 'r' ? (lam - 585) / 30 : (505 - lam) / 30;
+          const k = u < 0 ? 0 : u > 1 ? 1 : u, R = k * k * (3 - 2 * k);
+          if (I * R > cut) stack.push([px, py, dx - 2 * c * nx, dy - 2 * c * ny, I * R, depth + 1, bi, nd]);
+          if (I * (1 - R) > cut) stack.push([px, py, dx, dy, I * (1 - R), depth + 1, bi, nd]);
+        } else {
+          if (c < 0) { nx = -nx; ny = -ny; }
+          const s0 = dx * e.tx + dy * e.ty;
+          for (let m = -1; m <= 1; m++) {
+            const s = s0 + m * lam / grating;
+            if (s <= -1 || s >= 1) continue;
+            const w = Math.sqrt(1 - s * s), Im = I2 * (m === 0 ? 0.36 : 0.32);
+            if (Im > cut) stack.push([px, py, e.tx * s + nx * w, e.ty * s + ny * w, Im, depth + 1, bi, nd]);
+          }
+        }
+      }
+    }
+  }
+
+  // Fold the softened secondary light into the main layer.
+  lx.globalCompositeOperation = 'lighter';
+  lx.globalAlpha = 1;
+
+  gx.globalCompositeOperation = 'source-over';
+  gx.globalAlpha = 1;
+  gx.filter = 'none';
+  gx.fillStyle = '#000';
+  gx.fillRect(0, 0, SW, SH);
+  gx.globalCompositeOperation = 'lighter';
+  // The beam gets the wide, hazy glow. The refracted light gets only a light
+  // touch: the wide blurs would smear its wavelengths back into white.
+  drawBlurred(gx, lightCv, Math.max(2, lastRayWidth * 0.9), 0.9);
+  drawBlurred(gx, lightCv, 12, 0.7);
+  drawBlurred(gx, lightCv, 46, 0.85);
+  drawBlurred(gx, light2Cv, Math.max(1.5, lastRayWidth * 0.8), 1.0);
+  drawBlurred(gx, light2Cv, 6, 0.45);
+  gx.globalAlpha = 1;
+}
+
+function drawShadows() {
+  const k = SHADOW_SCALE;
+  sx.setTransform(1, 0, 0, 1, 0, 0);
+  sx.filter = 'none';
+  sx.globalAlpha = 1;
+  sx.fillStyle = '#fff';
+  sx.fillRect(0, 0, shadowCv.width, shadowCv.height);
+  const blurPx = Math.max(3, S.size * 0.3 * k);
+  const soft = !HAS_CANVAS_FILTER;
+  // Without canvas filters: draw the shapes small, then enlarge them (bilinear = soft edge).
+  const shrink = soft ? Math.max(2, blurPx / 1.2) : 1;
+  const g = soft ? shrinkCx[1] : sx, gcv = soft ? shrinkCv[1] : shadowCv;
+  if (soft) {
+    const w = Math.max(2, Math.round(shadowCv.width / shrink)), h = Math.max(2, Math.round(shadowCv.height / shrink));
+    if (gcv.width !== w || gcv.height !== h) { gcv.width = w; gcv.height = h; }
+    g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
+    g.fillStyle = '#fff'; g.fillRect(0, 0, w, h);
+  }
+  g.setTransform(k / shrink, 0, 0, k / shrink, 0, 0);
+  if (!soft) g.filter = `blur(${blurPx}px)`;
+  g.fillStyle = 'rgba(70,60,52,0.42)';
+  const ox = S.size * 0.2, oy = S.size * 0.3;
+  for (const it of items) {
+    g.beginPath();
+    if (it.v.length > 2) {
+      g.moveTo(it.v[0][0] + ox, it.v[0][1] + oy);
+      for (let k = 1; k < it.v.length; k++) g.lineTo(it.v[k][0] + ox, it.v[k][1] + oy);
+      g.closePath();
+      g.fill();
+    } else {
+      g.lineWidth = 6;
+      g.strokeStyle = 'rgba(70,60,52,0.35)';
+      g.moveTo(it.v[0][0] + ox, it.v[0][1] + oy);
+      g.lineTo(it.v[1][0] + ox, it.v[1][1] + oy);
+      g.stroke();
+    }
+  }
+  if (soft) {
+    sx.setTransform(1, 0, 0, 1, 0, 0);
+    sx.imageSmoothingEnabled = true; sx.imageSmoothingQuality = 'high';
+    sx.drawImage(gcv, 0, 0, shadowCv.width, shadowCv.height);
+  } else {
+    g.filter = 'none';
+  }
+}
+
+// ---------- three.js scene ----------
+const stage = $('#stage');
+const handle = $('#src');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+stage.insertBefore(renderer.domElement, stage.firstChild);
+
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+const FOV = 54;
+const DIST = (SH / 2) / Math.tan(THREE.MathUtils.degToRad(FOV / 2));
+const camera = new THREE.PerspectiveCamera(FOV, 1, 10, DIST * 3);
+camera.position.set(0, 0, DIST);
+camera.lookAt(0, 0, 0);
+
+const key = new THREE.DirectionalLight(0xffffff, 1.6);
+key.position.set(-500, 600, 900);
+scene.add(key);
+
+const lightTex = new THREE.CanvasTexture(glowCv);
+const shadowTex = new THREE.CanvasTexture(shadowCv);
+for (const t of [lightTex, shadowTex]) {
+  t.minFilter = THREE.LinearFilter;
+  t.magFilter = THREE.LinearFilter;
+  t.generateMipmaps = false;
+}
+
+// Plaster wall material (port of generate-wall.ts): r = albedo variation,
+// gb = surface normal xy, a = roughness. Tileable, so it repeats in world units.
+function plasterTexture(size) {
+  const lattice = new Float32Array(1024 * 1024);
+  for (let i = 0; i < lattice.length; i++) lattice[i] = Math.random();
+  const noise = (x, y, period) => {
+    const ix = Math.floor(x), iy = Math.floor(y), fx = x - ix, fy = y - iy;
+    const sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+    const at = (a, b) => lattice[(((b % period) + period) % period) * 1024 + (((a % period) + period) % period)];
+    const n00 = at(ix, iy), n10 = at(ix + 1, iy), n01 = at(ix, iy + 1), n11 = at(ix + 1, iy + 1);
+    return (n00 + (n10 - n00) * sx) * (1 - sy) + (n01 + (n11 - n01) * sx) * sy;
+  };
+  const fbm = (u, v, base, octaves) => {
+    let sum = 0, amp = 0.5, total = 0, f = base;
+    for (let o = 0; o < octaves; o++) { sum += amp * noise(u * f, v * f, f); total += amp; amp *= 0.5; f *= 2; }
+    return sum / total;
+  };
+  const height = new Float32Array(size * size);
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const u = (x + 0.5) / size, v = (y + 0.5) / size;
+    height[y * size + x] = fbm(u, v, 34, 5) * 0.65 + fbm(u, v, 117, 2) * 0.35;
+  }
+  const data = new Uint8Array(size * size * 4);
+  const h = (x, y) => height[((y + size) % size) * size + ((x + size) % size)];
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const dx = h(x + 1, y) - h(x - 1, y), dy = h(x, y + 1) - h(x, y - 1);
+    const variation = h(x, y) - 0.5, i = (y * size + x) * 4;
+    data[i] = 255 * Math.min(1, Math.max(0, 0.8 + variation * 0.06));
+    data[i + 1] = 255 * Math.min(1, Math.max(0, 0.5 - dx * 1.8 * size / 512));
+    data[i + 2] = 255 * Math.min(1, Math.max(0, 0.5 - dy * 1.8 * size / 512));
+    data[i + 3] = 255 * Math.min(1, Math.max(0, 0.86 + variation * 0.12));
+  }
+  const tex = new THREE.DataTexture(data, size, size, THREE.RGBAFormat);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.generateMipmaps = true;
+  tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  tex.needsUpdate = true;
+  return tex;
+}
+const wallTex = plasterTexture(512);
+
+const wallMat = new THREE.ShaderMaterial({
+  uniforms: {
+    tLight: { value: lightTex },
+    tShadow: { value: shadowTex },
+    tWall: { value: wallTex },
+    uTime: { value: 0 },
+    uTrees: { value: 0 },
+    uDark: { value: 0 },
+    uAspect: { value: 1 },
+    uSize: { value: new THREE.Vector2(1, 1) },
+  },
+  vertexShader: /* glsl */`
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: /* glsl */`
+    precision highp float;
+    varying vec2 vUv;
+    uniform sampler2D tLight;
+    uniform sampler2D tShadow;
+    uniform float uTime;
+    uniform float uTrees;
+    uniform float uDark;
+    uniform float uAspect;
+    uniform vec2 uSize;
+    uniform sampler2D tWall;
+
+    float hash(vec2 p) {
+      p = fract(p * vec2(123.34, 456.21));
+      p += dot(p, p + 45.32);
+      return fract(p.x * p.y);
+    }
+    float vnoise(vec2 p) {
+      vec2 i = floor(p), f = fract(p);
+      vec2 u = f * f * (3.0 - 2.0 * f);
+      float a = hash(i), b = hash(i + vec2(1.0, 0.0));
+      float c = hash(i + vec2(0.0, 1.0)), d = hash(i + vec2(1.0, 1.0));
+      return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+    }
+    float fbm(vec2 p) {
+      float v = 0.0, a = 0.5;
+      for (int i = 0; i < 5; i++) {
+        v += a * vnoise(p);
+        p = p * 2.03 + vec2(17.1, 9.7);
+        a *= 0.5;
+      }
+      return v;
+    }
+
+    vec3 normalFromXy(vec2 n) {
+      vec2 l = n / max(length(n), 1.0);
+      return normalize(vec3(l, sqrt(max(1.0 - dot(l, l), 0.0001))));
+    }
+    float softBlob(vec2 uv, vec2 c, vec2 r) {
+      vec2 d = (uv - c) / r;
+      return exp(-dot(d, d) * 1.8);
+    }
+
+    void main() {
+      vec2 p = vec2(vUv.x * uAspect, vUv.y);
+      vec3 light = texture2D(tLight, vUv).rgb;
+      float castShadow = texture2D(tShadow, vUv).r;
+      vec2 worldPos = (vUv - 0.5) * uSize;
+
+      vec3 wall = mix(vec3(0.905, 0.893, 0.868), vec3(0.955, 0.92, 0.855), uTrees);
+
+      // Plaster relief (port of wall-common.wgsl): a large and a micro normal
+      // field lit by one soft key from the upper left, plus a dull sheen.
+      const float MATERIAL_SCALE = 1500.0;
+      vec4 material = texture2D(tWall, worldPos / MATERIAL_SCALE);
+      vec4 micro = texture2D(tWall, worldPos / (MATERIAL_SCALE / 4.0) + vec2(0.371, 0.613), -0.5);
+      vec2 largeXy = (material.gb * 2.0 - 1.0) * 0.15;
+      vec2 microXy = (micro.gb * 2.0 - 1.0) * 0.14;
+      vec3 normal = normalFromXy(largeXy + microXy);
+      vec3 keyDir = normalize(vec3(-0.38, 0.52, 0.76));
+      float lightFacing = max(dot(normal, keyDir), 0.0);
+      float diffuse = mix(0.62, 1.0, lightFacing);
+      vec3 halfDir = normalize(keyDir + vec3(0.0, 0.0, 1.0));
+      float roughness = material.a;
+      float specular = pow(max(dot(normal, halfDir), 0.0), mix(48.0, 4.0, roughness)) * mix(0.07, 0.015, roughness);
+      float grain = hash(gl_FragCoord.xy) - 0.5;
+      // Soft overhead light pooling on the wall, brighter towards the lower left.
+      float overhead = clamp(softBlob(vUv, vec2(0.12, 0.85), vec2(0.6, 0.55)) * 0.75
+        + softBlob(vUv, vec2(0.45, 0.35), vec2(0.28, 0.3)) * 0.35
+        + softBlob(vUv, vec2(0.85, 0.7), vec2(0.2, 0.25)) * 0.3, 0.0, 1.0);
+      float exposure = mix(0.86, 1.06, overhead);
+      // Normalise so a flat, average patch keeps the wall colour.
+      float relief = (material.r * diffuse + specular) / 0.8 * 1.1 * exposure;
+      float tex = grain * 0.012;
+
+      vec2 q = vUv - 0.5;
+      float vig = 1.0 - 0.22 * dot(q, q);
+
+      // Dappled tree shade: two leaf layers swaying at different rates.
+      vec3 shade = vec3(1.0);
+      if (uTrees > 0.5) {
+        vec2 sway = 0.06 * vec2(sin(uTime * 0.55 + p.y * 3.0), cos(uTime * 0.43 + p.x * 2.6));
+        float l1 = fbm(p * 2.6 + sway + vec2(uTime * 0.012, 0.0));
+        float l2 = fbm(p * 6.0 - sway * 1.7 + vec2(3.7, uTime * 0.02));
+        float sun = smoothstep(0.40, 0.58, l1) * (0.55 + 0.45 * smoothstep(0.36, 0.6, l2));
+        shade = mix(vec3(0.63, 0.67, 0.76), vec3(1.0), sun);
+      }
+
+      vec3 col;
+      if (uDark > 0.5) {
+        // Dark room: a near-black wall, light simply adds to it.
+        vec3 base = vec3(0.030, 0.030, 0.036) * vig * (0.6 + 0.4 * relief) + specular * 0.2 + tex * 0.35;
+        col = clamp(base + light * 0.8, 0.0, 1.0);
+      } else {
+        vec3 base = wall * relief * vig * shade * mix(1.0, castShadow, 0.9) + tex;
+        // Coloured light tints the wall; white light lifts it.
+        float mx = max(light.r, max(light.g, light.b));
+        col = clamp(base * (1.0 - 0.85 * (mx - light)) + (1.0 - base) * light, 0.0, 1.0);
+      }
+
+      gl_FragColor = vec4(pow(col, vec3(2.2)), 1.0);
+      #include <colorspace_fragment>
+    }
+  `,
+});
+const wall = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), wallMat);
+scene.add(wall);
+
+// ---------- prism glass ----------
+// The mesh, the glass shading model, the accent layer and the studio
+// (vercel-labs/vgpu, apps/docs/.../prism-background, MIT, (c) Vercel, Inc.)
+// and adapted from one fixed WebGPU prism to many instanced WebGL ones:
+// everything is evaluated in the prism's own unit space.
+
+// Unit prism: corners on the unit circle at 0/120/240 degrees, so the three
+// side planes are dot(n, p) = 0.5. It stands on the wall from z = 0 to DEPTH.
+const PRISM_DEPTH = 0.85;
+const PRISM_BEVEL = 0.055;
+
+// Port of prism-mesh.ts: fillet all nine edges, rounding inward only so the
+// visible mesh never leaves the planes the light is traced against.
+function roundedPrismGeometry(corners, depth, bevel) {
+  const CORNER_SEGMENTS = 5, BEVEL_SEGMENTS = 5, EDGE_SEGMENTS = 12;
+  const NC = corners.length;
+  const norm = v => { const l = Math.hypot(v[0], v[1]) || 1; return [v[0] / l, v[1] / l]; };
+  const edgeNormal = (a, b) => norm([b[1] - a[1], -(b[0] - a[0])]);
+  const radius = Math.min(bevel, depth * 0.45);
+
+  const arcs = corners.map((corner, i) => {
+    const prev = corners[(i + NC - 1) % NC], next = corners[(i + 1) % NC];
+    const toPrev = norm([prev[0] - corner[0], prev[1] - corner[1]]);
+    const toNext = norm([next[0] - corner[0], next[1] - corner[1]]);
+    const half = Math.acos(Math.max(-1, Math.min(1, toPrev[0] * toNext[0] + toPrev[1] * toNext[1]))) / 2;
+    const tangent = radius / Math.max(Math.tan(half), 1e-6);
+    const centerDist = radius / Math.max(Math.sin(half), 1e-6);
+    const bis = norm([toPrev[0] + toNext[0], toPrev[1] + toNext[1]]);
+    const center = [corner[0] + bis[0] * centerDist, corner[1] + bis[1] * centerDist];
+    const start = [corner[0] + toPrev[0] * tangent, corner[1] + toPrev[1] * tangent];
+    const end = [corner[0] + toNext[0] * tangent, corner[1] + toNext[1] * tangent];
+    const a0 = Math.atan2(start[1] - center[1], start[0] - center[0]);
+    let a1 = Math.atan2(end[1] - center[1], end[0] - center[0]);
+    while (a1 <= a0) a1 += Math.PI * 2;
+    const pts = [];
+    for (let s = 0; s <= CORNER_SEGMENTS; s++) {
+      const a = a0 + (a1 - a0) * s / CORNER_SEGMENTS, n = [Math.cos(a), Math.sin(a)];
+      pts.push({ p: [center[0] + n[0] * radius, center[1] + n[1] * radius], n });
+    }
+    return pts;
+  });
+  const contour = [];
+  arcs.forEach((arc, i) => {
+    contour.push(...arc);
+    const end = arc[arc.length - 1].p, nextStart = arcs[(i + 1) % NC][0].p;
+    const n = edgeNormal(corners[i], corners[(i + 1) % NC]);
+    for (let s = 1; s < EDGE_SEGMENTS; s++) {
+      const t = s / EDGE_SEGMENTS;
+      contour.push({ p: [end[0] + (nextStart[0] - end[0]) * t, end[1] + (nextStart[1] - end[1]) * t], n });
+    }
+  });
+
+  const pos = [], nor = [], idx = [], rings = [];
+  const push = (p, n) => { pos.push(...p); nor.push(...n); return pos.length / 3 - 1; };
+  const addRing = (theta, z, zn) => {
+    const inset = radius * (1 - Math.cos(theta)), w = Math.cos(theta);
+    rings.push(contour.map(c => push([c.p[0] - c.n[0] * inset, c.p[1] - c.n[1] * inset, z], [c.n[0] * w, c.n[1] * w, zn])));
+  };
+  const maxTheta = Math.PI / 2 - 0.06, maxSine = Math.sin(maxTheta);
+  for (let s = BEVEL_SEGMENTS; s >= 0; s--) {
+    const th = maxTheta * s / BEVEL_SEGMENTS;
+    addRing(th, radius - radius * Math.sin(th) / maxSine, -Math.sin(th));
+  }
+  for (let s = 0; s <= BEVEL_SEGMENTS; s++) {
+    const th = maxTheta * s / BEVEL_SEGMENTS;
+    addRing(th, depth - radius + radius * Math.sin(th) / maxSine, Math.sin(th));
+  }
+  for (let b = 0; b < rings.length - 1; b++) {
+    const cur = rings[b], nxt = rings[b + 1];
+    for (let i = 0; i < contour.length; i++) {
+      const j = (i + 1) % contour.length;
+      idx.push(cur[i], cur[j], nxt[j], cur[i], nxt[j], nxt[i]);
+    }
+  }
+  const addCap = (ring, normal, reverse) => {
+    const cap = ring.map(v => push([pos[v * 3], pos[v * 3 + 1], pos[v * 3 + 2]], normal));
+    const c = push([0, 0, pos[ring[0] * 3 + 2]], normal);
+    for (let i = 0; i < cap.length; i++) {
+      const j = (i + 1) % cap.length;
+      if (reverse) idx.push(c, cap[j], cap[i]); else idx.push(c, cap[i], cap[j]);
+    }
+  };
+  addCap(rings[0], [0, 0, -1], true);
+  addCap(rings[rings.length - 1], [0, 0, 1], false);
+
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  g.setIndex(idx);
+  return g;
+}
+const TRI_CORNERS = [0, 1, 2].map(k => [Math.cos(k * Math.PI * 2 / 3), Math.sin(k * Math.PI * 2 / 3)]);
+const prismGeo = roundedPrismGeometry(TRI_CORNERS, PRISM_DEPTH, PRISM_BEVEL);
+// Film: a thin glass slab, half-length 1 along x, standing on the wall.
+const FILM_HALF = 0.11;
+const FILM_DEPTH = 0.8;
+const FILM_CORNERS = [[1, -FILM_HALF], [1, FILM_HALF], [-1, FILM_HALF], [-1, -FILM_HALF]];
+const filmGeo = roundedPrismGeometry(FILM_CORNERS, FILM_DEPTH, FILM_HALF * 0.55);
+
+// Everything behind the glass is rendered here first; the glass then looks
+// it up through its own refraction. Mips give the frosted blur.
+const sceneRT = new THREE.WebGLRenderTarget(4, 4, {
+  type: THREE.HalfFloatType,
+  generateMipmaps: true,
+  minFilter: THREE.LinearMipmapLinearFilter,
+  magFilter: THREE.LinearFilter,
+  depthBuffer: false,
+});
+const viewProj = new THREE.Matrix4();
+
+const glassMat = new THREE.ShaderMaterial({
+  uniforms: {
+    tScene: { value: sceneRT.texture },
+    uViewProj: { value: viewProj },
+    uDepth: { value: PRISM_DEPTH },
+    uIor: { value: 1.58 },
+    uAbsorb: { value: new THREE.Vector3(0.34, 0.33, 0.30) },
+    uFrost: { value: 0.7 },
+    uEnvExposure: { value: 3.0 },
+    uReflection: { value: 2.0 },
+    uPlanes: { value: [
+      new THREE.Vector3(0.5, 0.8660254, 0.5), new THREE.Vector3(-1, 0, 0.5),
+      new THREE.Vector3(0.5, -0.8660254, 0.5), new THREE.Vector3(0, 0, 0) ] },
+    uPlaneCount: { value: 3 },
+    uBandScale: { value: 1.0 },
+    uAccent: { value: 1.0 },
+    uIridescence: { value: 0.0 },
+    uCross: { value: 0.0 },
+    tLight: { value: lightTex },
+    uSim: { value: new THREE.Vector2(1, 1) },
+    uInner: { value: 0.35 },
+  },
+  vertexShader: /* glsl */`
+    varying vec3 vLocalPos;
+    varying vec3 vLocalNormal;
+    varying vec3 vLocalCam;
+    varying vec3 vM0;
+    varying vec3 vM1;
+    varying vec3 vM2;
+    varying vec3 vT;
+    void main() {
+      mat4 m = modelMatrix;
+      #ifdef USE_INSTANCING
+        m = modelMatrix * instanceMatrix;
+      #endif
+      float s = max(length(m[0].xyz), 1e-5);
+      mat3 r = mat3(m[0].xyz / s, m[1].xyz / s, m[2].xyz / s);
+      vLocalPos = position;
+      vLocalNormal = normal;
+      vLocalCam = transpose(r) * (cameraPosition - m[3].xyz) / s;
+      vM0 = m[0].xyz; vM1 = m[1].xyz; vM2 = m[2].xyz; vT = m[3].xyz;
+      gl_Position = projectionMatrix * viewMatrix * m * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: /* glsl */`
+    precision highp float;
+    varying vec3 vLocalPos;
+    varying vec3 vLocalNormal;
+    varying vec3 vLocalCam;
+    varying vec3 vM0;
+    varying vec3 vM1;
+    varying vec3 vM2;
+    varying vec3 vT;
+    uniform sampler2D tScene;
+    uniform mat4 uViewProj;
+    uniform float uDepth;
+    uniform float uIor;
+    uniform vec3 uAbsorb;
+    uniform float uFrost;
+    uniform float uEnvExposure;
+    uniform float uReflection;
+    // Side planes of the cross-section as (nx, ny, offset): dot(n, p) = offset.
+    uniform vec3 uPlanes[4];
+    uniform int uPlaneCount;
+    uniform float uBandScale;
+    uniform float uAccent;
+    uniform float uIridescence;
+    uniform float uCross;
+    uniform sampler2D tLight;
+    uniform vec2 uSim;
+    uniform float uInner;
+
+    const float NO_EXIT = 100000.0;
+
+    // --- studio environment (port of environment.wgsl) ---
+    float panelMask(vec3 dir, vec3 fwdIn, vec2 size, float feather) {
+      vec3 fwd = normalize(fwdIn);
+      vec3 helper = abs(fwd.y) > 0.92 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
+      vec3 right = normalize(cross(helper, fwd));
+      vec3 up = cross(fwd, right);
+      float facing = dot(dir, fwd);
+      if (facing <= 0.01) return 0.0;
+      float lx = abs(dot(dir, right) / facing);
+      float ly = abs(dot(dir, up) / facing);
+      return (1.0 - smoothstep(size.x, size.x + feather, lx))
+           * (1.0 - smoothstep(size.y, size.y + feather, ly));
+    }
+    vec3 studio(vec3 dirIn) {
+      vec3 dir = normalize(dirIn);
+      float floorBlend = 1.0 - smoothstep(-0.22, -0.02, dir.y);
+      vec3 room = mix(vec3(0.00025, 0.0003, 0.0004), vec3(0.006, 0.007, 0.009), floorBlend);
+      float negZ = 1.0 - smoothstep(-0.08, 0.08, dir.z);
+      float aboveFloor = smoothstep(-0.28, -0.08, dir.y);
+      room = mix(room, vec3(0.00002), negZ * aboveFloor);
+      float horizon = exp(-abs(dir.y + 0.1) * 22.0) * 0.0012;
+      vec3 c = room + vec3(horizon, horizon * 0.96, horizon * 0.9);
+      c += vec3(0.82, 0.84, 0.88) * panelMask(dir, vec3(-0.82, 0.08, 0.57), vec2(1.35, 1.1), 0.22) * 0.011;
+      c += vec3(1.0, 0.97, 0.91) * panelMask(dir, vec3(0.0, -0.707, 0.707), vec2(0.38, 0.62), 0.18) * 0.22;
+      c += vec3(0.76, 0.88, 1.0) * panelMask(dir, vec3(0.612, 0.354, 0.707), vec2(0.5, 0.16), 0.06) * 7.0;
+      return c / (vec3(1.0) + c);
+    }
+
+    // --- interior of the solid (port of glass.wgsl) ---
+    float planeExit(vec3 o, vec3 d, vec3 n, float off) {
+      float den = dot(n, d);
+      if (den <= 0.00001) return NO_EXIT;
+      float t = (off - dot(n, o)) / den;
+      return t > 0.0001 ? t : NO_EXIT;
+    }
+    void nextSurface(vec3 o, vec3 d, out float t, out vec3 n) {
+      t = planeExit(o, d, vec3(0.0, 0.0, 1.0), uDepth);
+      n = vec3(0.0, 0.0, 1.0);
+      float b = planeExit(o, d, vec3(0.0, 0.0, -1.0), 0.0);
+      if (b < t) { t = b; n = vec3(0.0, 0.0, -1.0); }
+      for (int i = 0; i < 4; i++) {
+        if (i >= uPlaneCount) break;
+        vec3 pl = uPlanes[i];
+        float s = planeExit(o, d, vec3(pl.xy, 0.0), pl.z);
+        if (s < t) { t = s; n = vec3(pl.xy, 0.0); }
+      }
+    }
+
+    // Thin-film interference colour for a reflection at this angle: the
+    // holographic sheen of diffraction film.
+    vec3 thinFilm(float cosTheta) {
+      float phase = 2.0 * 3.14159 * 900.0 * cosTheta;
+      return 0.5 + 0.5 * cos(phase / vec3(650.0, 540.0, 460.0) + vec3(0.0, 0.6, 1.2));
+    }
+
+    vec3 sceneAt(vec3 localPoint, float lod) {
+      vec3 world = mat3(vM0, vM1, vM2) * localPoint + vT;
+      vec4 clip = uViewProj * vec4(world, 1.0);
+      vec2 uv = clip.xy / max(clip.w, 0.00001) * 0.5 + 0.5;
+      return textureLod(tScene, clamp(uv, vec2(0.002), vec2(0.998)), lod).rgb;
+    }
+
+    // Distance from a point on the surface to the nearest other face: small
+    // values are the solid's inner edges, seen through the glass.
+    float edgeDistance(vec3 p, vec3 n) {
+      float m = 10.0;
+      if (abs(n.z) < 0.5) m = min(p.z, uDepth - p.z);
+      for (int i = 0; i < 4; i++) {
+        if (i >= uPlaneCount) break;
+        vec3 pl = uPlanes[i];
+        if (dot(pl.xy, n.xy) > 0.99) continue;
+        m = min(m, pl.z - dot(pl.xy, p.xy));
+      }
+      return m;
+    }
+
+    // Follow one refracted ray through the solid, bouncing on total internal
+    // reflection, until it leaves; returns what it sees.
+    vec3 traceGlass(vec3 N, vec3 I, float ior, float lod, out float travelled, out float edge) {
+      mat3 toWorld = mat3(vM0, vM1, vM2);
+      vec3 d = refract(I, N, 1.0 / ior);
+      vec3 p = vLocalPos + d * 0.001;
+      travelled = 0.0;
+      edge = 0.0;
+      bool escaped = false;
+      for (int i = 0; i < 3; i++) {
+        float t; vec3 n;
+        nextSurface(p, d, t, n);
+        if (t > 50.0) break;
+        p += d * t;
+        travelled += t;
+        float ed = edgeDistance(p, n) / 0.05;
+        edge = max(edge, exp(-ed * ed));
+        vec3 o = refract(d, -n, ior);
+        if (dot(o, o) > 0.0) { d = normalize(o); escaped = true; break; }
+        d = reflect(d, n);
+        p += d * 0.001;
+      }
+      if (escaped && d.z < -0.02) {
+        float t = min(p.z / -d.z, 4.0);
+        return sceneAt(p + d * t, lod);
+      }
+      if (escaped) {
+        return mix(sceneAt(p, lod + 1.0), studio(normalize(toWorld * d)) * uEnvExposure, 0.35);
+      }
+      return sceneAt(p, lod + 1.0);
+    }
+
+    float fresnelMix(float f) { return 0.35 + 0.65 * clamp(f * 6.0, 0.0, 1.0); }
+
+    float band(float d, float center, float width) {
+      float c = (d - center) / max(width, 0.0001);
+      return exp(-c * c);
+    }
+    float rim(float d, float width) {
+      return 1.0 - smoothstep(width * 0.35, width, d);
+    }
+
+    void main() {
+      mat3 toWorld = mat3(vM0, vM1, vM2);
+      vec3 N = normalize(vLocalNormal);
+      vec3 V = normalize(vLocalCam - vLocalPos);
+      vec3 I = -V;
+      float facing = clamp(dot(V, N), 0.0, 1.0);
+
+      vec3 reflDir = normalize(toWorld * reflect(I, N));
+      // A face parallel to the wall mirrors the studio key straight back at
+      // the camera; keep that from washing the whole top face out.
+      float flatFace = smoothstep(0.85, 0.98, abs(N.z));
+      vec3 env = studio(reflDir) * uEnvExposure * mix(1.0, 0.3, flatFace);
+      float f0 = pow((uIor - 1.0) / (uIor + 1.0), 2.0);
+      float fresnel = f0 + (1.0 - f0) * pow(1.0 - facing, 5.0);
+
+      // Three traces with slightly different indices: the colour fringes of
+      // real glass at its edges.
+      float travelled, tr, tb, edge, er, eb;
+      vec3 bgG = traceGlass(N, I, uIor, uFrost, travelled, edge);
+      vec3 bgR = traceGlass(N, I, uIor * 0.988, uFrost, tr, er);
+      vec3 bgB = traceGlass(N, I, uIor * 1.012, uFrost, tb, eb);
+      vec3 background = vec3(bgR.r, bgG.g, bgB.b);
+      vec3 innerEdge = vec3(er, edge, eb);
+
+      vec3 transmitted = background * exp(-uAbsorb * travelled);
+      vec3 sheen = mix(vec3(1.0), thinFilm(facing) * 1.4, uIridescence);
+      vec3 reflected = min(env * uReflection * sheen, vec3(0.7));
+      transmitted *= mix(vec3(1.0), 1.0 - 0.35 * (1.0 - thinFilm(facing)), uIridescence);
+      vec3 glass = max(transmitted * (1.0 - fresnel) + reflected * fresnel, vec3(0.0));
+      vec3 footprint = toWorld * vec3(vLocalPos.xy, 0.0) + vT;
+      vec2 lightUv = footprint.xy / uSim + 0.5;
+      vec3 inner = texture2D(tLight, clamp(lightUv, 0.0, 1.0)).rgb;
+      glass += inner * uInner * (0.7 + 0.3 * facing);
+
+      // Keep bright studio panels readable on a frontal face.
+      float grazing = pow(1.0 - facing, 1.5);
+      float envLum = dot(env, vec3(0.2126, 0.7152, 0.0722));
+      float panelMaskValue = smoothstep(0.5, 0.82, envLum);
+      float panelStrength = panelMaskValue * clamp(uReflection * 0.4, 0.0, 0.7) * (0.65 + 0.35 * grazing);
+      glass += max(reflected * panelStrength, vec3(0.0));
+
+      // Accent layer (port of glass-accent.wgsl): inner bands and bevel rims
+      // that would otherwise vanish against an almost-white wall.
+      float BAND_CENTER = 0.16 * uBandScale;
+      float BAND_WIDTH = 0.105 * uBandScale;
+      float innerBand = 0.0, frontRim = 0.0, baseRim = 0.0;
+      for (int i = 0; i < 4; i++) {
+        if (i >= uPlaneCount) break;
+        vec3 pl = uPlanes[i];
+        float di = pl.z - dot(pl.xy, vLocalPos.xy);
+        float w = i == 0 ? 0.68 : i == 1 ? 1.0 : 0.38;
+        innerBand = max(innerBand, band(di, BAND_CENTER, BAND_WIDTH) * w);
+        frontRim = max(frontRim, rim(di, BAND_WIDTH * 0.55));
+        if (i == 2) baseRim = band(di, 0.0, BAND_WIDTH * 0.7);
+      }
+      float bevel = pow(clamp(1.0 - abs(N.z), 0.0, 1.0), 2.2);
+      float coverage = clamp(0.05 + innerBand * 0.52 + bevel * (0.18 + fresnel * 0.48), 0.0, 0.56);
+      float panel = smoothstep(0.08, 0.72, envLum);
+      vec3 tone = mix(vec3(0.052, 0.057, 0.066) * 6.0, max(env * 0.95, vec3(0.0)), panel);
+      vec3 neutralRim = vec3(0.92, 0.95, 1.0) * (bevel + frontRim * 0.72) * 0.45;
+      vec3 warmRim = vec3(1.0, 0.91, 0.78) * baseRim * 0.28;
+
+      coverage *= uAccent;
+      // Inner edges and a glossy key-light highlight on the polished faces.
+      vec3 worldN = normalize(toWorld * N);
+      vec3 worldPos = toWorld * vLocalPos + vT;
+      vec3 worldV = normalize(cameraPosition - worldPos);
+      vec3 keyDir = normalize(vec3(-0.42, 0.62, 0.78));
+      vec3 halfDir = normalize(keyDir + worldV);
+      float spec = pow(max(dot(worldN, halfDir), 0.0), 110.0) * 0.55 * fresnelMix(fresnel);
+      // Dichroic cube: its two coatings show as fine tinted seams on the diagonals.
+      vec3 seams = vec3(0.0);
+      if (uCross > 0.5) {
+        float da = abs(vLocalPos.x + vLocalPos.y) * 0.7071;
+        float db = abs(vLocalPos.x - vLocalPos.y) * 0.7071;
+        seams = (vec3(0.40, 0.85, 1.0) * band(da, 0.0, 0.026) + vec3(1.0, 0.84, 0.35) * band(db, 0.0, 0.026)) * 0.6;
+      }
+      vec3 col = glass * (1.0 - coverage) + tone * coverage + (neutralRim + warmRim) * uAccent
+        + innerEdge * 0.32 * uAccent + vec3(spec) + seams;
+      gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+      #include <colorspace_fragment>
+    }
+  `,
+});
+const prisms = new THREE.InstancedMesh(prismGeo, glassMat, MAXN);
+prisms.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+prisms.frustumCulled = false;
+scene.add(prisms);
+
+const filmMat = glassMat.clone();
+filmMat.uniforms.tScene.value = sceneRT.texture;
+filmMat.uniforms.uViewProj.value = viewProj;
+filmMat.uniforms.uDepth.value = FILM_DEPTH;
+filmMat.uniforms.uPlanes.value = [
+  new THREE.Vector3(1, 0, 1), new THREE.Vector3(0, 1, FILM_HALF),
+  new THREE.Vector3(-1, 0, 1), new THREE.Vector3(0, -1, FILM_HALF) ];
+filmMat.uniforms.uPlaneCount.value = 4;
+filmMat.uniforms.uAbsorb.value = new THREE.Vector3(0.06, 0.05, 0.04);
+filmMat.uniforms.uFrost.value = 0.4;
+filmMat.uniforms.uBandScale.value = 0.3;
+filmMat.uniforms.uAccent.value = 0.55;
+filmMat.uniforms.uIridescence.value = 1.0;
+filmMat.uniforms.tLight.value = lightTex;
+const films = new THREE.InstancedMesh(filmGeo, filmMat, MAXN);
+films.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+films.frustumCulled = false;
+scene.add(films);
+
+// Dichroic cube: a square solid on the same glass shader, clearer than the prisms.
+const CUBE_DEPTH = 1.05;
+const CUBE_CORNERS = [0, 1, 2, 3].map(k => [Math.cos(Math.PI / 4 + k * Math.PI / 2), Math.sin(Math.PI / 4 + k * Math.PI / 2)]);
+const cubeGeo = roundedPrismGeometry(CUBE_CORNERS, CUBE_DEPTH, 0.05);
+const cubeMat = glassMat.clone();
+cubeMat.uniforms.tScene.value = sceneRT.texture;
+cubeMat.uniforms.uViewProj.value = viewProj;
+cubeMat.uniforms.tLight.value = lightTex;
+cubeMat.uniforms.uDepth.value = CUBE_DEPTH;
+cubeMat.uniforms.uPlanes.value = [
+  new THREE.Vector3(1, 0, Math.SQRT1_2), new THREE.Vector3(0, 1, Math.SQRT1_2),
+  new THREE.Vector3(-1, 0, Math.SQRT1_2), new THREE.Vector3(0, -1, Math.SQRT1_2) ];
+cubeMat.uniforms.uPlaneCount.value = 4;
+cubeMat.uniforms.uAbsorb.value = new THREE.Vector3(0.2, 0.2, 0.19);
+cubeMat.uniforms.uFrost.value = 0.5;
+cubeMat.uniforms.uCross.value = 1.0;
+const cubes = new THREE.InstancedMesh(cubeGeo, cubeMat, MAXN);
+cubes.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+cubes.frustumCulled = false;
+scene.add(cubes);
+
+const dummy = new THREE.Object3D();
+function syncMeshes() {
+  let np = 0, nf = 0, nc = 0;
+  for (const it of items) {
+    dummy.position.set(it.x - CX, CY - it.y, 0);
+    dummy.rotation.set(0, 0, -it.rot);
+    dummy.scale.setScalar(it.r);
+    dummy.updateMatrix();
+    if (it.type === 'p') prisms.setMatrixAt(np++, dummy.matrix);
+    else if (it.type === 'c') cubes.setMatrixAt(nc++, dummy.matrix);
+    else films.setMatrixAt(nf++, dummy.matrix);
+  }
+  prisms.count = np;
+  films.count = nf;
+  cubes.count = nc;
+  prisms.instanceMatrix.needsUpdate = true;
+  films.instanceMatrix.needsUpdate = true;
+  cubes.instanceMatrix.needsUpdate = true;
+}
+
+// ---------- sizing ----------
+function placeHandle() {
+  handle.style.left = (source.x / SW * 100) + '%';
+  handle.style.top = (source.y / SH * 100) + '%';
+  const px = stage.clientHeight / SH;
+  handle.classList.toggle('point', S.src === 'point');
+  handle.style.setProperty('--bar', (S.src === 'point' ? 28 : Math.max(28, S.width * px)) + 'px');
+  handle.style.setProperty('--aim', aim + 'rad');
+}
+function resize() {
+  const w = Math.max(50, stage.clientWidth), h = Math.max(50, stage.clientHeight);
+  const fx = source.x / SW;
+  SW = Math.round(SH * w / h);
+  CX = SW / 2; CY = SH / 2;
+  source.x = Math.max(8, Math.min(SW - 8, fx * SW));
+  for (const c of [lightCv, light2Cv, glowCv]) { c.width = SW; c.height = SH; }
+  shadowCv.width = Math.round(SW * SHADOW_SCALE);
+  shadowCv.height = Math.round(SH * SHADOW_SCALE);
+  // Canvas size changed: drop the GPU copies so they are re-allocated.
+  lightTex.dispose();
+  shadowTex.dispose();
+  renderer.setSize(w, h, false);
+  const pr = renderer.getPixelRatio();
+  sceneRT.setSize(Math.round(w * pr), Math.round(h * pr));
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  camera.updateMatrixWorld();
+  viewProj.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+  wall.scale.set(SW, SH, 1);
+  wallMat.uniforms.uAspect.value = SW / SH;
+  wallMat.uniforms.uSize.value.set(SW, SH);
+  glassMat.uniforms.uSim.value.set(SW, SH);
+  filmMat.uniforms.uSim.value.set(SW, SH);
+  cubeMat.uniforms.uSim.value.set(SW, SH);
+  placeHandle();
+  if (base.length) layout();
+  dirty = true;
+  // setSize clears the canvas; redraw now rather than flash blank.
+  if (started) tick(performance.now());
+}
+let started = false;
+new ResizeObserver(resize).observe(stage);
+
+// ---------- interaction ----------
+// The beam stays pointed at the pattern: at most ~40 degrees off the line
+// from the source to the centre, so it never turns away into nothing.
+function clampAim(a) {
+  const base = Math.atan2(CY - source.y, CX - source.x);
+  let off = a - base;
+  while (off > Math.PI) off -= Math.PI * 2;
+  while (off < -Math.PI) off += Math.PI * 2;
+  return base + Math.max(-0.7, Math.min(0.7, off));
+}
+stage.addEventListener('wheel', e => {
+  e.preventDefault();
+  const d = (Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX) * (e.deltaMode === 1 ? 16 : 1);
+  if (S.src === 'point') theta += d * 0.002;
+  else aim = clampAim(aim + d * 0.002);
+  dirty = true;
+  syncDir();
+  placeHandle();
+}, { passive: false });
+
+let dragging = false;
+// Dragging anywhere on the preview turns the whole pattern by hand.
+let turning = null;
+const stageAngle = e => {
+  const r = stage.getBoundingClientRect();
+  return Math.atan2(e.clientY - r.top - r.height / 2, e.clientX - r.left - r.width / 2);
+};
+const fingers = new Map();
+let twist = null;
+const twistAngle = () => {
+  const [a, b] = [...fingers.values()];
+  return Math.atan2(b.y - a.y, b.x - a.x);
+};
+stage.addEventListener('pointerdown', e => {
+  if (e.target === handle) return;
+  fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  stage.setPointerCapture(e.pointerId);
+  e.preventDefault();
+  if (fingers.size === 2) {
+    // Second finger: switch from turning the pattern to twisting the light.
+    turning = null;
+    twist = { a0: twistAngle(), aim0: aim, theta0: theta };
+    return;
+  }
+  turning = { a0: stageAngle(e), theta0: theta };
+  stage.style.cursor = 'grabbing';
+});
+stage.addEventListener('pointermove', e => {
+  if (!fingers.has(e.pointerId)) return;
+  fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (twist && fingers.size === 2) {
+    let da = twistAngle() - twist.a0;
+    if (da > Math.PI) da -= Math.PI * 2;
+    if (da < -Math.PI) da += Math.PI * 2;
+    if (S.src === 'point') theta = twist.theta0 + da;
+    else aim = clampAim(twist.aim0 + da);
+    dirty = true;
+    syncDir();
+    return;
+  }
+  if (!turning) return;
+  let da = stageAngle(e) - turning.a0;
+  if (da > Math.PI) da -= Math.PI * 2;
+  if (da < -Math.PI) da += Math.PI * 2;
+  theta = turning.theta0 + da;
+  dirty = true;
+});
+const endTurn = e => {
+  fingers.delete(e.pointerId);
+  if (fingers.size < 2) twist = null;
+  if (fingers.size === 0) { turning = null; stage.style.cursor = ''; lastT = 0; }
+};
+stage.addEventListener('pointerup', endTurn);
+stage.addEventListener('pointercancel', endTurn);
+
+handle.addEventListener('pointerdown', e => {
+  e.stopPropagation();
+  dragging = true;
+  handle.setPointerCapture(e.pointerId);
+  e.preventDefault();
+});
+handle.addEventListener('pointermove', e => {
+  if (!dragging) return;
+  const r = stage.getBoundingClientRect();
+  source.x = Math.max(8, Math.min(SW - 8, (e.clientX - r.left) / r.width * SW));
+  source.y = Math.max(8, Math.min(SH - 8, (e.clientY - r.top) / r.height * SH));
+  if (S.src === 'beam') aim = clampAim(aim);
+  placeHandle();
+  dirty = true;
+});
+const endDrag = () => { dragging = false; };
+handle.addEventListener('pointerup', endDrag);
+handle.addEventListener('pointercancel', endDrag);
+
+// ---------- controls ----------
+const FORMAT = {
+  width: v => v, bright: v => (v / 100).toFixed(2), disp: v => (v / 100).toFixed(2),
+  size: v => v, count: v => v, gap: v => v,
+};
+function syncUI() {
+  $$('.seg').forEach(seg => {
+    $$('button', seg).forEach(b => b.classList.toggle('on', b.dataset.val === String(S[seg.dataset.key])));
+  });
+  $$('input[type=range]').forEach(inp => {
+    const k = inp.dataset.key;
+    if (!k) return;
+    if (String(inp.value) !== String(S[k]) && inp !== document.activeElement) inp.value = S[k];
+    inp.parentElement.style.setProperty('--pf', (S[k] - inp.min) / (inp.max - inp.min));
+    $('output', inp.parentElement).textContent = FORMAT[k](S[k]);
+  });
+  placeHandle();
+  wallMat.uniforms.uTrees.value = S.bg === 'trees' ? 1 : 0;
+  wallMat.uniforms.uDark.value = S.bg === 'dark' ? 1 : 0;
+  stage.classList.toggle('dark', S.bg === 'dark');
+  const darkRoom = S.bg === 'dark';
+  // The wall plane is sized to the view in whole sim units, so a sub-pixel of
+  // the clear colour can show along an edge; make that colour the wall's own.
+  renderer.setClearColor(darkRoom ? 0x080809 : (S.bg === 'trees' ? 0xe8e2d6 : 0xe2dfd9), 1);
+  glassMat.uniforms.uAbsorb.value.set(...(darkRoom ? [0.42, 0.42, 0.24] : [0.34, 0.33, 0.30]));
+  glassMat.uniforms.uReflection.value = darkRoom ? 2.6 : 2.0;
+  glassMat.uniforms.uInner.value = darkRoom ? 1.4 : 0.35;
+  filmMat.uniforms.uReflection.value = darkRoom ? 2.6 : 2.0;
+  filmMat.uniforms.uInner.value = darkRoom ? 1.2 : 0.3;
+  cubeMat.uniforms.uReflection.value = darkRoom ? 2.6 : 2.0;
+  cubeMat.uniforms.uInner.value = darkRoom ? 1.3 : 0.35;
+  $('#spin-toggle').classList.toggle('on', S.spin === 'on');
+  if (typeof showTheme === 'function') showTheme();
+  syncDir();
+}
+function set(key, val) {
+  S[key] = val;
+  if (key === 'count' || key === 'gap' || key === 'lay') layout();
+  if (key === 'src') {
+    if (val === 'point') { source.x = CX; source.y = CY; }
+    else { source.x = 46; source.y = CY; aim = 0; }
+    placeHandle();
+  }
+  if (key === 'spin') lastT = 0;
+  dirty = true;
+  syncUI();
+}
+$$('.seg').forEach(seg => seg.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (b) set(seg.dataset.key, b.dataset.val);
+}));
+$$('input[type=range]').forEach(inp => {
+  inp.addEventListener('pointerdown', () => { touching = performance.now() + 2000; });
+  inp.addEventListener('input', () => { touching = performance.now() + 400; });
+  inp.addEventListener('pointerup', () => { touching = 0; dirty = true; });
+  if (inp.dataset.key) inp.addEventListener('input', () => set(inp.dataset.key, +inp.value));
+});
+
+// Direction: degrees off the line from the source to the centre (the same
+// range the wheel is held to). With a point light it turns the pattern instead.
+const dirInput = $('#dir');
+function aimOffset() {
+  const base = Math.atan2(CY - source.y, CX - source.x);
+  let off = aim - base;
+  while (off > Math.PI) off -= Math.PI * 2;
+  while (off < -Math.PI) off += Math.PI * 2;
+  return off;
+}
+function syncDir() {
+  const deg = S.src === 'point' ? Math.round(theta * 180 / Math.PI) % 360 : Math.round(aimOffset() * 180 / Math.PI);
+  dirInput.value = S.src === 'point' ? ((deg + 360) % 360) : deg;
+  if (S.src === 'point') { dirInput.min = 0; dirInput.max = 359; } else { dirInput.min = -40; dirInput.max = 40; }
+  dirInput.parentElement.style.setProperty('--pf', (dirInput.value - dirInput.min) / (dirInput.max - dirInput.min));
+  $('#dir-out').textContent = dirInput.value + '°';
+}
+dirInput.addEventListener('input', () => {
+  if (S.src === 'point') theta = +dirInput.value * Math.PI / 180;
+  else aim = clampAim(Math.atan2(CY - source.y, CX - source.x) + (+dirInput.value) * Math.PI / 180);
+  dirty = true;
+  syncDir();
+  placeHandle();
+});
+$('#ring-more').addEventListener('click', () => {
+  const n = S.lay === 'rings' ? ringStep(S.count, S.gap * fit(), 1) : S.count + 6;
+  set('count', Math.min(MAXN, n));
+});
+$('#ring-less').addEventListener('click', () => {
+  const n = S.lay === 'rings' ? ringStep(S.count, S.gap * fit(), -1) : S.count - 6;
+  set('count', Math.max(1, n));
+});
+const root = document.documentElement;
+let chosenTheme = 'dark';
+function applyTheme(t) {
+  chosenTheme = t;
+  try { localStorage.setItem('prism-theme', t); } catch (_) {}
+  showTheme();
+}
+// What is actually shown: the chosen theme, except over the filled wall, where
+// the interface takes the wall's side so it does not sit on it like a block.
+function showTheme() {
+  const filled = stage.classList.contains('pseudo-fs');
+  root.dataset.theme = filled ? (S.bg === 'dark' ? 'dark' : 'light') : chosenTheme;
+}
+try {
+  applyTheme(localStorage.getItem('prism-theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
+} catch (_) { applyTheme('dark'); }
+$('#theme').addEventListener('click', () => {
+  // Over the filled wall the interface already follows the wall, so this
+  // button switches the wall itself: white wall <-> dark room.
+  if (stage.classList.contains('pseudo-fs')) {
+    set('bg', S.bg === 'dark' ? 'wall' : 'dark');
+    applyTheme(S.bg === 'dark' ? 'dark' : 'light');
+    return;
+  }
+  applyTheme(root.dataset.theme === 'light' ? 'dark' : 'light');
+});
+
+// Controls can be tucked away so the wall takes the whole width.
+const app = $('.app');
+const phone = matchMedia('(max-width: 900px)');
+// A phone screen is small and close: the beam starts narrower and dimmer.
+const PHONE_DEFAULTS = { width: 150, bright: 65 };
+function applyDefaults() {
+  Object.assign(S, DEFAULTS, phone.matches ? PHONE_DEFAULTS : {});
+}
+applyDefaults();
+$('#side-toggle').addEventListener('click', () => {
+  if (phone.matches) { app.classList.toggle('sheet-open'); return; }
+  // From the filled wall, asking for the controls brings the page back with them open.
+  if (stage.classList.contains('pseudo-fs')) {
+    app.classList.remove('no-side');
+    try { localStorage.setItem('prism-side', 'on'); } catch (_) {}
+    setFill(false);
+    return;
+  }
+  app.classList.toggle('no-side');
+  try { localStorage.setItem('prism-side', app.classList.contains('no-side') ? 'off' : 'on'); } catch (_) {}
+});
+try { if (localStorage.getItem('prism-side') === 'off') app.classList.add('no-side'); } catch (_) {}
+// On phones the credit line lives at the bottom of the sheet.
+const foot = $('.foot'), side = $('.side'), mainEl = $('.main');
+function placeFoot() {
+  if (phone.matches) side.appendChild(foot); else app.appendChild(foot);
+  if (!phone.matches) app.classList.remove('sheet-open');
+}
+phone.addEventListener('change', placeFoot);
+placeFoot();
+
+// Swiping the sheet down closes it. The drag only starts from a resting
+// sheet (scrolled to the top) and not on a control, so sliders keep working.
+let sheetDrag = null;
+side.addEventListener('pointerdown', e => {
+  if (!phone.matches || !app.classList.contains('sheet-open')) return;
+  if (e.target.closest('input, button, a')) return;
+  sheetDrag = { id: e.pointerId, y0: e.clientY, dy: 0, moved: false };
+});
+side.addEventListener('pointermove', e => {
+  if (!sheetDrag || e.pointerId !== sheetDrag.id) return;
+  const dy = e.clientY - sheetDrag.y0;
+  if (!sheetDrag.moved) {
+    if (Math.abs(dy) < 8 || side.scrollTop > 0) return;
+    sheetDrag.moved = true;
+    side.setPointerCapture(e.pointerId);
+    side.classList.add('dragging');
+  }
+  sheetDrag.dy = Math.max(0, dy);
+  side.style.transform = 'translateY(' + sheetDrag.dy + 'px)';
+  e.preventDefault();
+});
+const endSheetDrag = e => {
+  if (!sheetDrag || e.pointerId !== sheetDrag.id) return;
+  const close = sheetDrag.dy > 90;
+  side.classList.remove('dragging');
+  side.style.transform = '';
+  if (close) app.classList.remove('sheet-open');
+  sheetDrag = null;
+};
+side.addEventListener('pointerup', endSheetDrag);
+side.addEventListener('pointercancel', endSheetDrag);
+// Touch screens hand the gesture to scrolling and cancel pointer events, so
+// the same drag is done again with touch events, which can veto the scroll.
+let sheetTouch = null;
+side.addEventListener('touchstart', e => {
+  if (!phone.matches || !app.classList.contains('sheet-open') || e.touches.length !== 1) return;
+  if (e.target.closest('input, button, a')) return;
+  sheetTouch = { y0: e.touches[0].clientY, dy: 0, moved: false, atTop: side.scrollTop <= 0 };
+}, { passive: true });
+side.addEventListener('touchmove', e => {
+  if (!sheetTouch) return;
+  const dy = e.touches[0].clientY - sheetTouch.y0;
+  if (!sheetTouch.moved) {
+    if (!sheetTouch.atTop || dy < 8) { if (dy < -8) sheetTouch = null; return; }
+    sheetTouch.moved = true;
+    side.classList.add('dragging');
+  }
+  sheetTouch.dy = Math.max(0, dy);
+  side.style.transform = 'translateY(' + sheetTouch.dy + 'px)';
+  e.preventDefault();
+}, { passive: false });
+const endSheetTouch = () => {
+  if (!sheetTouch) return;
+  const close = sheetTouch.dy > 90;
+  side.classList.remove('dragging');
+  side.style.transform = '';
+  if (close) app.classList.remove('sheet-open');
+  sheetTouch = null;
+};
+side.addEventListener('touchend', endSheetTouch);
+side.addEventListener('touchcancel', endSheetTouch);
+
+// "Fill": the wall takes the whole browser window. Esc or the corner button brings the page back.
+function setFill(on) {
+  stage.classList.toggle('pseudo-fs', on);
+  app.classList.toggle('fs', on);
+  showTheme();
+  resize();
+}
+$('#fs-toggle').addEventListener('click', () => setFill(!stage.classList.contains('pseudo-fs')));
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && stage.classList.contains('pseudo-fs')) setFill(false); });
+
+// Footer heart: liked state fills it with prism light; one anonymous count per browser.
+const HEART_HIT = '';
+const heart = $('#heart');
+let liked = false, counted = false;
+try { liked = localStorage.getItem('prism-liked') === '1'; counted = localStorage.getItem('prism-counted') === '1'; } catch (_) {}
+heart.classList.toggle('liked', liked);
+heart.addEventListener('click', () => {
+  liked = !liked;
+  try { localStorage.setItem('prism-liked', liked ? '1' : '0'); } catch (_) {}
+  if (liked && !counted) {
+    counted = true;
+    try { localStorage.setItem('prism-counted', '1'); } catch (_) {}
+    fetch(HEART_HIT).catch(() => {});
+  }
+  heart.classList.remove('pop');
+  void heart.offsetWidth;
+  heart.classList.add('pop');
+  heart.classList.toggle('liked', liked);
+});
+heart.addEventListener('animationend', () => heart.classList.remove('pop'));
+
+$('#spin-toggle').addEventListener('click', () => set('spin', S.spin === 'on' ? 'off' : 'on'));
+
+$('#reset').addEventListener('click', () => {
+  applyDefaults();
+  aim = 0; theta = 0;
+  source.x = 46; source.y = CY;
+  born = []; base = [];
+  placeHandle();
+  layout();
+  syncUI();
+});
+
+// ---------- loop ----------
+function frame(now) {
+  requestAnimationFrame(frame);
+  tick(now);
+}
+function tick(now) {
+  if (S.spin === 'on' && !dragging && !turning) {
+    const dt = lastT ? Math.min(60, now - lastT) : 16;
+    theta += dt * 0.0001;
+    dirty = true;
+  }
+  lastT = now;
+
+  // The light is always traced in full, so it looks the same on every device;
+  // a slow device simply traces on every 2nd, 3rd or 4th frame instead.
+  frameNo++;
+  const every = (touching && performance.now() < touching) ? Math.max(2, traceEvery) : traceEvery;
+  if (dirty && frameNo % every === 0) {
+    const t0 = performance.now();
+    const popping = place(performance.now());
+    trace();
+    drawShadows();
+    syncMeshes();
+    lightTex.needsUpdate = true;
+    if (!stage.classList.contains('ready')) requestAnimationFrame(() => stage.classList.add('ready'));
+    shadowTex.needsUpdate = true;
+    dirty = popping;
+    const el = performance.now() - t0;
+    if (el > 34) traceEvery = Math.min(4, traceEvery + 1);
+    else if (el < 14) traceEvery = Math.max(1, traceEvery - 1);
+  }
+
+  wallMat.uniforms.uTime.value = now / 1000;
+
+  // Pass 1: the lit wall alone, for the glass to refract.
+  prisms.visible = false;
+  films.visible = false;
+  cubes.visible = false;
+  renderer.setRenderTarget(sceneRT);
+  renderer.render(scene, camera);
+  // Pass 2: the wall again, with the glass on top.
+  renderer.setRenderTarget(null);
+  prisms.visible = true;
+  films.visible = true;
+  cubes.visible = true;
+  renderer.render(scene, camera);
+}
+
+resize();
+layout();
+syncUI();
+started = true;
+requestAnimationFrame(frame);
+// Lets a hidden tab (where requestAnimationFrame is paused) be stepped by hand.
+window.__prism = { step: () => tick(performance.now()), state: S, canvases: { lightCv, light2Cv, glowCv } };
+</script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+.dial {
+  position: absolute;
+  left: var(--dial-x);
+  top: var(--dial-y);
+}
+
+.tick {
+  stroke: var(--dotted);
+  stroke-linecap: round;
+}
+
+.lit {
+  stroke: var(--accent);
+}
+
+.digits {
+  position: absolute;
+  left: var(--dial-x);
+  top: var(--digits-y);
+  width: var(--dial);
+  text-align: center;
+  font-size: var(--digits-size);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--digits-tracking);
+}
+
+.caption {
+  position: absolute;
+  left: var(--dial-x);
+  top: var(--dial-caption-y);
+  width: var(--dial);
+  text-align: center;
+  font-size: var(--small);
+  color: var(--muted);
+}

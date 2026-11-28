@@ -1,0 +1,254 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Geist Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("../node_modules/@fontsource-variable/geist/files/geist-latin-wght-normal.woff2") format("woff2-variations");
+}
+@font-face {
+  font-family: "Geist Mono Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("../node_modules/@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2")
+    format("woff2-variations");
+}
+
+:root {
+  --ink: #121212;
+  --stage: #e9e9e6;
+  --signal: #e8542b;
+  --open: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #0b0b0b;
+  color: var(--ink);
+  font-family: "Geist Variable", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.mono {
+  font-family: "Geist Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+}
+
+.stage {
+  background:
+    radial-gradient(90% 42% at 50% 40%, #f7f7f5 0%, rgba(247, 247, 245, 0) 70%),
+    linear-gradient(180deg, #e6e6e3 0%, #ededea 34%, #e9e9e6 62%, #e2e2df 100%);
+}
+
+/* shelf chrome fades as soon as a sleeve starts to open */
+.chrome {
+  opacity: calc(1 - var(--open) * 6);
+}
+
+/* round transport buttons: an offset ring that snaps on as the button fills */
+.round-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: 9999px;
+  border: 1px solid rgba(18, 18, 18, 0.18);
+  color: var(--ink);
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.round-btn::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1px solid rgba(18, 18, 18, 0.35);
+  opacity: 0;
+  transition:
+    transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 0.25s ease;
+}
+.round-btn:hover,
+.round-btn:focus-visible {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+.round-btn[data-dir="1"]:hover {
+  transform: translateX(4px);
+}
+.round-btn[data-dir="-1"]:hover {
+  transform: translateX(-4px);
+}
+.round-btn[data-dir="1"]:hover::before {
+  opacity: 1;
+  transform: translate(-10px, 3px);
+}
+.round-btn[data-dir="-1"]:hover::before {
+  opacity: 1;
+  transform: translate(10px, 3px);
+}
+.round-btn:active {
+  transform: scale(0.94);
+}
+
+.navlink {
+  position: relative;
+}
+.navlink::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.navlink:hover::after,
+.navlink[aria-pressed="true"]::after {
+  transform: scaleX(1);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rise {
+  animation: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes swap {
+  from {
+    opacity: 0;
+    transform: translateY(9px);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+.swap {
+  animation: swap 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* release page: we arrive still carrying the dive's momentum */
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: scale(1.16);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.arrive {
+  transform-origin: 50% 42vh;
+  animation: arrive 0.95s cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+
+@keyframes hole {
+  from {
+    transform: translate(-50%, -50%) scale(0.55);
+    opacity: 0.9;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(6);
+    opacity: 0;
+  }
+}
+.hole-ring {
+  width: 50vmax;
+  height: 50vmax;
+  border-radius: 50%;
+  border: 1.6vmax solid color-mix(in srgb, var(--fg) 26%, transparent);
+  box-shadow: 0 0 0 0.3vmax color-mix(in srgb, var(--fg) 12%, transparent) inset;
+  animation: hole 1.05s cubic-bezier(0.2, 0.6, 0.2, 1) both;
+}
+
+@keyframes panel {
+  from {
+    opacity: 0.6;
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+.panel-in {
+  animation: panel 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.page-disc {
+  animation: spin 26s linear infinite;
+  -webkit-mask: radial-gradient(circle, transparent 0 12.8%, #000 13.2%);
+  mask: radial-gradient(circle, transparent 0 12.8%, #000 13.2%);
+}
+.logo-disc {
+  animation: spin 3.2s linear infinite;
+  animation-play-state: paused;
+}
+.logo-disc[data-on="true"] {
+  animation-play-state: running;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(232, 84, 43, 0.55);
+  }
+  60% {
+    box-shadow: 0 0 0 7px rgba(232, 84, 43, 0);
+  }
+}
+.on-air {
+  animation: pulse 1.6s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

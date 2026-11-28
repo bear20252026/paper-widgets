@@ -1,0 +1,22 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["oxc"],
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2024": true
+  },
+  "rules": {
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    "no-unused-expressions": ["error", { "allowTernary": true }]
+  },
+  "overrides": [
+    {
+      "files": ["src/**/*.js"],
+      "rules": {
+        "no-unused-vars": "warn"
+      }
+    }
+  ],
+  "ignorePatterns": ["assets/**", "screenshot.webp"]
+}

@@ -1,0 +1,20 @@
+/* The `font` shorthand also sets font-variant-numeric back to normal: labels don't use tabular figures */
+.label {
+  position: absolute;
+  left: var(--label-left);
+  top: var(--label-top);
+  font: var(--label-font);
+  letter-spacing: var(--label-tracking);
+  text-transform: var(--label-case);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: var(--label-gap);
+}
+
+.dot {
+  width: var(--label-dot);
+  height: var(--label-dot);
+  border-radius: 50%;
+  background: var(--accent);
+}

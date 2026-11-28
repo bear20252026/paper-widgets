@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Minion Lab · Drive-In</title>
+<meta name="description" content="A night at the drive-in: Minions on car roofs and in pickup beds watching more and more Minions dance on the big screen. Click any car to honk it.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Minion Lab">
+<meta property="og:title" content="Minion Lab · Drive-In">
+<meta property="og:description" content="A night at the drive-in: Minions on car roofs and in pickup beds watching more and more Minions dance on the big screen. Click any car to honk it.">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Minion Lab · Drive-In">
+<meta name="twitter:description" content="A night at the drive-in: Minions on car roofs and in pickup beds watching more and more Minions dance on the big screen. Click any car to honk it.">
+<meta name="theme-color" content="#F2F0EE">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../bosshistory/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../bosshistory/favicon-64.png">
+<link rel="apple-touch-icon" href="../bosshistory/apple-touch-icon.png">
+<style>
+  body { margin: 0; min-height: 100vh; min-height: 100dvh; box-sizing: border-box; padding: 40px 16px 98px; display: grid; place-items: center; }
+  body > * { grid-area: 1 / 1; }
+  canvas { image-rendering: pixelated; display: block; }
+  #stage { position: relative; opacity: 0; transition: opacity .2s ease; }
+  #stage.ready { opacity: 1; }
+  /* over a car until the first honk */
+  #hint { position: absolute; transform: translate(-50%, -100%); white-space: nowrap; pointer-events: none;
+    font: 700 clamp(9px, 1.25vmin, 12px)/1 ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: .14em; text-transform: uppercase;
+    color: #1d1b17; background: #fff; padding: 5px 7px 4px; box-shadow: 0 0 0 2px #1d1b17; animation: blink 1s steps(1) infinite; }
+  #hint.gone { display: none; }
+  @keyframes blink { 50% { opacity: 0; } }
+</style>
+</head>
+<body>
+<script src="../ml-chrome.js" data-page="town"></script>
+<script>window.GUMBALL_PAD = [32, 174];</script>
+<div id="stage"><canvas id="c"></canvas><div id="hint">click a car ▾</div></div>
+<script src="../bosshistory/assets/vendor/three.js"></script>
+<script>
+// Minion Drive-In — a night at the movies: a glowing screen, a projector booth with a snack bar,
+// rows of cars with Minions on the hoods and in the pickup bed, strings of bulbs round the lot.
+// On screen: Minions dancing, more joining all the time. Click any car to honk it.
+// Same pixel engine as the Gumball Slide (4 Minion 糖果机): plain three.js geometry rendered small,
+// snapped to a fixed palette with ordered dithering, shown enlarged with hard pixels, transparent sky.
+// Palette, renderer, helpers, minion() and the pixel pass are copied from there — keep them in step;
+// this scene adds night colours to the palette and its own (dim) lights.
+
+const RES = 242;            // render size in pixels (square); 2× = 484 px, the Pixel Town card
+const VIEW = 36.5;          // world units across the frame — wide enough that the lot's corners round off inside it
+const T = THREE;
+T.ColorManagement.enabled = false;   // colours are used exactly as written
+
+// ---------- palette ----------
+const PALETTE = [
+  '#ffffff', '#f3efe4', '#d6d3cc', '#a7a6ad', '#74737c', '#46454e', '#1f1e26',
+  '#fff38f', '#ffd93b', '#f0b42a', '#b9801c', '#6e4a17',
+  '#a9d1f5', '#5f97e0', '#3a66b8', '#243f78',
+  '#ffd6e4', '#ff9cc0', '#ec5f8e', '#a8325d',
+  '#ff5a4f', '#c62f35', '#7a1c25',
+  '#d3ec8a', '#9fd05a', '#6aab3e', '#3f7d2f', '#28502a',
+  '#e7c493', '#c39a62', '#8a6a45', '#5a4330',
+  '#bff0fb', '#62cbe8', '#2c93b8',
+  '#c7a0f0', '#f39a3b',
+];
+const C = Object.fromEntries([
+  ['white', 0], ['cream', 1], ['silverL', 2], ['silver', 3], ['steel', 4], ['charcoal', 5], ['ink', 6],
+  ['yellowL', 7], ['yellow', 8], ['yellowD', 9], ['ochre', 10], ['brown', 11],
+  ['denimL', 12], ['denim', 13], ['denimD', 14], ['navy', 15],
+  ['pinkL', 16], ['pink', 17], ['pinkD', 18], ['berry', 19],
+  ['red', 20], ['redD', 21], ['maroon', 22],
+  ['grassL', 23], ['grass', 24], ['grassM', 25], ['grassD', 26], ['grassDD', 27],
+  ['sand', 28], ['dirt', 29], ['dirtD', 30], ['dirtDD', 31],
+  ['waterL', 32], ['water', 33], ['waterD', 34],
+  ['lilac', 35], ['orange', 36],
+].map(([k, i]) => [k, PALETTE[i]]));
+
+// ---------- renderer ----------
+const canvas = document.getElementById('c');
+const renderer = new T.WebGLRenderer({ canvas, antialias: false, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(RES, RES, false);
+renderer.setClearColor(0xffffff, 0);   // white at zero alpha: the glass blends toward white, the sky stays see-through
+renderer.outputColorSpace = T.LinearSRGBColorSpace;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = T.BasicShadowMap;
+
+// window.GUMBALL_PAD = [x, y] reserves room around the canvas (the site's header and keys).
+// At most 2× (650 px — the width of the site's Teardown card and key row, and a clean whole-number
+// zoom of RES 325); narrower screens get the full width less the 16 px gutters, short ones what fits.
+function fit() {
+  const [px, py] = window.GUMBALL_PAD || [32, 32];
+  const size = Math.min(RES * 2, innerWidth - px, innerHeight - py);
+  canvas.style.width = canvas.style.height = Math.round(Math.max(RES * 0.5, size)) + 'px';
+}
+fit(); addEventListener('resize', fit);
+
+const scene = new T.Scene();
+// the frame is raised a touch (LIFT world units) so the island, globe to grass edge, sits in the middle of the square
+const LIFT = 0.55;
+const cam = new T.OrthographicCamera(-VIEW / 2, VIEW / 2, VIEW / 2 + LIFT, -VIEW / 2 + LIFT, 0.1, 200);
+cam.position.set(40, 33, 40);
+cam.lookAt(0, 6.0, 0);
+
+// three r155+ lights are physical: a Lambert face gets colour × intensity / π
+scene.add(new T.HemisphereLight(0xffffff, 0xd8d0c0, 0.5 * Math.PI));
+const sun = new T.DirectionalLight(0xfff6e8, 0.55 * Math.PI);
+sun.position.set(-6, 30, 16);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -27, right: 27, top: 27, bottom: -27, near: 1, far: 90 });
+sun.shadow.bias = -0.002;
+scene.add(sun);
+
+// ---------- helpers ----------
+const mat = (hex, extra = {}) => new T.MeshLambertMaterial({ color: hex, ...extra });
+function mesh(geo, material, x = 0, y = 0, z = 0, parent = scene) {
+  const m = new T.Mesh(geo, typeof material === 'string' ? mat(material) : material);
+  m.position.set(x, y, z);
+  m.castShadow = m.receiveShadow = true;
+  parent.add(m);
+  return m;
+}
+const box = (w, h, d) => new T.BoxGeometry(w, h, d);
+const cyl = (rt, rb, h, seg = 16) => new T.CylinderGeometry(rt, rb, h, seg);
+const sph = (r, seg = 16) => new T.SphereGeometry(r, seg, Math.max(8, seg * 0.75));
+
+// deterministic noise so the still is the same every load
+let seed = 7;
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+function hash(x, y) { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s - Math.floor(s); }
+function vnoise(x, y) {
+  const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+  const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+  const a = hash(xi, yi), b = hash(xi + 1, yi), c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+
+
+// ---------- night: extra palette colours, dim moonlight, the screen as the main light ----------
+const NIGHT = { nightD: '#161a2b', night: '#232a44', nightM: '#34405f', nightL: '#4f5f86', moon: '#8a9cc4',
+  lotD: '#6c6d75', lot: '#81828a', skin: '#f1cfa6', hairB: '#5a3a22', grassN: '#2c4636', grassND: '#1f3428', glow: '#ffe6a3', neon: '#ff6fae', teal: '#3cb7ae', screenW: '#eef3ff' };
+for (const [k, hex] of Object.entries(NIGHT)) { PALETTE.push(hex); C[k] = hex; }
+
+scene.children.filter(o => o.isHemisphereLight).forEach(h => { h.color.set(0x9fb0e0); h.groundColor.set(0x3a4058); h.intensity = 0.95 * Math.PI; });
+sun.color.set(0xb4c2ee); sun.intensity = 0.6 * Math.PI;   // the moon, from the same side the sun came from
+sun.position.set(10, 30, 16);   // moonlight from the camera side, so the backs of the cars and heads catch it
+cam.lookAt(0, 4.0, 0);
+
+// painted surfaces show their own colour more than the light's (the screen, signs, bulbs glow outright)
+function paint(tex, mix = 0.45, color) {
+  const m = new T.MeshLambertMaterial(tex ? { map: tex } : { color });
+  m.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', `outgoingLight = mix(outgoingLight, diffuseColor.rgb, ${mix.toFixed(2)});\n#include <opaque_fragment>`); };
+  return m;
+}
+const glowCache = {};
+const glow = (hex) => glowCache[hex] || (glowCache[hex] = new T.MeshBasicMaterial({ color: hex }));
+function canvasTex(w, h) {
+  const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+  const g = cv.getContext('2d');
+  const tex = new T.CanvasTexture(cv); tex.magFilter = tex.minFilter = T.NearestFilter; tex.generateMipmaps = false;
+  return { cv, g, tex };
+}
+const px = (g, col, x, y, w = 1, h = 1) => { g.fillStyle = col; g.fillRect(Math.round(x), Math.round(y), w, h); };
+function blob(g, col, cx, cy, rx, ry) {
+  g.fillStyle = col;
+  for (let y = -ry; y <= ry; y++) for (let x = -rx; x <= rx; x++)
+    if ((x * x) / (rx * rx) + (y * y) / (ry * ry) <= 1) g.fillRect(Math.round(cx + x), Math.round(cy + y), 1, 1);
+}
+
+// ---------- layout ----------
+// The screen stands in the back-left corner, turned square to the camera; the cars face it, so we watch
+// over their shoulders. The projector booth / snack bar is front-right, its beam crossing the lot.
+const SCREEN = { x: -7.5, z: -7.5, w: 13, h: 7.4, base: 3.2 };
+const FACE = Math.atan2(1, 1);               // rotation that turns a +z-facing thing toward the camera side
+const TOWARD_SCREEN = FACE + Math.PI;        // cars and viewers face the other way, at the screen
+const BOOTH = { x: 12.0, z: -3.0 };
+
+// ---------- ground: dark asphalt lot with faded bay lines, a grass rim ----------
+const G = 32, GT = 320;
+(function ground() {
+  const { g, tex } = canvasTex(GT, GT);
+  const img = g.createImageData(GT, GT);
+  const hex = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+  for (let j = 0; j < GT; j++) for (let i = 0; i < GT; i++) {
+    const x = (i + 0.5) / GT * G - G / 2, z = (j + 0.5) / GT * G - G / 2;
+    const n = vnoise(x * 0.9, z * 0.9) * 0.6 + vnoise(x * 3, z * 3) * 0.4;
+    const R = 14.4, e = Math.pow(Math.pow(Math.abs(x) / R, 4) + Math.pow(Math.abs(z) / R, 4), 0.25);
+    const edge = e + (n - 0.5) * 0.14 + (hash(i, j) - 0.5) * 0.06;
+    let col = null;
+    if (edge < 1) {
+      const fine = hash(i * 3, j * 7);
+      col = n > 0.6 ? C.grassN : C.grassND;
+      if (edge > 0.93) col = fine < 0.5 ? C.grassND : C.grassN;
+      if (edge < 0.86) {
+        col = fine < 0.1 ? C.lotD : (n > 0.62 ? C.lotD : C.lot);
+        // bays: faded lines running toward the screen, in arcs round it
+        const dx = x - SCREEN.x, dz = z - SCREEN.z, r = Math.hypot(dx, dz), a = Math.atan2(dz, dx);
+        // just the two row lines the cars park on, faded
+        for (const rr of [9.4, 15.6]) if (Math.abs(r - rr) < 0.18 && fine > 0.35) col = C.silverL;
+      }
+    }
+    const k = (j * GT + i) * 4;
+    if (col) { const [r, gg, b] = hex(col); img.data.set([r, gg, b, 255], k); } else img.data.set([0, 0, 0, 0], k);
+  }
+  g.putImageData(img, 0, 0); tex.needsUpdate = true;
+  const m = mesh(new T.PlaneGeometry(G, G), new T.MeshLambertMaterial({ map: tex, alphaTest: 0.5 }));
+  m.rotation.x = -Math.PI / 2; m.castShadow = false;
+})();
+
+// ---------- Minion ----------
+const minionMats = {
+  yellow: mat(C.yellow), denim: mat(C.denim), ink: mat(C.ink), steel: mat(C.silver),
+  white: mat(C.white), brown: mat(C.brown), black: mat(C.ink),
+};
+function minion({ eyes = 2, tall = 1, arms = 'down', sit = false, hair = 'spiky' } = {}) {
+  const g = new T.Group();
+  const r = 0.62, len = 0.85 * tall, bodyH = len + r * 2;
+  // body: one capsule, coloured by height — yellow on top, denim overalls below
+  const geo = new T.CapsuleGeometry(r, len, 6, 14);
+  const pos = geo.attributes.position, cols = [];
+  const yellow = new T.Color(C.yellow), denim = new T.Color(C.denim);
+  for (let i = 0; i < pos.count; i++) {
+    const y = pos.getY(i) + bodyH / 2;           // 0 at the bottom
+    const c = y < bodyH * 0.36 ? denim : yellow;
+    cols.push(c.r, c.g, c.b);
+  }
+  geo.setAttribute('color', new T.Float32BufferAttribute(cols, 3));
+  const body = mesh(geo, new T.MeshLambertMaterial({ vertexColors: true }), 0, bodyH / 2 + 0.15, 0, g);
+  // overall bib
+  mesh(box(0.62, 0.38, 0.12), minionMats.denim, 0, bodyH * 0.42 + 0.15, r - 0.04, g);
+  // goggles: strap round the head, then 1 or 2 lenses
+  const eyeY = bodyH * 0.68 + 0.15;
+  mesh(cyl(r + 0.03, r + 0.03, 0.14, 18), minionMats.ink, 0, eyeY, 0, g);
+  const xs = eyes === 2 ? [-0.27, 0.27] : [0];
+  for (const ex of xs) {
+    const rim = mesh(cyl(0.29, 0.29, 0.2, 14), minionMats.steel, ex, eyeY, r - 0.02, g); rim.rotation.x = Math.PI / 2;
+    const w = mesh(cyl(0.21, 0.21, 0.04, 14), minionMats.white, ex, eyeY, r + 0.08, g); w.rotation.x = Math.PI / 2;
+    const ir = mesh(cyl(0.11, 0.11, 0.04, 10), minionMats.brown, ex * 0.85, eyeY, r + 0.1, g); ir.rotation.x = Math.PI / 2;
+    const pu = mesh(cyl(0.05, 0.05, 0.04, 8), minionMats.black, ex * 0.85, eyeY, r + 0.12, g); pu.rotation.x = Math.PI / 2;
+  }
+  // mouth
+  const mouth = mesh(new T.TorusGeometry(0.14, 0.03, 4, 10, Math.PI), minionMats.ink, 0, eyeY - 0.42, r - 0.06, g);
+  mouth.rotation.z = Math.PI;
+  // hair
+  if (hair === 'spiky') for (let i = 0; i < 5; i++) {
+    const a = (i / 5) * Math.PI * 2;
+    const s = mesh(cyl(0.015, 0.015, 0.35, 4), minionMats.ink, Math.cos(a) * 0.15, bodyH + 0.28, Math.sin(a) * 0.15, g);
+    s.rotation.set(Math.sin(a) * 0.5, 0, -Math.cos(a) * 0.5);
+  }
+  // arms + gloves
+  const armGeo = new T.CapsuleGeometry(0.1, 0.5, 3, 6);
+  g.userData.arms = []; g.userData.feet = [];
+  for (const side of [-1, 1]) {
+    const a = new T.Group(); a.position.set(side * (r - 0.02), bodyH * 0.5 + 0.15, 0.05); g.add(a);
+    g.userData.arms.push(a);
+    const up = arms === 'up' || (arms === 'wave' && side === 1);
+    a.rotation.z = up ? side * 2.6 : side * 0.35;
+    mesh(armGeo, minionMats.yellow, 0, -0.3, 0, a);
+    mesh(sph(0.14, 8), minionMats.ink, 0, -0.62, 0, a);
+  }
+  // feet
+  for (const side of [-1, 1]) {
+    const f = mesh(box(0.3, 0.16, 0.42), minionMats.ink, side * 0.25, 0.08, 0.08, g);
+    if (sit) { f.position.set(side * 0.25, 0.25, r + 0.2); }
+    g.userData.feet.push(f);
+  }
+  g.traverse(o => { if (o.isMesh) { o.castShadow = o.receiveShadow = true; } });
+  g.userData.h = bodyH;
+  return g;
+}
+const MSCALE = 1.1;   // Minions are drawn bigger than life so the goggles survive the pixel grid
+const idlers = [];     // every placed Minion gets a small idle breath
+function place(m, x, y, z, faceY = Math.PI / 4, extra = {}) {
+  m.position.set(x, y, z); m.rotation.y = faceY; m.scale.setScalar(MSCALE);
+  if (extra.tilt) m.rotation.x = extra.tilt;
+  if (extra.roll) m.rotation.z = extra.roll;
+  scene.add(m); idlers.push(m); return m;
+}
+
+
+// ---------- the screen ----------
+const movie = canvasTex(104, 60);
+// the feature: three big Minions on stage — tall two-eyed, one-eyed, little one — bopping, waving, tossing a banana
+function screenMinion(g, cx, foot, w, h, eyes, t, ph) {
+  const top = foot - h, r = w / 2;
+  // body: a capsule — round top, straight sides, round bottom
+  for (let y = 0; y < h; y++) {
+    const yy = top + y, dy = y < r ? r - y : y > h - r ? y - (h - r) : 0, half = Math.sqrt(Math.max(0, r * r - dy * dy));
+    const col = y > h * 0.66 ? C.denim : C.yellow;
+    g.fillStyle = col; g.fillRect(Math.round(cx - half), yy, Math.round(half * 2), 1);
+  }
+  g.fillStyle = C.denimD; g.fillRect(Math.round(cx - w * 0.22), Math.round(top + h * 0.6), Math.round(w * 0.44), Math.round(h * 0.1));   // bib
+  g.fillStyle = C.ink; g.fillRect(Math.round(cx - r), Math.round(top + h * 0.3), w, 2);                                                  // goggle strap
+  const ey = Math.round(top + h * 0.31), er = Math.max(3, Math.round(w * 0.2));
+  for (const ex of eyes === 2 ? [cx - er * 1.05, cx + er * 1.05] : [cx]) {
+    blob(g, C.silver, ex, ey, er + 1, er + 1); blob(g, C.white, ex, ey, er - 1, er - 1);
+    const look = Math.round(Math.sin(t * 1.3 + ph) * 1.5);
+    blob(g, C.brown, ex + look, ey, Math.max(1, er * 0.45), Math.max(1, er * 0.45)); px(g, C.ink, ex + look, ey, 1, 1);
+  }
+  // a big grin, and arms: up on the beat (lift 0–1), each side on its own phase
+  const my = Math.round(top + h * 0.47);
+  for (let i = -3; i <= 3; i++) px(g, C.ink, cx + i, my + 2 - Math.round((i * i) / 5));   // corners up: a smile
+  for (const sd of [-1, 1]) {
+    const lift = Math.max(0, Math.sin(t * 6.4 + ph + (sd > 0 ? 0 : Math.PI / 2)));
+    const ax = Math.round(cx + sd * (r + 1)) - (sd < 0 ? 2 : 0), ay = Math.round(top + h * 0.45 - lift * h * 0.35);
+    g.fillStyle = C.yellow; g.fillRect(ax, ay, 2, Math.max(4, Math.round(h * 0.16)));
+    px(g, C.ink, ax, ay - 1, 2, 2);
+  }
+  // hair
+  for (let i = -2; i <= 2; i++) px(g, C.ink, cx + i * 2, top - 2 - (i % 2 ? 0 : 1), 1, 2);
+  g.fillStyle = C.ink; g.fillRect(Math.round(cx - r * 0.6), foot, Math.round(r * 0.5), 2); g.fillRect(Math.round(cx + r * 0.1), foot, Math.round(r * 0.5), 2);
+}
+// the feature, on a 16 s loop: three Minions dance on stage, then more keep sliding in from the wings
+// until a whole crowd is dancing; a cut back to the three starts it again.
+// dancers: [x, foot y, width, height, eyes, joins at (s)] — back row first so the front row draws over it
+const DANCERS = [
+  [14, 45, 12, 20, 2, 9.0], [34, 44, 12, 22, 1, 7.5], [70, 44, 12, 21, 2, 8.0], [90, 45, 12, 19, 1, 9.5], [52, 43, 11, 18, 2, 10.5],
+  [8, 50, 16, 28, 1, 5.0], [96, 50, 16, 27, 2, 5.6], [30, 52, 18, 34, 2, 0], [52, 52, 20, 30, 1, 0], [74, 52, 17, 26, 2, 0],
+  [40, 54, 14, 22, 2, 11.5], [64, 54, 14, 21, 1, 12.0],
+];
+function drawMovie(t) {
+  const g = movie.g, W = 104, H = 60, lt = t % 16;
+  // a stage: warm curtain backdrop with a spotlight pool that widens as the crowd grows
+  g.fillStyle = C.berry; g.fillRect(0, 0, W, H);
+  for (let x = 0; x < W; x += 6) { g.fillStyle = C.maroon; g.fillRect(x, 0, 2, 50); }
+  const crowd = DANCERS.filter(d => lt >= d[5]).length;
+  blob(g, C.pinkD, 52, 30, 30 + crowd * 1.6, 18 + crowd * 0.4);
+  g.fillStyle = C.dirtD; g.fillRect(0, 50, W, 10); g.fillStyle = C.dirt; g.fillRect(0, 50, W, 2);
+  DANCERS.forEach(([x, foot, w, h, eyes, at], i) => {
+    if (lt < at) return;
+    // newcomers slide in from the nearer wing over 0.7 s
+    const k = Math.min(1, (lt - at) / 0.7), from = x < W / 2 ? -w : W + w;
+    const cx = at > 0 ? from + (x - from) * (1 - (1 - k) * (1 - k)) : x;
+    const bop = Math.round(Math.abs(Math.sin(t * 3.2 + i * 0.7)) * (h > 25 ? 3 : 2));
+    screenMinion(g, Math.round(cx), foot - bop, w, h, eyes, t, i * 0.9);
+  });
+  movie.tex.needsUpdate = true;
+}
+drawMovie(0);
+const screenGrp = new T.Group(); screenGrp.position.set(SCREEN.x, 0, SCREEN.z); screenGrp.rotation.y = FACE; scene.add(screenGrp);
+{
+  const { w, h, base } = SCREEN, cy = base + h / 2;
+  mesh(box(w + 0.7, h + 0.7, 0.45), C.ink, 0, cy, 0, screenGrp);
+  mesh(new T.PlaneGeometry(w, h), new T.MeshBasicMaterial({ map: movie.tex }), 0, cy, 0.24, screenGrp).castShadow = false;
+  for (const sx of [-w / 2 + 1, -w / 6, w / 6, w / 2 - 1]) {
+    mesh(box(0.35, base + 0.4, 0.35), C.ink, sx, (base + 0.4) / 2, -0.4, screenGrp);
+    const br = mesh(box(0.18, 4.2, 0.18), C.ink, sx, base * 0.6, -1.9, screenGrp); br.rotation.x = -0.55;
+  }
+  mesh(box(w + 1.2, 0.3, 1.4), C.ink, 0, base - 0.15, 0.2, screenGrp);   // the ledge under the screen
+}
+// the screen lights the lot: a wide, cool lamp from its face
+const screenLight = new T.SpotLight(0xdfe8ff, 1.15 * Math.PI, 0, Math.PI / 2.6, 0.6, 0);
+screenLight.position.set(SCREEN.x + 0.7, SCREEN.base + SCREEN.h / 2, SCREEN.z + 0.7);
+screenLight.target.position.set(6, 0, 6);
+screenLight.castShadow = true; screenLight.shadow.mapSize.set(1024, 1024); screenLight.shadow.bias = -0.002;
+scene.add(screenLight, screenLight.target);
+
+// ---------- projector booth + snack bar ----------
+{
+  const { x, z } = BOOTH, grp = new T.Group(); grp.position.set(x, 0, z); grp.rotation.y = FACE; scene.add(grp);   // its counter faces us
+  mesh(box(5.2, 3.2, 3.6), C.cream, 0, 1.6, 0, grp);
+  mesh(box(5.6, 0.35, 4.0), C.nightM, 0, 3.35, 0, grp);
+  // the lit serving hatch and counter
+  mesh(box(3.4, 1.3, 0.1), glow(C.glow), 0, 1.7, 1.81, grp);
+  mesh(box(3.8, 0.2, 0.7), C.white, 0, 1.0, 2.0, grp);
+  const stripes = canvasTex(12, 1); for (let i = 0; i < 12; i++) px(stripes.g, i % 2 ? C.white : C.red, i, 0); stripes.tex.needsUpdate = true;
+  const aw = mesh(box(4.2, 0.12, 1.3), paint(stripes.tex, 0.5), 0, 2.7, 2.35, grp); aw.rotation.x = 0.4;
+  // neon SNACKS sign on the roof edge
+  const sign = canvasTex(30, 8); sign.g.fillStyle = C.nightD; sign.g.fillRect(0, 0, 30, 8);
+  const L = { S: ['111', '100', '111', '001', '111'], N: ['101', '111', '111', '111', '101'], A: ['010', '101', '111', '101', '101'], C: ['111', '100', '100', '100', '111'], K: ['101', '110', '100', '110', '101'] };
+  [...'SNACKS'].forEach((ch, i) => L[ch].forEach((row, r) => [...row].forEach((b, c) => { if (b === '1') px(sign.g, C.neon, 2 + i * 4.4 + c, 1.5 + r); })));
+  sign.tex.needsUpdate = true;
+  mesh(box(4.0, 1.1, 0.12), new T.MeshBasicMaterial({ map: sign.tex }), 0, 4.1, 1.7, grp);
+  // a giant striped popcorn bucket on the roof
+  const bucket = canvasTex(16, 1); for (let i = 0; i < 16; i++) px(bucket.g, i % 2 ? C.white : C.red, i, 0); bucket.tex.needsUpdate = true;
+  mesh(cyl(1.2, 0.9, 1.8, 16), [paint(bucket.tex, 0.5), glow(C.cream), glow(C.cream)], -1.4, 4.4, -0.6, grp);
+  for (let i = 0; i < 18; i++) { const a = rnd() * Math.PI * 2, r = rnd() * 1.0; mesh(sph(0.32, 6), paint(null, 0.5, C.cream), -1.4 + Math.cos(a) * r, 5.35 + rnd() * 0.5, -0.6 + Math.sin(a) * r, grp); }
+  // the projector port at the back, pointed at the screen
+  mesh(box(0.9, 0.7, 0.2), glow(C.screenW), 0.8, 2.6, -1.81, grp);
+}
+// the projector beam: a faint cone from the booth's back port to the screen
+{
+  const from = new T.Vector3(BOOTH.x - 0.6, 2.6, BOOTH.z - 1.9), to = new T.Vector3(SCREEN.x + 0.3, SCREEN.base + SCREEN.h / 2, SCREEN.z + 0.3);
+  const len = from.distanceTo(to);
+  const beam = new T.Mesh(new T.CylinderGeometry(SCREEN.h * 0.62, 0.25, len, 24, 1, true),
+    new T.MeshBasicMaterial({ color: 0xdfe8ff, transparent: true, opacity: 0.07, depthWrite: false, side: T.DoubleSide, blending: T.AdditiveBlending }));
+  beam.position.copy(from).lerp(to, 0.5);
+  beam.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), to.clone().sub(from).normalize());
+  scene.add(beam);
+}
+
+// ---------- strings of bulbs round the lot ----------
+const BULB_COLS = [C.glow, C.neon, C.teal, C.glow, C.screenW];
+function bulbLine(pts) {
+  pts.forEach(([x, z]) => { mesh(cyl(0.08, 0.1, 4.2, 5), C.nightD, x, 2.1, z); mesh(sph(0.14, 6), C.nightD, x, 4.25, z); });
+  let k = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const [ax, az] = pts[i - 1], [bx, bz] = pts[i], n = 9;
+    for (let s = 0; s <= n; s++) {
+      const u = s / n, y = 4.15 - Math.sin(u * Math.PI) * 0.9;
+      mesh(sph(0.15, 6), glow(BULB_COLS[k++ % BULB_COLS.length]), ax + (bx - ax) * u, y, az + (bz - az) * u).castShadow = false;
+    }
+  }
+}
+bulbLine([[-13.4, -3.0], [-12.8, 3.5], [-11.0, 9.5], [-5.0, 12.8]]);
+bulbLine([[-3.0, -13.4], [3.5, -12.8], [8.5, -11.5]]);
+
+// ---------- cars ----------
+const SPEAKER = [];
+function car({ color, type = 'sedan' }) {
+  const g = new T.Group(), body = mat(color);
+  mesh(box(2.2, 0.75, 4.4), body, 0, 0.8, 0, g);
+  mesh(box(2.25, 0.2, 4.5), C.silverL, 0, 0.45, 0, g);                                  // chrome sill line
+  for (const [wx, wz] of [[-1.05, 1.4], [1.05, 1.4], [-1.05, -1.4], [1.05, -1.4]]) {
+    const w = mesh(cyl(0.42, 0.42, 0.3, 10), C.nightD, wx, 0.42, wz, g); w.rotation.z = Math.PI / 2;
+  }
+  g.userData.heads = []; g.userData.tails = []; g.userData.beams = []; g.userData.seats = [];
+  for (const s of [-0.75, 0.75]) {
+    g.userData.heads.push(mesh(box(0.4, 0.22, 0.1), glow(C.yellowL), s, 0.85, 2.21, g));  // headlights (dimmed parking lamps)
+    g.userData.tails.push(mesh(box(0.45, 0.22, 0.1), glow(C.red), s, 0.95, -2.21, g));    // tail lights — what we see from behind
+    // a headlight beam, only on while it flashes
+    const beam = new T.Mesh(new T.ConeGeometry(1.1, 6, 12, 1, true), new T.MeshBasicMaterial({ color: 0xfff1c4, transparent: true, opacity: 0.16, depthWrite: false, side: T.DoubleSide, blending: T.AdditiveBlending }));
+    beam.rotation.x = -Math.PI / 2; beam.position.set(s, 0.8, 2.2 + 3); beam.visible = false; g.add(beam); g.userData.beams.push(beam);
+  }
+  if (type === 'sedan') {
+    mesh(box(1.9, 0.75, 2.2), body, 0, 1.55, -0.3, g);
+    mesh(box(1.92, 0.5, 1.6), C.night, 0, 1.6, -0.3, g);                                  // glass all round
+    mesh(box(1.7, 0.08, 2.0), body, 0, 1.94, -0.3, g);
+  } else if (type === 'convertible') {
+    mesh(box(1.8, 0.5, 0.08), C.nightL, 0, 1.45, 0.75, g).rotation.x = -0.3;              // windscreen
+    for (const sz of [0.0, -1.1]) mesh(box(1.7, 0.5, 0.5), C.maroon, 0, 1.3, sz, g);     // seat backs
+  } else if (type === 'pickup') {
+    mesh(box(1.9, 0.8, 1.5), body, 0, 1.55, 0.75, g);
+    mesh(box(1.92, 0.5, 1.2), C.night, 0, 1.6, 0.75, g);
+    mesh(box(1.7, 0.08, 1.3), body, 0, 1.97, 0.75, g);
+    for (const sx of [-1.05, 1.05]) mesh(box(0.1, 0.4, 2.3), body, sx, 1.35, -0.95, g);    // bed sides
+    mesh(box(2.1, 0.4, 0.1), body, 0, 1.35, -2.15, g);
+    mesh(box(1.9, 0.06, 2.1), C.denimL, 0, 1.2, -0.95, g);                                 // a blanket in the bed
+  }
+  g.traverse(o => { if (o.isMesh && !o.material.isMeshBasicMaterial) o.castShadow = o.receiveShadow = true; });
+  return g;
+}
+// bays in two arcs round the screen; each entry: [distance, angle offset in degrees, colour, type]
+const CARS = [
+  [12.0, -21, C.teal, 'convertible'], [12.0, 0, C.red, 'sedan'], [12.0, 21, C.yellow, 'pickup'],
+  [18.2, -27, C.lilac, 'sedan'], [18.2, -9, C.orange, 'pickup'], [18.2, 9, C.denimL, 'convertible'], [18.2, 27, C.pink, 'sedan'],
+];
+const carGroups = CARS.map(([r, deg, color, type]) => {
+  const a = Math.PI / 4 + deg * Math.PI / 180;
+  const x = SCREEN.x + Math.cos(a) * r, z = SCREEN.z + Math.sin(a) * r;
+  const c = car({ color, type }); c.scale.setScalar(1.15); c.position.set(x, 0, z); c.rotation.y = Math.atan2(SCREEN.x - x, SCREEN.z - z); scene.add(c);
+  // a speaker post by the driver's door
+  const side = new T.Vector3(1.85, 0, 0).applyAxisAngle(new T.Vector3(0, 1, 0), c.rotation.y);
+  mesh(cyl(0.06, 0.06, 1.3, 5), C.silver, x + side.x, 0.65, z + side.z);
+  mesh(box(0.4, 0.35, 0.25), C.nightM, x + side.x, 1.35, z + side.z).rotation.y = c.rotation.y;
+  c.userData.type = type; return c;
+});
+
+// ---------- sound: tiny Web Audio synths (no files), only for what the visitor sets off ----------
+// SFX.unlock() must run inside a click/tap first (browsers keep audio off until then); every sound
+// takes an optional delay in seconds so it can be booked for a moment later in the animation.
+const SFX = (() => {
+  let ctx = null, out = null, hiss = null;
+  function unlock() {
+    if (!ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+      ctx = new AC(); out = ctx.createGain(); out.gain.value = muted ? 0 : 0.45; out.connect(ctx.destination);
+      hiss = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+      const d = hiss.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+  const on = () => ctx && ctx.state !== 'closed';   // a context still waking up queues the sound; it plays as it resumes
+  // the Minion Lab site's mute key (ml-chrome.js) silences everything; standalone there is no such key
+  const siteMuted = () => typeof window.mlcMuted === 'function' && window.mlcMuted();
+  // one voice: an oscillator (or noise through a filter) with a pitch glide and a quick attack/decay
+  function voice({ type = 'sine', f0, f1 = f0, dur, peak = 0.3, delay = 0, attack = 0.005, noise = false, filter = 'bandpass', q = 1 }) {
+    if (!on() || siteMuted()) return;
+    const t = ctx.currentTime + delay, g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + attack); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    let src, tune;
+    if (noise) {
+      src = ctx.createBufferSource(); src.buffer = hiss; src.loop = true;
+      tune = ctx.createBiquadFilter(); tune.type = filter; tune.Q.value = q; src.connect(tune); tune.connect(g);
+      tune.frequency.setValueAtTime(f0, t); tune.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    } else {
+      src = ctx.createOscillator(); src.type = type; src.connect(g);
+      src.frequency.setValueAtTime(f0, t); src.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    }
+    g.connect(out); src.start(t); src.stop(t + dur + 0.05);
+  }
+  let muted = false;
+  function setMuted(m) { muted = m; if (out) out.gain.value = m ? 0 : 0.45; }
+  return {
+    unlock, setMuted, get muted() { return muted; },
+    coin: (d = 0) => { voice({ type: 'triangle', f0: 1900, f1: 1850, dur: 0.12, peak: 0.25, delay: d });          // ka-
+                       voice({ type: 'triangle', f0: 2500, f1: 2450, dur: 0.35, peak: 0.22, delay: d + 0.07 });   // -ching
+                       voice({ noise: true, f0: 5000, dur: 0.08, peak: 0.08, delay: d + 0.3, filter: 'highpass' }); },   // drops in the slot
+    crank: (d = 0) => { for (let i = 0; i < 4; i++) voice({ noise: true, f0: 2200, dur: 0.04, peak: 0.18, delay: d + i * 0.16, q: 6 }); },
+    whoosh: (d = 0, dur = 2.6) => voice({ noise: true, f0: 600, f1: 2400, dur, peak: 0.12, delay: d, attack: 0.6, q: 2 }),
+    splash: (d = 0) => { voice({ noise: true, f0: 1400, f1: 300, dur: 0.6, peak: 0.35, delay: d, filter: 'lowpass' });
+                         for (let i = 0; i < 4; i++) voice({ f0: 500 + i * 140, f1: 900 + i * 160, dur: 0.07, peak: 0.08, delay: d + 0.2 + i * 0.07 }); },
+    bounce: (d = 0, k = 1) => voice({ f0: 520, f1: 260, dur: 0.09, peak: 0.16 * k, delay: d }),
+    boing: (d = 0) => { voice({ type: 'triangle', f0: 140, f1: 620, dur: 0.38, peak: 0.3, delay: d });
+                        voice({ type: 'sine', f0: 70, f1: 120, dur: 0.2, peak: 0.25, delay: d }); },
+    splat: (d = 0) => { voice({ noise: true, f0: 900, f1: 120, dur: 0.25, peak: 0.35, delay: d, filter: 'lowpass' });
+                        voice({ f0: 110, f1: 55, dur: 0.18, peak: 0.3, delay: d }); },
+    pop: (d = 0) => voice({ f0: 400, f1: 900, dur: 0.08, peak: 0.15, delay: d }),
+    honk: (d = 0) => { for (const [o, len] of [[0, 0.16], [0.24, 0.3]]) {                        // beep-beeep, two horns a third apart
+                         voice({ type: 'square', f0: 415, dur: len, peak: 0.12, delay: d + o, attack: 0.01 });
+                         voice({ type: 'square', f0: 523, dur: len, peak: 0.1, delay: d + o, attack: 0.01 }); } },
+  };
+})();
+
+// ---------- the audience ----------
+// seat(car, x, y, z, opts): a Minion in car-local coordinates (the car's front is +z, toward the screen)
+function seat(ci, x, y, z, { eyes = 2, arms = 'down', sit = true, turn = 0, tall = 0.9 } = {}) {
+  const m = minion({ eyes, arms, sit, tall });
+  m.scale.setScalar(MSCALE / 1.15); m.position.set(x, y, z); m.rotation.y = turn;
+  carGroups[ci].add(m); carGroups[ci].userData.seats.push(m); return m;
+}
+function popcorn(parent, x, y, z) {
+  const b = canvasTex(8, 1); for (let i = 0; i < 8; i++) px(b.g, i % 2 ? C.white : C.red, i, 0); b.tex.needsUpdate = true;
+  mesh(cyl(0.26, 0.2, 0.42, 8), paint(b.tex, 0.5), x, y, z, parent);
+  for (let i = 0; i < 5; i++) mesh(sph(0.11, 5), paint(null, 0.5, C.cream), x + (rnd() - 0.5) * 0.3, y + 0.25, z + (rnd() - 0.5) * 0.3, parent);
+}
+// front row
+seat(0, -0.45, 0.85, 0.4, { eyes: 2 }); seat(0, 0.45, 0.85, 0.4, { eyes: 1, arms: 'up' });          // convertible: two up front
+seat(1, 0, 1.98, -0.4, { eyes: 2 });                                                                // sedan: one on the roof
+seat(2, -0.45, 1.25, -0.6, { eyes: 1 }); seat(2, 0.45, 1.25, -0.6, { eyes: 2 });                    // pickup bed: two watching
+seat(2, 0, 1.25, -1.6, { eyes: 2, arms: 'wave', turn: Math.PI });                                   // …and one turned round to us
+popcorn(carGroups[2], 0.7, 1.45, -1.5);
+// back row
+seat(3, 0, 1.98, -0.3, { eyes: 1, tall: 0.85 }); seat(3, 0, 1.18, 1.5, { eyes: 2 });                // sedan: roof + hood
+seat(4, -0.45, 1.25, -0.7, { eyes: 2 }); seat(4, 0.45, 1.25, -0.7, { eyes: 2, arms: 'up' }); popcorn(carGroups[4], 0, 1.45, -1.6);
+seat(5, -0.45, 0.85, 0.4, { eyes: 1 }); seat(5, 0.45, 0.85, 0.4, { eyes: 2 }); seat(5, 0, 0.85, -0.7, { eyes: 2, tall: 0.8 });
+seat(6, 0, 1.98, -0.3, { eyes: 2, arms: 'wave', turn: Math.PI });                                   // roof, waving at us
+// at the snack bar: one queuing, one coming back with popcorn
+place(minion({ eyes: 2 }), BOOTH.x - 1.2, 0, BOOTH.z + 2.6, FACE + Math.PI);
+{ const m = place(minion({ eyes: 1, arms: 'up' }), BOOTH.x - 4.2, 0, BOOTH.z + 1.6, FACE - 0.4); popcorn(m, 0, 2.55, 0.1); }
+
+// ---------- honk: click any car — it beeps, flashes, bounces; the Minions inside jump and look round ----------
+// a BEEP! bubble that pops up over the honking car
+const beep = canvasTex(28, 14);
+beep.g.fillStyle = C.ink; beep.g.fillRect(1, 0, 26, 11); beep.g.fillRect(0, 1, 28, 9); beep.g.fillRect(10, 11, 4, 2); beep.g.fillRect(11, 13, 2, 1);
+beep.g.fillStyle = C.white; beep.g.fillRect(2, 1, 24, 9); beep.g.fillRect(1, 2, 26, 7); beep.g.fillRect(11, 10, 2, 2);
+{ const L = { B: ['110', '101', '110', '101', '110'], E: ['111', '100', '110', '100', '111'], P: ['110', '101', '110', '100', '100'], '!': ['1', '1', '1', '0', '1'] };
+  let x = 4; for (const ch of 'BEEP!') { L[ch].forEach((row, r) => [...row].forEach((b, c) => { if (b === '1') px(beep.g, C.ink, x + c, 3 + r); })); x += L[ch][0].length + 1; } }
+beep.tex.needsUpdate = true;
+const bubbles = carGroups.map(() => {
+  const m = new T.Mesh(new T.PlaneGeometry(2.8, 1.4), new T.MeshBasicMaterial({ map: beep.tex, transparent: true, alphaTest: 0.5, depthTest: false }));
+  m.renderOrder = 10; m.visible = false; scene.add(m); return m;
+});
+const honks = carGroups.map(() => -99);    // when each car last honked (scene seconds)
+let now = 0;
+function honk(ci) { honks[ci] = now; SFX.honk(); }
+
+function update(t) {
+  now = t;
+  drawMovie(t);
+  idlers.forEach((m, i) => {
+    const b = 1 + Math.sin(t * Math.PI * 2 / 1.25 + i * 1.3) * 0.03;
+    const s = m.userData.base || (m.userData.base = m.scale.x);
+    m.scale.set(s / Math.sqrt(b), s * b, s / Math.sqrt(b));
+  });
+  carGroups.forEach((c, ci) => {
+    const e = t - honks[ci], on = e >= 0 && e < 1.0;
+    // body: a springy double bounce
+    c.position.y = on && e < 0.7 ? Math.abs(Math.sin(e * 18)) * 0.28 * (1 - e / 0.7) : 0;
+    // lights: three bright flashes, headlight beams thrown at the screen
+    const flash = on && e < 0.9 && Math.floor(e * 7) % 2 === 0;
+    c.userData.heads.forEach(h => (h.material = glow(flash ? C.white : C.yellowL)));
+    c.userData.tails.forEach(h => (h.material = glow(flash ? C.glow : C.red)));
+    c.userData.beams.forEach(b => (b.visible = flash));
+    // the Minions inside hop and turn to see who honked, then settle back
+    c.userData.seats.forEach((m, i) => {
+      const home = m.userData.home || (m.userData.home = { y: m.position.y, r: m.rotation.y });
+      const hop = on && e < 0.55 ? Math.sin(e / 0.55 * Math.PI) * 0.7 : 0;
+      m.position.y = home.y + hop;
+      const look = on ? Math.sin(Math.min(1, e / 0.25) * Math.PI / 2) * (e < 0.8 ? 1 : 1 - (e - 0.8) / 0.2) : 0;
+      m.rotation.y = home.r + look * (i % 2 ? 1.2 : -1.2);
+      const b = 1 + Math.sin(t * Math.PI * 2 / 1.25 + i * 1.3 + ci) * 0.03, s0 = MSCALE / 1.15;
+      m.scale.set(s0 / Math.sqrt(b), s0 * b, s0 / Math.sqrt(b));
+    });
+    // the bubble pops over the car, facing us
+    const bub = bubbles[ci];
+    bub.visible = on && e < 0.95;
+    if (bub.visible) {
+      const pop = Math.min(1, e / 0.12);
+      bub.position.set(c.position.x, 4.4 + e * 0.6, c.position.z); bub.quaternion.copy(cam.quaternion); bub.scale.setScalar(pop);
+    }
+  });
+}
+
+// ---------- pixel pass: palette snap with ordered dithering ----------
+const rt = new T.WebGLRenderTarget(RES, RES, { magFilter: T.NearestFilter, minFilter: T.NearestFilter, samples: 0 });
+const palVec = PALETTE.map(h => new T.Color(h)).map(c => new T.Vector3(c.r, c.g, c.b));
+const post = new T.Mesh(new T.PlaneGeometry(2, 2), new T.ShaderMaterial({
+  uniforms: { tex: { value: rt.texture }, pal: { value: palVec }, res: { value: RES }, amt: { value: 0.05 } },
+  vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }',
+  fragmentShader: `
+    uniform sampler2D tex; uniform vec3 pal[${PALETTE.length}]; uniform float res; uniform float amt;
+    varying vec2 vUv;
+    float bayer(vec2 p){
+      int x = int(mod(p.x, 4.)), y = int(mod(p.y, 4.));
+      int i = x + y * 4;
+      float m[16] = float[16](0.,8.,2.,10.,12.,4.,14.,6.,3.,11.,1.,9.,15.,7.,13.,5.);
+      for (int k = 0; k < 16; k++) if (k == i) return m[k] / 16. - .47;
+      return 0.;
+    }
+    void main(){
+      vec4 src = texture2D(tex, vUv);
+      if (src.a < 0.05) { gl_FragColor = vec4(0.); return; }   // sky: leave it to the page
+      // the clear colour is premultiplied to black, so a see-through pixel (the glass) holds colour × alpha:
+      // lay it over white here, the way it looked on the white page
+      vec3 c = src.rgb + (1. - src.a);
+      c += bayer(floor(vUv * res)) * amt;
+      float best = 1e9; vec3 outc = c;
+      for (int i = 0; i < ${PALETTE.length}; i++) {
+        vec3 d = (c - pal[i]) * vec3(0.9, 1.2, 0.7);
+        float e = dot(d, d);
+        if (e < best) { best = e; outc = pal[i]; }
+      }
+      gl_FragColor = vec4(outc, 1.);
+    }`,
+  depthTest: false, depthWrite: false,
+}));
+const postScene = new T.Scene(); postScene.add(post);
+const postCam = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+function frame() {
+  renderer.setRenderTarget(rt); renderer.render(scene, cam);
+  renderer.setRenderTarget(null); renderer.render(postScene, postCam);
+}
+
+// ---------- pointer: any car is a button ----------
+const ray = new T.Raycaster(), ndc = new T.Vector2();
+function carUnder(e) {
+  const r = canvas.getBoundingClientRect();
+  ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(ndc, cam);
+  for (const h of ray.intersectObjects(carGroups, true)) {
+    if (h.object.material && h.object.material.transparent) continue;   // not the beams
+    let o = h.object; while (o && !carGroups.includes(o)) o = o.parent;
+    if (o) return carGroups.indexOf(o);
+  }
+  return -1;
+}
+const hint = document.getElementById('hint');
+function placeHint() {   // over the front-row middle car
+  cam.updateMatrixWorld();
+  const c = carGroups[1], v = new T.Vector3(c.position.x, 3.4, c.position.z).project(cam);
+  hint.style.left = ((v.x + 1) / 2 * 100) + '%'; hint.style.top = ((1 - v.y) / 2 * 100) + '%';
+}
+placeHint();
+
+// shaders compile first (off the main thread where allowed), then the stage fades in; ?t=4.2 freezes a frame
+const fixedT = new URLSearchParams(location.search).get('t');
+const stage = document.getElementById('stage');
+const FPS = 20;
+function renderAt(t) { update(t); frame(); }
+(async function start() {
+  await Promise.all([renderer.compileAsync(scene, cam), renderer.compileAsync(postScene, postCam)]).catch(() => {});
+  if (fixedT !== null) renderAt(+fixedT);
+  else {
+    canvas.addEventListener('pointermove', (e) => { canvas.style.cursor = carUnder(e) >= 0 ? 'pointer' : ''; });
+    canvas.addEventListener('pointerleave', () => { canvas.style.cursor = ''; });
+    canvas.addEventListener('pointerdown', (e) => { SFX.unlock(); const ci = carUnder(e); if (ci >= 0) { honk(ci); hint.classList.add('gone'); } });
+    const t0 = performance.now(); let last = -1;
+    (function tick() {
+      const step = Math.floor((performance.now() - t0) / 1000 * FPS);
+      if (step !== last) { last = step; renderAt(step / FPS); }
+      requestAnimationFrame(tick);
+    })();
+  }
+  requestAnimationFrame(() => { stage.classList.add('ready'); window.__ready = true; });
+})();
+window.__render = renderAt;
+window.__honk = (ci) => honk(ci);   // for testing
+</script>
+</body>
+</html>

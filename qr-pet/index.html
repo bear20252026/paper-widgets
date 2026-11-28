@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>QR Pet</title>
+<script src="./vendor/qrcode.js"></script>
+<script src="./vendor/lucide.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stage">
+  <div id="fallback" aria-label="QR code preview">
+    <div class="fallbackCard">
+      <img src="./fallback-qr.png" alt="QR code for QR Pet">
+      <span class="fallbackCap">QR PET · SCANNABLE</span>
+    </div>
+  </div>
+  <div id="toast"></div>
+</div>
+
+<aside id="panel">
+  <button id="grip" aria-label="More room for the controls"></button>
+  <div id="brand">
+    <span class="mark">QR Pet</span>
+    <button id="muteBtn" title="Sound on / off"><i data-lucide="volume-2"></i></button>
+  </div>
+
+  <!-- The link comes first because the link decides the pet: change it
+       after customising and the hash re-rolls whatever you hadn't pinned.
+       Type the link, THEN dress the animal it summons. -->
+  <section class="card linkCard">
+    <h2>Link</h2>
+    <input id="url" value="https://bear20252026.github.io/" spellcheck="false" autocomplete="off" inputmode="url" enterkeyhint="done">
+  </section>
+
+  <section class="card">
+    <div class="cardHead">
+      <h2>View</h2>
+      <button id="themeBtn" title="Light / dark">☾</button>
+    </div>
+    <div class="seg" id="view">
+      <button data-view="0" aria-pressed="true"><i data-lucide="qr-code"></i>code</button>
+      <button data-view="1"><i data-lucide="paw-print"></i>pet</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Animal</h2>
+    <div class="seg" id="animals">
+      <button data-animal="cat" aria-pressed="true"><i data-lucide="cat"></i>cat</button>
+      <button data-animal="dog"><i data-lucide="dog"></i>dog</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Coat</h2>
+    <div class="seg" id="coatColor">
+      <button data-color="ginger" aria-pressed="true" aria-label="ginger"><span class="dot" style="background:#E09A4E"></span></button>
+      <button data-color="black" aria-label="black"><span class="dot" style="background:#4C433C"></span></button>
+      <button data-color="grey" aria-label="grey"><span class="dot" style="background:#9FA2AA"></span></button>
+      <button data-color="cream" aria-label="white"><span class="dot" style="background:#F8F4EC"></span></button>
+    </div>
+    <div class="seg" id="coatPattern">
+      <button data-pattern="solid">solid</button>
+      <button data-pattern="tabby" aria-pressed="true">tabby</button>
+      <button data-pattern="tuxedo">tuxedo</button>
+      <button data-pattern="calico">calico</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Pose</h2>
+    <div class="seg" id="poses">
+      <button data-pose="sit" aria-pressed="true">sit</button>
+      <button data-pose="tilt">tilt</button>
+      <button data-pose="stretch">stretch</button>
+      <button data-pose="curl">curl</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Share</h2>
+    <div class="seg" id="shareRow">
+      <button id="shCopy" title="Copy link" aria-label="Copy link"><i data-lucide="link"></i></button>
+      <button id="shDl" title="Download image" aria-label="Download image"><i data-lucide="download"></i></button>
+      <button id="shX" title="Share on X" aria-label="Share on X"><span class="glyphB">X</span></button>
+      <button id="shIn" title="Share on LinkedIn" aria-label="Share on LinkedIn"><span class="glyphB">in</span></button>
+    </div>
+  </section>
+
+  <div class="foot">
+    <span class="inspTitle">Inspired by<i data-lucide="sparkles"></i></span><br>
+    <a href="https://tree.icqr.com/tree?q=MDBodHRwczovL2ljcXIuY29tLw" target="_blank" rel="noopener">ICQR Magic Tree</a> by
+    <a href="https://x.com/logotypercom" target="_blank" rel="noopener">Logotyper</a><br>
+    <a href="https://x.com/reactiive_/status/2040511285998313827" target="_blank" rel="noopener">QR Tree demo</a> by
+    <a href="https://x.com/reactiive_" target="_blank" rel="noopener">Enzo Manuel Mangano</a><br>
+    <a href="https://webgl-qrtree.vercel.app/" target="_blank" rel="noopener">WebGL QR Tree</a> by
+    <a href="https://x.com/msiddique26" target="_blank" rel="noopener">Mohamed Siddique</a><br>
+    <a href="https://www.bubbbly.com/bloom" target="_blank" rel="noopener">Bloom QR</a> by
+    <a href="https://x.com/ann_nnng" target="_blank" rel="noopener">Ann Nguyen</a>
+  </div>
+
+  <div id="made">
+    and <a id="aiLink">AI</a>
+    <button id="heart" aria-label="love"><i data-lucide="heart"></i></button>
+  </div>
+</aside>
+
+<script type="importmap">
+{"imports":{"three":"./vendor/three.module.js",
+            "three/addons/":"./vendor/addons/"}}
+</script>
+<script type="module" src="app.js"></script>
+</body>
+</html>

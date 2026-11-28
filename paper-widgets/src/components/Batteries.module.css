@@ -1,0 +1,74 @@
+/* One device per row, every --device-pitch from --device-y; the row spans the tile so right-hand text lines up */
+.row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--device-y) + var(--i) * var(--device-pitch));
+}
+
+.well {
+  position: absolute;
+  left: var(--well-x);
+  top: 0;
+  width: var(--well);
+  height: var(--well);
+  border-radius: var(--well-radius);
+  background: var(--wash);
+  display: grid;
+  place-items: center;
+}
+
+.name {
+  position: absolute;
+  left: var(--device-x);
+  top: var(--device-name-y);
+  font-size: var(--device-size);
+}
+
+.level {
+  position: absolute;
+  right: var(--pad);
+  top: var(--level-y);
+  font-family: var(--font-mono);
+  font-size: var(--level-size);
+}
+
+.bar {
+  position: absolute;
+  left: var(--device-x);
+  top: var(--level-bar-y);
+  width: var(--level-bar-w);
+  height: var(--level-bar-h);
+  border-radius: var(--round);
+  background: var(--track);
+  overflow: hidden;
+}
+
+.fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: var(--round);
+  background: var(--ink);
+}
+
+.charging {
+  background: var(--accent);
+}
+
+/* A soft white band that sweeps across the charging fill (and a little past it, inside the track) */
+.shimmer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--shimmer-w);
+  background: var(--shimmer);
+}
+
+.bolt {
+  position: absolute;
+  left: var(--bolt-x);
+  top: var(--level-y);
+  color: var(--accent);
+}

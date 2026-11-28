@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="First-person 3D freeride ski sim on real Chamonix / Mont Blanc DEM terrain — carve deep powder, launch rollers, pole flats, and ski switch." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d1b2e'/%3E%3Cpath d='M8 49L27 17l9 14 7-10 13 28z' fill='%23dce8f7'/%3E%3Cpath d='M27 17l-5 12 5-3 4 5 5-0z' fill='%23ffffff'/%3E%3Cpath d='M8 49h48v4H8z' fill='%23e84a27'/%3E%3C/svg%3E" />
+  <title>CHAMONIX · Mont Blanc Off-Piste Freeride Simulator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      background: #0a101a;
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+      color: #f4f7fb;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #viewport {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      cursor: crosshair;
+    }
+
+    /* Loading veil */
+    #loader {
+      position: fixed; inset: 0; z-index: 100;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+      background: radial-gradient(circle at 50% 42%, #182a45 0%, #090f19 100%);
+      transition: opacity 0.45s ease;
+    }
+    #loader.hidden { opacity: 0; pointer-events: none; }
+    .loader-title {
+      font-size: 20px; font-weight: 700; letter-spacing: 0.28em; text-transform: uppercase;
+      color: #f2f6fb;
+    }
+    .loader-sub {
+      font-size: 12px; letter-spacing: 0.08em; color: rgba(212, 228, 248, 0.72);
+    }
+    .spinner {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.16);
+      border-top-color: #e6582e;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Drop-in intro overlay */
+    #startOverlay {
+      position: fixed; inset: 0; z-index: 40;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+      padding-bottom: 11vh;
+      background: linear-gradient(180deg, rgba(6,12,24,0.08) 0%, rgba(6,12,24,0.0) 45%, rgba(6,12,24,0.56) 100%);
+      cursor: pointer;
+      transition: opacity 0.35s ease;
+    }
+    #startOverlay.hidden { opacity: 0; pointer-events: none; }
+    .start-card {
+      text-align: center;
+      padding: 18px 34px;
+      border-radius: 12px;
+      background: rgba(10, 16, 28, 0.56);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.42);
+    }
+    .start-kicker {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.26em; color: #f26c42; text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .start-title {
+      font-size: 24px; font-weight: 700; letter-spacing: 0.12em; margin-bottom: 6px;
+    }
+    .start-cta {
+      font-size: 12px; color: rgba(232, 241, 252, 0.84); letter-spacing: 0.04em;
+    }
+    .start-cta kbd {
+      display: inline-block; padding: 1px 6px; margin: 0 2px; border-radius: 4px;
+      background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.22);
+      font-family: ui-monospace, monospace; font-size: 11px;
+    }
+
+    /* Minimal translucent Helmet-Cam HUD */
+    #hud {
+      position: fixed; inset: 0; z-index: 20; pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    #hud.hidden { opacity: 0; }
+
+    /* Top alpine horizon peak bearings ribbon — sits cleanly in open gap between top-left zone pill & top-right buttons! */
+    #compassRibbon {
+      position: absolute; top: 14px; left: 41%; transform: translateX(-50%);
+      width: min(290px, 25vw); height: 36px; overflow: hidden;
+      border-top: 1px solid rgba(255,255,255,0.16);
+      mask-image: linear-gradient(90deg, transparent 0%, black 16%, black 84%, transparent 100%);
+      -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 16%, black 84%, transparent 100%);
+    }
+    .peak-pin {
+      position: absolute; top: 0; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center;
+      white-space: nowrap;
+      text-shadow: 0 1px 5px rgba(0, 0, 0, 0.68);
+    }
+    .pk-tick { width: 1px; height: 7px; background: rgba(255,255,255,0.75); margin-bottom: 2px; }
+    .pk-name { font-size: 10px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: rgba(248, 251, 255, 0.94); }
+    .pk-alt { font-size: 9px; font-family: ui-monospace, monospace; color: rgba(210, 228, 252, 0.78); }
+
+    /* Top-left drop-in line info & selector */
+    .top-left {
+      position: absolute; top: 16px; left: 18px;
+      display: flex; flex-direction: column; gap: 6px;
+      pointer-events: auto;
+    }
+    .zone-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 11px; border-radius: 6px;
+      background: rgba(8, 14, 26, 0.48);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.12);
+      font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+    }
+    .rec-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #ef4444; box-shadow: 0 0 8px #ef4444;
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+    #dropMenu {
+      display: flex; flex-direction: column; gap: 3px;
+      opacity: 0; pointer-events: none; transform: translateY(-4px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .top-left:hover #dropMenu { opacity: 1; pointer-events: auto; transform: translateY(0); }
+    .drop-btn {
+      display: flex; align-items: center; gap: 7px;
+      padding: 4px 8px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(8, 14, 26, 0.56); color: rgba(236, 244, 255, 0.85);
+      font-size: 10px; cursor: pointer; text-align: left;
+      backdrop-filter: blur(8px);
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .drop-btn:hover { background: rgba(20, 32, 54, 0.78); border-color: rgba(255,255,255,0.28); }
+    .drop-btn.active { border-color: rgba(242, 108, 66, 0.85); background: rgba(242, 108, 66, 0.22); color: #fff; }
+    .drop-btn .k {
+      font-family: ui-monospace, monospace; font-weight: 700; width: 14px; text-align: center;
+      color: #f26c42;
+    }
+    .drop-btn .alt { margin-left: auto; font-family: ui-monospace, monospace; opacity: 0.72; padding-left: 8px; }
+
+    /* Top-right two-tier quick buttons (zero collision with compass ribbon!) */
+    .top-right-wrap {
+      position: absolute; top: 16px; right: 18px;
+      display: flex; flex-direction: column; align-items: flex-end; gap: 5px;
+      pointer-events: auto;
+    }
+    .top-right {
+      display: flex; align-items: center; gap: 5px;
+    }
+    .top-right-sub {
+      display: flex; align-items: center; gap: 5px;
+    }
+    .hud-btn {
+      padding: 5px 9px; border-radius: 6px;
+      background: rgba(8, 14, 26, 0.48);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.13);
+      color: rgba(244, 248, 255, 0.92);
+      font-size: 9.5px; font-weight: 600; letter-spacing: 0.09em;
+      cursor: pointer; transition: background 0.15s, border-color 0.15s;
+    }
+    .hud-btn:hover { background: rgba(24, 38, 60, 0.78); border-color: rgba(255,255,255,0.3); }
+    .hud-btn.active { border-color: rgba(242, 108, 66, 0.9); background: rgba(242, 108, 66, 0.28); color: #fff; }
+    .hud-btn.muted { opacity: 0.48; }
+    .hud-btn.sub { padding: 3.5px 8px; font-size: 9px; opacity: 0.9; }
+    .hud-btn.avy-btn:hover, .hud-btn.avy-btn.active { border-color: rgba(248, 113, 113, 0.9); background: rgba(220, 38, 38, 0.34); }
+    .hud-btn.avy-off { opacity: 0.48; border-color: rgba(148, 163, 184, 0.25); }
+    .hud-btn.avy-toggle.off { border-color: rgba(148, 163, 184, 0.35); color: rgba(203, 213, 225, 0.72); }
+    .hud-btn.avy-toggle.on { border-color: rgba(248, 113, 113, 0.45); color: #fecaca; }
+    #lockHint {
+      font-size: 8.5px; letter-spacing: 0.11em; text-transform: uppercase;
+      padding: 2.5px 7px; border-radius: 4px;
+      background: rgba(8, 14, 26, 0.38); border: 1px solid rgba(255,255,255,0.09);
+      color: rgba(210, 228, 250, 0.72); pointer-events: none;
+    }
+    #lockHint.locked { color: #bbf7d0; border-color: rgba(74, 222, 128, 0.45); background: rgba(16, 48, 28, 0.48); }
+    .fps-chip {
+      font-family: ui-monospace, monospace; font-size: 9.5px;
+      padding: 5px 8px; border-radius: 6px;
+      background: rgba(8, 14, 26, 0.42);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(200, 224, 250, 0.8);
+    }
+
+    /* Special Camera Mode Banner (Scout / Helicopter Replay) */
+    #modeBanner {
+      position: absolute; top: 58px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 6px 16px; border-radius: 8px;
+      background: rgba(8, 16, 30, 0.64); backdrop-filter: blur(10px);
+      border: 1px solid rgba(110, 195, 255, 0.48);
+      opacity: 0; transition: opacity 0.18s;
+      white-space: nowrap;
+    }
+    #modeBanner.show { opacity: 1; }
+    #modeTitle { font-size: 10.5px; font-weight: 700; letter-spacing: 0.16em; color: #dbeeff; }
+    #modeSub { font-size: 9px; letter-spacing: 0.08em; color: rgba(196, 224, 250, 0.8); }
+
+    #replayBar {
+      position: absolute; bottom: 82px; left: 50%; transform: translateX(-50%);
+      width: min(320px, 42vw); height: 4px; border-radius: 99px; overflow: hidden;
+      background: rgba(8, 14, 26, 0.56); border: 1px solid rgba(255,255,255,0.2);
+      opacity: 0; transition: opacity 0.18s;
+    }
+    #replayBar.show { opacity: 1; }
+    #replayFill { height: 100%; width: 0%; background: linear-gradient(90deg, #56c2ff, #f26c42); }
+
+    /* Avalanche Warning Banner */
+    #avyBanner {
+      position: absolute; top: 58px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 7px 18px; border-radius: 8px;
+      background: rgba(92, 16, 16, 0.76); backdrop-filter: blur(10px);
+      border: 1px solid rgba(252, 165, 165, 0.72);
+      box-shadow: 0 8px 28px rgba(180, 20, 20, 0.35);
+      opacity: 0; transition: opacity 0.2s;
+      white-space: nowrap;
+    }
+    #avyBanner.show { opacity: 1; animation: avyPulse 1.1s ease-in-out infinite; }
+    @keyframes avyPulse { 0%,100% { border-color: rgba(252, 165, 165, 0.85); } 50% { border-color: rgba(248, 113, 113, 0.35); } }
+    .avy-title { font-size: 11px; font-weight: 800; letter-spacing: 0.18em; color: #ffebe9; }
+    #avyDetail { font-family: ui-monospace, monospace; font-size: 9.5px; letter-spacing: 0.08em; color: #fecaca; }
+
+    /* Bottom-left Helmet-Cam telemetry cluster */
+    .telemetry {
+      position: absolute; bottom: 18px; left: 18px;
+      display: flex; align-items: flex-end; gap: 11px;
+      padding: 8px 12px; border-radius: 10px;
+      background: rgba(8, 14, 26, 0.48);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.12);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.45);
+    }
+    .spd-box { display: flex; align-items: baseline; gap: 3px; }
+    #speedVal {
+      font-family: ui-monospace, 'SF Mono', monospace;
+      font-size: 34px; font-weight: 700; line-height: 0.92; letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+    .spd-unit { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; opacity: 0.72; }
+    .meta-grid { display: flex; gap: 10px; padding-bottom: 2px; }
+    .stat { display: flex; flex-direction: column; gap: 1px; }
+    .stat-k { font-size: 9px; letter-spacing: 0.14em; opacity: 0.62; text-transform: uppercase; }
+    .stat-v { font-family: ui-monospace, monospace; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .chip-row { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+    #surfaceChip {
+      padding: 4px 9px; border-radius: 5px; font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(140, 200, 255, 0.18); color: #e2f2ff;
+    }
+    #surfaceChip[data-surf="ice"] { background: rgba(66, 178, 255, 0.30); border-color: rgba(120, 214, 255, 0.55); color: #c8f1ff; }
+    #surfaceChip[data-surf="granite"] { background: rgba(235, 92, 62, 0.32); border-color: rgba(248, 125, 96, 0.6); color: #ffe0d6; }
+    #surfaceChip[data-surf="air"] { background: rgba(245, 168, 52, 0.32); border-color: rgba(255, 204, 112, 0.6); color: #fff4d6; }
+    #stanceChip {
+      padding: 4px 8px; border-radius: 5px; font-size: 9.5px; font-weight: 700; letter-spacing: 0.12em;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255, 255, 255, 0.08); color: rgba(226, 238, 252, 0.88);
+    }
+    #stanceChip[data-mode="CARVE"] { background: rgba(16, 185, 129, 0.24); border-color: rgba(52, 211, 153, 0.58); color: #d1fae5; }
+    #stanceChip[data-mode="POLE"]  { background: rgba(56, 189, 248, 0.24); border-color: rgba(125, 211, 252, 0.58); color: #e0f2fe; }
+    #stanceChip[data-mode="SLIP"]  { background: rgba(245, 158, 11, 0.24); border-color: rgba(251, 191, 36, 0.58); color: #fef3c7; }
+    #stanceChip[data-mode="SKID"]  { background: rgba(242, 108, 66, 0.28); border-color: rgba(248, 134, 96, 0.62); color: #ffedd5; }
+    #stanceChip[data-mode="UPHILL"]{ background: rgba(168, 85, 247, 0.22); border-color: rgba(196, 181, 253, 0.50); color: #ede9fe; }
+    #stanceChip[data-mode="HOLD"]  { background: rgba(242, 108, 66, 0.22); border-color: rgba(251, 146, 60, 0.55); color: #fed7aa; }
+    .fall-dial {
+      position: relative; width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.16);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      margin-bottom: 1px;
+    }
+    .fall-dial svg { width: 24px; height: 24px; display: block; }
+    #fallArrowGroup { transform-origin: 12px 12px; transition: transform 0.06s linear; }
+    #switchChip {
+      display: none;
+      padding: 4px 8px; border-radius: 5px; font-size: 9.5px; font-weight: 800; letter-spacing: 0.12em;
+      border: 1px solid rgba(251, 191, 36, 0.72);
+      background: rgba(217, 119, 6, 0.35); color: #fef3c7;
+    }
+    #switchChip.show { display: inline-block; }
+
+    /* Center pop meter & air / trick toast */
+    #popBar {
+      position: absolute; bottom: 86px; left: 50%; transform: translateX(-50%);
+      width: 140px; height: 5px; border-radius: 99px; overflow: hidden;
+      background: rgba(8, 14, 26, 0.52); border: 1px solid rgba(255,255,255,0.22);
+      opacity: 0; transition: opacity 0.12s;
+    }
+    #popBar.show { opacity: 1; }
+    #popFill { height: 100%; width: 0%; background: linear-gradient(90deg, #4db8ff, #f26c42); }
+
+    #airBadge {
+      position: absolute; top: 68px; left: 50%; transform: translateX(-50%);
+      padding: 5px 14px; border-radius: 99px;
+      background: rgba(8, 14, 26, 0.58); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 208, 118, 0.45);
+      font-family: ui-monospace, monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+      color: #ffeaad; opacity: 0; transition: opacity 0.14s;
+    }
+    #airBadge.show { opacity: 1; }
+
+    #trickToast {
+      position: absolute; bottom: 104px; left: 50%; transform: translateX(-50%);
+      padding: 7px 16px; border-radius: 8px;
+      background: rgba(8, 14, 26, 0.68); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.22);
+      font-size: 12px; font-weight: 700; letter-spacing: 0.12em;
+      opacity: 0; transition: opacity 0.2s;
+      white-space: nowrap;
+    }
+    #trickToast.show { opacity: 1; }
+    #trickToast[data-quality="stomped"] { border-color: rgba(74, 222, 128, 0.7); color: #d6ffe4; }
+    #trickToast[data-quality="sketchy"] { border-color: rgba(251, 191, 36, 0.75); color: #fef0c7; }
+    #trickToast[data-quality="wipeout"] { border-color: rgba(248, 113, 113, 0.8); color: #ffe0e0; }
+    #trickToast[data-quality="info"] { border-color: rgba(110, 195, 255, 0.75); color: #e2f2ff; }
+
+    /* Wipeout overlay */
+    #crashBanner {
+      position: absolute; top: 44%; left: 50%; transform: translate(-50%, -50%);
+      text-align: center; padding: 14px 26px; border-radius: 10px;
+      background: rgba(24, 8, 10, 0.72); backdrop-filter: blur(12px);
+      border: 1px solid rgba(248, 113, 113, 0.55);
+      opacity: 0; transition: opacity 0.2s;
+    }
+    #crashBanner.show { opacity: 1; }
+    .crash-title { font-size: 20px; font-weight: 800; letter-spacing: 0.22em; color: #ff8a80; }
+    #crashReason { font-size: 11px; letter-spacing: 0.14em; margin-top: 4px; color: #ffdad6; }
+    .crash-sub { font-size: 10px; opacity: 0.72; margin-top: 6px; letter-spacing: 0.08em; }
+
+    /* Bottom-right collapsible controls card */
+    #controlsHint {
+      position: absolute; bottom: 18px; right: 18px;
+      padding: 8px 11px; border-radius: 8px;
+      background: rgba(8, 14, 26, 0.48);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.12);
+      font-size: 9px; line-height: 1.5; color: rgba(226, 238, 252, 0.84);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    #controlsHint.collapsed { opacity: 0; pointer-events: none; transform: translateY(8px); }
+    #controlsHint kbd {
+      display: inline-block; padding: 0 4px; border-radius: 3px;
+      background: rgba(255,255,255,0.14); font-family: ui-monospace, monospace; font-size: 9px; color: #fff;
+    }
+    #controlsHint strong { color: #f48c6a; font-weight: 600; }
+
+    /* Minimal RAW Action-Cam Film Overlay (toggled via H: Full -> RAW REC -> Hidden) */
+    #rawRecPill {
+      position: fixed; top: 18px; left: 22px; z-index: 25;
+      display: none; align-items: center; gap: 9px;
+      padding: 6px 12px; border-radius: 6px;
+      background: rgba(6, 10, 18, 0.44);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.16);
+      font-family: ui-monospace, 'SF Mono', monospace;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+      color: rgba(246, 250, 255, 0.94);
+      pointer-events: none;
+    }
+    #rawRecPill.show { display: flex; }
+    #rawRecPill .raw-meta { opacity: 0.72; font-weight: 600; font-size: 10px; }
+
+    /* Compact Settings Popover (toggled via gear icon or O key) */
+    #settingsPanel {
+      position: absolute; top: 94px; right: 18px; width: 268px;
+      padding: 12px 14px; border-radius: 10px;
+      background: rgba(8, 14, 26, 0.78);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.16);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+      display: flex; flex-direction: column; gap: 10px;
+      opacity: 0; pointer-events: none; transform: translateY(-6px);
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      z-index: 30;
+    }
+    #settingsPanel.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+    .set-hdr {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+      color: rgba(232, 242, 255, 0.92);
+      padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.10);
+    }
+    .set-close {
+      background: none; border: none; color: rgba(210,226,248,0.7);
+      font-size: 13px; cursor: pointer; padding: 0 3px; line-height: 1;
+    }
+    .set-close:hover { color: #fff; }
+    .set-row { display: flex; flex-direction: column; gap: 5px; }
+    .set-row-inline { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .set-lbl {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(218, 232, 250, 0.78);
+    }
+    .set-val { font-family: ui-monospace, monospace; color: #f4f7fb; font-weight: 600; }
+    .seg-group {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px;
+      background: rgba(255,255,255,0.06); padding: 2px; border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.09);
+    }
+    .seg-btn {
+      padding: 4px 0; border-radius: 4px; border: none;
+      background: transparent; color: rgba(220,234,250,0.72);
+      font-size: 9px; font-weight: 700; letter-spacing: 0.08em; cursor: pointer;
+      transition: background 0.14s, color 0.14s;
+    }
+    .seg-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .seg-btn.active { background: rgba(242, 108, 66, 0.85); color: #fff; }
+    .set-sub {
+      font-family: ui-monospace, monospace; font-size: 8.5px;
+      color: rgba(188, 212, 240, 0.72); letter-spacing: 0.04em;
+    }
+    .set-slider {
+      width: 100%; height: 4px; appearance: none; -webkit-appearance: none;
+      background: rgba(255,255,255,0.18); border-radius: 99px; outline: none; cursor: pointer;
+    }
+    .set-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: #f26c42; border: 1.5px solid #fff; cursor: pointer;
+    }
+    .set-toggle {
+      padding: 3px 9px; border-radius: 5px;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16);
+      color: rgba(214,228,248,0.78); font-size: 9px; font-weight: 700; letter-spacing: 0.09em;
+      cursor: pointer; transition: background 0.14s, border-color 0.14s;
+      min-width: 64px; text-align: center;
+    }
+    .set-toggle.on {
+      background: rgba(242, 108, 66, 0.28); border-color: rgba(242, 108, 66, 0.88); color: #fff;
+    }
+    .set-gp {
+      font-family: ui-monospace, monospace; font-size: 8.5px; letter-spacing: 0.06em;
+      padding: 4px 8px; border-radius: 5px;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);
+      color: rgba(196, 214, 238, 0.68);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .set-gp.connected {
+      background: rgba(22, 101, 52, 0.42); border-color: rgba(74, 222, 128, 0.55); color: #bbf7d0;
+    }
+    .set-foot {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.09);
+      font-size: 8.5px; color: rgba(196,214,238,0.62);
+    }
+    .set-reset {
+      background: none; border: 1px solid rgba(255,255,255,0.16); border-radius: 4px;
+      color: rgba(230,240,252,0.82); font-size: 8.5px; padding: 2px 7px; cursor: pointer;
+    }
+    .set-reset:hover { border-color: rgba(255,255,255,0.38); color: #fff; }
+    .fps-chip.low { color: #fde68a; border-color: rgba(251, 191, 36, 0.45); }
+    .fps-chip.adapted { border-color: rgba(125, 211, 252, 0.45); color: #bae6fd; }
+
+    html, body, #viewport {
+      touch-action: none;
+      overscroll-behavior: none;
+    }
+    h1.start-title { margin: 0 0 6px 0; }
+    .top-left.open #dropMenu { opacity: 1; pointer-events: auto; transform: translateY(0); }
+    .zone-pill { cursor: pointer; }
+    .telemetry { bottom: 26px; }
+    #controlsHint { bottom: 26px; }
+    #demAttr {
+      position: fixed; bottom: 4px; left: 50%; transform: translateX(-50%);
+      z-index: 25; pointer-events: none;
+      padding: 1.5px 8px; border-radius: 4px;
+      background: rgba(8, 14, 26, 0.48);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      font-size: 8.5px; letter-spacing: 0.04em;
+      color: rgba(218, 232, 248, 0.78);
+      white-space: nowrap;
+    }
+    #touchControls {
+      display: none;
+      position: absolute; bottom: 26px; right: 14px;
+      gap: 7px; align-items: center;
+      pointer-events: auto; z-index: 30;
+    }
+    .touch-btn {
+      min-width: 52px; height: 42px; padding: 0 11px;
+      border-radius: 10px;
+      background: rgba(8, 14, 26, 0.64);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      color: rgba(244, 248, 255, 0.94);
+      font-size: 10px; font-weight: 700; letter-spacing: 0.09em;
+      cursor: pointer; touch-action: manipulation;
+    }
+    .touch-btn:active, .touch-btn.active {
+      background: rgba(242, 108, 66, 0.42);
+      border-color: rgba(242, 108, 66, 0.95);
+    }
+    .start-cta-touch { display: none; }
+    @media (pointer: coarse), (hover: none), (max-width: 1080px) {
+      #controlsHint, #lockHint { display: none !important; }
+      #touchControls { display: flex; }
+      .start-cta-desktop { display: none; }
+      .start-cta-touch { display: inline; }
+      .telemetry {
+        max-width: calc(100vw - 236px);
+        flex-wrap: wrap;
+      }
+    }
+    @media (max-width: 1080px) {
+      #compassRibbon { top: 6px; left: 50%; width: min(260px, 44vw); height: 28px; }
+      .top-left { top: 38px; left: 12px; }
+      .top-right-wrap { top: 38px; right: 12px; max-width: calc(100vw - 240px); }
+      .top-right, .top-right-sub { flex-wrap: wrap; justify-content: flex-end; }
+      #modeBanner, #avyBanner { top: 96px; }
+      #settingsPanel { top: 100px; right: 12px; }
+    }
+    @media (max-width: 680px) {
+      #compassRibbon { top: 4px; left: 50%; width: min(220px, 60vw); height: 26px; }
+      .top-left { top: 34px; left: 10px; max-width: 39vw; }
+      .zone-pill { padding: 4px 7px; font-size: 8.5px; letter-spacing: 0.05em; gap: 5px; max-width: 100%; }
+      #zoneName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 30vw; }
+      .top-right-wrap { top: 34px; right: 10px; gap: 3px; max-width: 54vw; }
+      .top-right, .top-right-sub { flex-wrap: wrap; justify-content: flex-end; gap: 3px; }
+      .hud-btn { padding: 3.5px 6px; font-size: 8px; }
+      .hud-btn.sub { padding: 3px 5.5px; font-size: 7.5px; }
+      .fps-chip { display: none; }
+      #startOverlay { padding-bottom: 148px; }
+      .telemetry {
+        bottom: 24px; left: 10px; gap: 6px; padding: 6px 8px;
+        flex-wrap: wrap; max-width: calc(100vw - 186px);
+      }
+      #speedVal { font-size: 21px; }
+      .meta-grid { gap: 5px; }
+      .stat-k { font-size: 7.5px; }
+      .stat-v { font-size: 10px; }
+      .fall-dial { display: none; }
+      .chip-row { gap: 4px; }
+      #surfaceChip, #stanceChip, #switchChip { font-size: 7.5px; padding: 2px 5.5px; }
+      .start-card { max-width: calc(100vw - 24px); padding: 14px 18px; }
+      .start-title { font-size: 20px; }
+      .start-cta { font-size: 11px; line-height: 1.45; }
+      #touchControls { bottom: 24px; right: 10px; gap: 4px; }
+      .touch-btn { min-width: 42px; height: 36px; padding: 0 7px; font-size: 8.5px; }
+      #demAttr { bottom: 3px; font-size: 7.5px; }
+    }
+  </style>
+</head>
+<body>
+  <main role="main" aria-label="Chamonix Ski Simulator">
+  <canvas id="viewport" aria-label="3D Chamonix alpine skiing viewport"></canvas>
+
+  <div id="loader" role="status" aria-live="polite">
+    <div class="spinner"></div>
+    <div class="loader-title" role="heading" aria-level="2">CHAMONIX · MONT BLANC</div>
+    <div class="loader-sub" id="loaderMsg">Loading real EU-DEM alpine terrain...</div>
+  </div>
+
+  <div id="startOverlay">
+    <div class="start-card">
+      <div class="start-kicker">Chamonix · Massif du Mont-Blanc · Strict 4-Point Sim</div>
+      <h1 class="start-title">DROP IN</h1>
+      <div class="start-cta"><span class="start-cta-desktop">Click to drop in &amp; lock <strong>free head-look</strong> · <kbd>A</kbd>/<kbd>D</kbd> edge &amp; carve · <kbd>W</kbd>/<kbd>F</kbd> pole on flats / tuck · <kbd>Q</kbd>/<kbd>E</kbd> alt-pole · <kbd>Shift</kbd> hockey-stop · <kbd>Space</kbd> pop</span><span class="start-cta-touch">Tap to drop in · Drag <strong>left</strong> to carve &amp; tuck · Drag <strong>right</strong> to look around · Use <strong>POLE / SWITCH / POP</strong> buttons</span></div>
+    </div>
+  </div>
+
+  <div id="rawRecPill">
+    <span class="rec-dot"></span>
+    <span id="rawRecTime">REC 00:00</span>
+    <span class="raw-meta" id="rawRecMeta">4K · 60 · 3492m</span>
+  </div>
+
+  <div id="hud">
+    <div id="compassRibbon"></div>
+
+    <div class="top-left">
+      <div class="zone-pill">
+        <span class="rec-dot"></span>
+        <span id="zoneName">VALLÉE BLANCHE — COL DU MIDI</span>
+      </div>
+      <div id="dropMenu"></div>
+    </div>
+
+    <div class="top-right-wrap">
+      <div class="top-right">
+        <button class="hud-btn" id="btnLight" title="Cycle alpine lighting (T)"><span id="lightName">15:30 ALPINE SUN</span></button>
+        <button class="hud-btn" id="btnCam" title="Cycle Helmet / Chesty / Visor POV camera (C)"><span id="camName">HELMET POV</span></button>
+        <button class="hud-btn" id="btnReset" title="Reset to drop-in (R)">RESET</button>
+        <button class="hud-btn" id="btnSound" title="Toggle Web Audio (M)">AUDIO</button>
+        <button class="hud-btn" id="btnSettings" title="Quality, sensitivity & controls (O)">&#9881;</button>
+        <button class="hud-btn" id="btnHelp" title="Toggle controls card">?</button>
+        <div class="fps-chip" id="fpsChip"><span id="fpsVal">60</span> FPS</div>
+      </div>
+      <div class="top-right-sub">
+        <button class="hud-btn sub" id="btnScout" title="Helicopter Line-Scout Preview (V)">SCOUT · V</button>
+        <button class="hud-btn sub" id="btnReplay" title="Instant 30 Hz Helicopter Replay (P)">REPLAY · P</button>
+        <button class="hud-btn sub avy-toggle on" id="btnAvyToggle" title="Toggle avalanches on/off">AVY: ON</button>
+        <button class="hud-btn sub avy-btn" id="btnAvy" title="Trigger Slab Avalanche (G)">SLAB AVY · G</button>
+      </div>
+      <div id="lockHint">MOVE MOUSE TO LOOK AROUND · CLICK SNOW TO LOCK VIEW</div>
+    </div>
+
+    <div id="settingsPanel" role="region" aria-label="Simulator Settings">
+      <div class="set-hdr">
+        <span>SETTINGS · PERFORMANCE</span>
+        <button class="set-close" id="btnSettingsClose" title="Close (O / Esc)">&times;</button>
+      </div>
+      <div class="set-row">
+        <div class="set-lbl"><span>GRAPHICS QUALITY</span><span class="set-val" id="setQualLabel">AUTO</span></div>
+        <div class="seg-group" id="qualGroup">
+          <button class="seg-btn active" data-q="auto">AUTO</button>
+          <button class="seg-btn" data-q="high">HIGH</button>
+          <button class="seg-btn" data-q="med">MED</button>
+          <button class="seg-btn" data-q="low">LOW</button>
+        </div>
+        <div class="set-sub" id="setQualDetail">Native DPR · 4x MSAA · God-Rays</div>
+      </div>
+      <div class="set-row">
+        <div class="set-lbl"><span>AUDIO VOLUME</span><span class="set-val" id="setVolVal">100%</span></div>
+        <input type="range" class="set-slider" id="setVolSlider" aria-label="Audio volume" min="0" max="100" step="1" value="100" />
+      </div>
+      <div class="set-row">
+        <div class="set-lbl"><span>LOOK SENSITIVITY</span><span class="set-val" id="setSensVal">1.0×</span></div>
+        <input type="range" class="set-slider" id="setSensSlider" aria-label="Look sensitivity" min="40" max="220" step="5" value="100" />
+      </div>
+      <div class="set-row-inline">
+        <span class="set-lbl">INVERT LOOK Y</span>
+        <button class="set-toggle" id="setInvertY">OFF</button>
+      </div>
+      <div class="set-row-inline">
+        <span class="set-lbl">MOTION BLUR</span>
+        <button class="set-toggle on" id="setMotionBlur">ON</button>
+      </div>
+      <div class="set-row-inline">
+        <span class="set-lbl">KEYBOARD CARVE</span>
+        <button class="set-toggle" id="setSmoothCarve">DIRECT</button>
+      </div>
+      <div class="set-row-inline">
+        <span class="set-lbl">AVALANCHES</span>
+        <button class="set-toggle on" id="setAvalanches">ON</button>
+      </div>
+      <div class="set-gp" id="setGamepadStatus">GAMEPAD: NONE DETECTED</div>
+      <div class="set-foot">
+        <span><kbd>O</kbd> toggle · Touch &amp; Gamepad ready</span>
+        <button class="set-reset" id="btnSettingsReset">RESET</button>
+      </div>
+    </div>
+
+    <div id="modeBanner">
+      <div id="modeTitle">LINE SCOUT · HELICOPTER PREVIEW</div>
+      <div id="modeSub">Press V or ESC to drop into helmet POV</div>
+    </div>
+
+    <div id="avyBanner" role="alert" aria-live="assertive">
+      <div class="avy-title">⚠ AVALANCHE WARNING</div>
+      <div id="avyDetail">SLAB FRACTURE · SKI SIDEWAYS OUT OF PATH</div>
+    </div>
+
+    <div id="airBadge">AIR 0.0s</div>
+    <div id="popBar"><div id="popFill"></div></div>
+    <div id="replayBar"><div id="replayFill"></div></div>
+    <div id="trickToast" role="status" aria-live="polite"></div>
+
+    <div id="crashBanner">
+      <div class="crash-title">WIPEOUT</div>
+      <div id="crashReason">OVER-ROTATED LANDING</div>
+      <div class="crash-sub">Auto-recovering... or press R to stand up</div>
+    </div>
+
+    <div class="telemetry">
+      <div class="spd-box">
+        <span id="speedVal">00</span>
+        <span class="spd-unit">KM/H</span>
+      </div>
+      <div class="meta-grid">
+        <div class="stat"><span class="stat-k">ALT</span><span class="stat-v" id="altVal">3492</span></div>
+        <div class="stat"><span class="stat-k">SLOPE</span><span class="stat-v" id="slopeVal">23°</span></div>
+        <div class="stat"><span class="stat-k">EDGE</span><span class="stat-v" id="edgeVal">FLAT</span></div>
+        <div class="stat"><span class="stat-k">DROP</span><span class="stat-v" id="dropVal">0m</span></div>
+      </div>
+      <div class="fall-dial" title="Fall line direction relative to skis (up = straight downhill)">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <line x1="10" y1="6" x2="10" y2="18" stroke="rgba(255,255,255,0.38)" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="14" y1="6" x2="14" y2="18" stroke="rgba(255,255,255,0.38)" stroke-width="1.4" stroke-linecap="round"/>
+          <g id="fallArrowGroup">
+            <line x1="12" y1="18" x2="12" y2="5" stroke="#56c2ff" stroke-width="1.8" stroke-linecap="round"/>
+            <polygon points="12,3 9.2,7.6 14.8,7.6" fill="#56c2ff"/>
+          </g>
+        </svg>
+      </div>
+      <div class="chip-row">
+        <div id="surfaceChip" data-surf="powder">COLD POWDER</div>
+        <div id="stanceChip" data-mode="GLIDE">GLIDE</div>
+        <div id="switchChip">SWITCH</div>
+      </div>
+    </div>
+
+    <div id="controlsHint">
+      <div><strong>LOOK:</strong> Move Mouse · Click Snow = Lock · <kbd>L</kbd>/MMB Center · <kbd>Esc</kbd> Cursor</div>
+      <div><strong>SKI:</strong> <kbd>A</kbd>/<kbd>D</kbd> Edge/Carve · <kbd>W</kbd>/<kbd>F</kbd> Pole/Tuck · <kbd>Q</kbd>/<kbd>E</kbd> Alt-Pole · <kbd>S</kbd> Float · <kbd>Shift</kbd> Stop · <kbd>Space</kbd> Pop</div>
+      <div><strong>AIR / WORLD:</strong> <kbd>W</kbd>/<kbd>S</kbd> Flip · <kbd>Q</kbd>/<kbd>E</kbd> Cork · <kbd>F</kbd> Grab · <kbd>X</kbd> Switch · <kbd>1</kbd>-<kbd>6</kbd> Lines · <kbd>C</kbd>/<kbd>V</kbd>/<kbd>P</kbd>/<kbd>G</kbd>/<kbd>T</kbd>/<kbd>H</kbd>/<kbd>O</kbd></div>
+    </div>
+    <div id="touchControls" role="group" aria-label="Touch Controls">
+      <button class="touch-btn" id="btnTouchPole" type="button" aria-label="Pole push">POLE</button>
+      <button class="touch-btn" id="btnTouchSwitch" type="button" aria-label="Toggle switch stance">SWITCH</button>
+      <button class="touch-btn" id="btnTouchPop" type="button" aria-label="Jump pop">POP</button>
+    </div>
+  </div>
+  </main>
+  <footer id="demAttr" role="contentinfo" aria-label="Terrain Data Attribution">Terrain DEM: AWS Open Data / Mapzen Terrarium (Copernicus EU-DEM)</footer>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+/** 全局常量。单位约定:世界坐标 1 单位 = 1 个格子。 */
+export const STEP = 1 / 60; // 固定逻辑步长(60Hz)
+export const MAX_LIVES = 10; // 萝卜生命
+export const MAX_TOWER_LEVEL = 3;
+export const SELL_RATE = 0.7; // 出售返还比例
+export const PREP_TIME = 5; // 波间准备时间(秒)
+export const EARLY_WAVE_BONUS_PER_SEC = 3; // 提前开波:每剩余 1 秒准备时间奖励金币
+export const SPAWN_TIME = 0.35; // 敌人出生动画时间(此时不可被攻击)
+export const DYING_TIME = 0.35; // 敌人死亡动画时间
+export const OBSTACLE_RADIUS = 0.45; // 障碍物碰撞半径
+export const MIN_SPAWN_GAP = 0.25; // 间隔压缩后的最小出怪间隔
+export const MAX_EVENTS = 256;
+export const MAX_EFFECTS = 160;

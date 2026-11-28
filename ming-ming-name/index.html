@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>明名 · write your chinese name</title>
+<link rel="icon" type="image/png" href="assets/logo.png">
+<link rel="apple-touch-icon" href="assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Zhi+Mang+Xing&family=Liu+Jian+Mao+Cao&family=Noto+Serif+SC:wght@400;600;900&family=ZCOOL+XiaoWei&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="desk">
+<div id="panel">
+  <div id="panelScroll">
+    <h1>
+      <span class="cn">明名</span>
+      <span class="seal-dot"></span>
+      <span class="en">write your chinese name</span>
+    </h1>
+    <div id="tabs">
+      <div class="tab on" data-tab="name">name</div>
+      <div class="tab" data-tab="mount">mounting</div>
+    </div>
+
+    <div class="sec on" id="sec-name">
+      <div class="sechead"><span class="en">your name</span></div>
+      <input id="nameInput" type="text" spellcheck="false" autocomplete="off"
+        placeholder="Your name · e.g. Sophia Anderson">
+      <div id="nameRow"></div>
+      <div id="emptyGuide" class="hint">
+        Type your name in any language —<br>
+        a well-known name keeps its familiar spelling,<br>
+        and every character can be tapped and swapped.
+      </div>
+      <div id="nameWork" style="display:none">
+        <div id="charOptions"></div>
+        <div id="wholeDef"></div>
+      </div>
+    </div>
+
+    <div class="sec" id="sec-mount">
+      <div class="grp">
+        <div class="sechead"><span class="en">calligrapher</span></div>
+        <div id="calliRow"></div>
+      </div>
+      <div class="grp">
+        <div class="sechead"><span class="en">paper</span></div>
+        <div id="paperRow"></div>
+      </div>
+      <div class="grp">
+        <div class="sechead"><span class="en">layout</span></div>
+        <div id="orientRow">
+          <div class="orientBtn sel" data-o="v">vertical</div>
+          <div class="orientBtn" data-o="h">horizontal</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="bottomBar">
+    <div class="tgl on" id="tglSeal">
+      <span class="mk">印</span><span class="lab">seal</span>
+    </div>
+    <div class="tgl" id="tglAnim">
+      <span class="mk">笔</span><span class="lab">stroke animation</span>
+    </div>
+    <button id="btnDl"><span class="mk">存</span><span class="lab">download</span></button>
+  </div>
+</div>
+
+<div id="stage">
+  <div id="paper" class="v p-su empty">
+    <div id="charCol"></div>
+    <div id="colBlock">
+      <div id="colophon"></div>
+      <div id="sealBox" class="ghost"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div id="footer">made with <button id="ftHeart" aria-label="like">♡</button></div>
+
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7/dist/hanzi-writer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.26.0/dist/index.js"></script>
+<script src="app.js"></script>
+<script type="module" src="sound.js"></script>
+</body>
+</html>

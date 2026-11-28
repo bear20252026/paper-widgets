@@ -1,0 +1,6 @@
+{
+  "name": "Chamonix Ski Sim",
+  "description": "First-person 3D freeride ski sim on real Chamonix / Mont Blanc DEM terrain — carve deep powder, launch rollers, pole flats, and ski switch.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

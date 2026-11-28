@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Minion Lab · Squish</title>
+<meta name="description" content="Grab a Minion and pull. He stretches like rubber, strains, and snaps back with a wobble when you let go. Pull too far and he tears loose.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Minion Lab">
+<meta property="og:title" content="Minion Lab · Squish">
+<meta property="og:description" content="Grab a Minion and pull. He stretches like rubber, strains, and snaps back with a wobble when you let go. Pull too far and he tears loose.">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Minion Lab · Squish">
+<meta name="twitter:description" content="Grab a Minion and pull. He stretches like rubber and snaps back with a wobble. Pull too far and he tears loose.">
+<meta name="theme-color" content="#F2F0EE">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../bosshistory/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../bosshistory/favicon-64.png">
+<link rel="apple-touch-icon" href="../bosshistory/apple-touch-icon.png">
+<style>
+  /* the Boss History frame: paper page, everything centred between the shared header and keys */
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; }
+  body { background:#F2F0EE; font-family:ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold","Yuanti SC","PingFang SC","Helvetica Neue",sans-serif; color:#4a453e; overflow:hidden;
+    display:flex; flex-direction:column; height:100%; -webkit-font-smoothing:antialiased; }
+  header { height:48px; flex:0 0 auto; }
+  main { flex:1 1 auto; min-height:0; width:100%; display:flex; align-items:center; justify-content:center; }
+  #wrap { position:relative; display:flex; flex-direction:column; align-items:center; }
+  /* a square stage: the Minion stands in the middle with room on every side to be pulled into */
+  #stage { height:clamp(260px, calc(100dvh - 300px), min(620px, 68vh)); aspect-ratio:1/1; position:relative; touch-action:none; user-select:none; -webkit-user-select:none; cursor:grab; }
+  #stage.hold { cursor:grabbing; }
+  #stage canvas { display:block; width:100%; height:100%; position:relative; z-index:2; }
+  /* the ground: a soft contact shadow under every teddy (his own is drawn on the rubber itself), so they stand on something */
+  #ground { position:absolute; inset:0; z-index:0; pointer-events:none; }
+  #ground .sh { position:absolute; left:0; top:0; border-radius:50%; will-change:transform, opacity; transform-origin:50% 50%;
+    background:radial-gradient(ellipse at center, rgba(70,58,40,.40) 0%, rgba(70,58,40,.22) 40%, rgba(70,58,40,0) 70%); }
+  #bears { position:absolute; inset:0; z-index:1; pointer-events:none; overflow:visible; }      /* the teddies burst out from behind him */
+  #bears img { position:absolute; left:0; top:0; width:14%; will-change:transform; transform-origin:50% 50%; }
+  #status { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#8b8478; pointer-events:none; }
+  footer { height:112px; flex:0 0 auto; }
+</style>
+</head>
+<body>
+<script src="../ml-chrome.js" data-page="squish"></script>
+<header aria-hidden="true"></header>
+<main>
+  <div id="wrap">
+    <div id="stage"><div id="ground"></div><div id="bears"></div><div id="status">loading…</div></div>
+  </div>
+</main>
+<footer aria-hidden="true"></footer>
+
+<script src="../bosshistory/assets/vendor/three.js"></script>
+<script type="module">
+const THREE = window.THREE, stage = document.getElementById('stage'), status = document.getElementById('status');
+if (!THREE){ status.textContent = 'three.js missing'; throw new Error('deps'); }
+
+/* ---------- the pictures: takes of the SAME body, the mouth alone swapped by hand and cut out by hand (squish/assets/edited,
+   shrunk to 3/4): calm (his grin); strained (a frown, while he is pulled); an open smile (letting go); a laugh (the snap-back
+   after he tears loose); and a closed smile for when the pointer is near him (he notices you: the eyes follow, the mouth
+   softens from the lopsided grin). One more, fainter closed smile sits in the folder (bob-smile-soft) for swapping in.
+   One take shows at a time; a change is an 80 ms cut, as in the site this is after. Missing takes fall back to the calm
+   one, and the eyes are then drawn by the shader instead. ---------- */
+const IMAGES = { calm:'../bosshistory/assets/minions/bob-grin.png', strain:'../bosshistory/assets/minions/bob-frown.png', grin:'../bosshistory/assets/minions/bob-smile-open.png', yell:'../bosshistory/assets/minions/bob-laugh.png', near:'../bosshistory/assets/minions/bob-smile-closed.png' };
+const NEAR = { enter: 0.07, leave: 0.12 };            // how close the pointer comes to him (stage units past his outline's box) before he notices, and how far it goes before he forgets
+const FIG = { h:0.66, cy:0.50 };                     // the figure's height as a share of the stage, and where its centre sits (0 = bottom)
+// the face, measured on bob-grin.png (846×1209, pixel coords, y down; squish/tools/face.py): the lens whites and irises (centre,
+// radius), each lower lid's edge as a parabola across its lens (a + b·x + c·x², in lens radii, up from the centre; this render
+// has no lower lid, so the edge sits at the lens's bottom, −1, and the lids the shader draws wear the cheek skin), the mouth
+// corners, and a patch of cheek skin for the lids. The irises follow the pointer inside the whites; pulled, the lids squeeze
+// shut and the mouth corners sag; let go and he smiles again.
+const FACE = {
+  eyes:[ { white:[265, 248.5, 122.8], iris:[295, 244, 54.9], lid:[-1, 0, 0] }, { white:[590.5, 249, 122.2], iris:[546, 244, 54.9], lid:[-1, 0, 0] } ],
+  mouth:{ left:[257, 550], right:[441, 568], radius:48 },
+  skin:[427, 437],
+};
+
+/* ---------- renderer: a square stage, uv in [0,1]², the paper shows through ---------- */
+const renderer = new THREE.WebGLRenderer({ alpha:true, antialias:false });
+renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+renderer.autoClear = false;
+stage.appendChild(renderer.domElement);
+const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+/* ---------- the rubber: a sheet of G×G cells over the stage, every node carrying a displacement u from where it belongs,
+   obeying a damped wave equation with a restoring term (the way rameerez.com's plushie does it):
+       ü = c²∇²u − ω²·u − γ·u̇ + ν∇²u̇
+   ∇²u is the skin pulling on its neighbours (a pull drags the area around it, waves travel outward on release), −ω²u is the
+   skin's attachment to the body underneath (stiffer the further it is from home, so it cannot be pulled out forever), γ is
+   how fast the wobble dies, ν∇²u̇ swallows fine ripples while the big slow wobble carries on. The hand is a small round brush
+   in the DEFORMED picture: whatever skin is under it takes on the hand's speed, fully at the centre, less toward the rim.
+   On top, the whole figure leans toward the pull on a slower, floppier spring, like a toy on soft feet. ---------- */
+const G = 80, S = G + 1, N = S * S;                     // cells per side over the stage, nodes per side, nodes
+const OPT = { wobble: 2.4, reach: 0.1, damping: 0.16, flesh: 0.35, grabRadius: 0.13, maxPull: 0.55, sway: 1, poisson: 2.5, gummy: 1 };   // Hz; the rest in figure widths (the handful is a palm's worth of a small figure, not a pinch); poisson = how much a stretched bit draws in from the sides; gummy = the roundness shading of a stretched bit
+const HARDEST = 8, GRIP = 2500, MAX_STEPS = 48;        // stiffest over-stretched skin gets; how fast held skin takes the hand's speed; steps a frame may afford
+const ux = new Float32Array(N), uy = new Float32Array(N), vx = new Float32Array(N), vy = new Float32Array(N), axA = new Float32Array(N), ayA = new Float32Array(N);
+const fixed = new Uint8Array(N), lean = new Float32Array(N), lift = new Float32Array(N), strain = new Float32Array(N), divg = new Float32Array(N);
+const FEET_Y = FIG.cy - FIG.h / 2;                     // where he stands (stage uv, y up): the pivot of the lean
+for (let j = 0; j < S; j++) for (let i = 0; i < S; i++){
+  const k = j * S + i, v = j / G;
+  fixed[k] = (i === 0 || j === 0 || i === G || j === G) ? 1 : 0;   // the stage's rim never moves
+  const t = Math.max(0, Math.min(1, (v - FEET_Y) / (FIG.h * 0.85)));   // how much a node follows the lean: 0 at the feet, 1 up at the head
+  lean[k] = t * t * (3 - 2 * t);
+}
+let figW = 0.6;                                         // the figure's width in stage units (set once the picture is in)
+const cellsPerFig = () => G * figW;                     // cells across the figure
+function physics(){
+  const cells = cellsPerFig(), w = 2 * Math.PI * OPT.wobble, c = OPT.reach * cells * w;
+  return { cells, w, w2: w * w, c, c2: c * c, bulk: OPT.poisson * c * c, gamma: 2 * OPT.damping * w, nu: OPT.flesh * c, limit: (OPT.maxPull * cells) ** 2 };
+}
+function accelerate(p){
+  for (let j = 1; j < G; j++) for (let i = 1; i < G; i++){ const k = j * S + i; divg[k] = (ux[k + 1] - ux[k - 1] + uy[k + S] - uy[k - S]) * 0.5; }   // how much the skin has spread here
+  for (let j = 1; j < G; j++) for (let i = 1; i < G; i++){
+    const k = j * S + i; if (fixed[k]) continue;
+    const x = ux[k], y = uy[k];
+    const hard = p.w2 * Math.min(HARDEST, 1 + (x * x + y * y) / p.limit);   // skin resists harder the further it is from home
+    // the rubber keeps its volume: skin spread thin pulls its surroundings in (∇(∇·u)), so a stretched bit necks like taffy
+    axA[k] = p.c2 * (ux[k - 1] + ux[k + 1] + ux[k - S] + ux[k + S] - 4 * x) + p.bulk * (divg[k + 1] - divg[k - 1]) * 0.5 - hard * x - p.gamma * vx[k] + p.nu * (vx[k - 1] + vx[k + 1] + vx[k - S] + vx[k + S] - 4 * vx[k]);
+    ayA[k] = p.c2 * (uy[k - 1] + uy[k + 1] + uy[k - S] + uy[k + S] - 4 * y) + p.bulk * (divg[k + S] - divg[k - S]) * 0.5 - hard * y - p.gamma * vy[k] + p.nu * (vy[k - 1] + vy[k + 1] + vy[k - S] + vy[k + S] - 4 * vy[k]);
+  }
+}
+function brush(hx, hy, hvx, hvy, radius, grip, dt){   // whatever skin is under the brush takes on the hand's speed; flat-topped, so the handful moves as one lump
+  const r2 = radius * radius;
+  for (let j = 1; j < G; j++) for (let i = 1; i < G; i++){
+    const k = j * S + i; if (fixed[k]) continue;
+    const dx = i + ux[k] - hx, dy = j + uy[k] - hy, d2 = dx * dx + dy * dy;
+    if (d2 >= r2) continue;
+    const q = 1 - d2 / r2, hold = Math.min(1, q * q * 2.4), blend = 1 - Math.exp(-grip * hold * dt);
+    vx[k] += (hvx - vx[k]) * blend; vy[k] += (hvy - vy[k]) * blend;
+  }
+}
+function step(p, dt, hx, hy, hvx, hvy, radius, grip){
+  accelerate(p);
+  for (let k = 0; k < N; k++){ if (fixed[k]) continue; vx[k] += axA[k] * dt; vy[k] += ayA[k] * dt; }
+  if (grip > 0) brush(hx, hy, hvx, hvy, radius, grip, dt);
+  for (let k = 0; k < N; k++){ if (fixed[k]) continue; ux[k] += vx[k] * dt; uy[k] += vy[k] * dt; }
+}
+// run the sheet for `elapsed` seconds while the brush goes from one point to another at the given speed. The integrator is
+// explicit, so each step must be short enough for the stiffest thing in the sheet (K·dt² + 2·d·dt < 4), and short enough
+// that the brush never jumps past the skin it holds (half its radius at a time); past the frame's budget he runs in slow motion
+function simulate(p, elapsed, fromX, fromY, toX, toY, hvx, hvy, radius, grip){
+  const K = 8 * p.c2 + 2 * p.bulk + HARDEST * p.w2, d = p.gamma + 8 * p.nu;   // (the volume term's stiffest mode is 2·bulk)
+  const stable = (0.8 * (Math.sqrt(d * d + 4 * K) - d)) / K;
+  const reach = grip > 0 && radius > 0 ? Math.ceil(Math.hypot(toX - fromX, toY - fromY) / (radius * 0.5)) : 0;
+  const steps = Math.min(MAX_STEPS, Math.max(2, Math.ceil(elapsed / stable), reach));
+  const dt = Math.min(elapsed / steps, stable), slowed = elapsed / (steps * dt);
+  for (let n = 1; n <= steps; n++){ const f = n / steps; step(p, dt, fromX + (toX - fromX) * f, fromY + (toY - fromY) * f, hvx * slowed, hvy * slowed, radius, grip); }
+  let bad = false; for (let k = 0; k < N; k += 97) if (!Number.isFinite(ux[k] + vx[k])) bad = true;
+  if (bad){ ux.fill(0); uy.fill(0); vx.fill(0); vy.fill(0); }   // numbers that have run away cannot recover by themselves
+}
+// the whole figure: a slow, floppy lean toward wherever it is being pulled, about the feet, on its own softer spring
+const head = { tilt: 0, tiltV: 0, x: 0, xV: 0, y: 0, yV: 0 };
+function swayStep(p, dt, pullX, pullY){
+  const px = pullX / p.cells, py = pullY / p.cells;    // the pull in figure widths
+  const w = 2 * Math.PI * 1.25, k = w * w, c = 2 * 0.2 * w;
+  const tiltTo = -px * 0.3 * OPT.sway, xTo = px * 0.06 * OPT.sway, yTo = py * 0.08 * OPT.sway;
+  head.tiltV += (k * (tiltTo - head.tilt) - c * head.tiltV) * dt; head.tilt += head.tiltV * dt;
+  head.xV += (k * (xTo - head.x) - c * head.xV) * dt; head.x += head.xV * dt;
+  head.yV += (k * (yTo - head.y) - c * head.yV) * dt; head.y += head.yV * dt;
+}
+/* ---------- the sheet as geometry: a node = a vertex; each frame it gets its displacement (skin + lean) and its relief ---------- */
+const sheet = new THREE.BufferGeometry();
+{
+  const pos = new Float32Array(N * 3), uvs = new Float32Array(N * 2), idx = [];
+  for (let j = 0; j < S; j++) for (let i = 0; i < S; i++){ const k = j * S + i; pos[k * 3] = -1 + 2 * i / G; pos[k * 3 + 1] = -1 + 2 * j / G; uvs[k * 2] = i / G; uvs[k * 2 + 1] = j / G; }
+  for (let j = 0; j < G; j++) for (let i = 0; i < G; i++){ const a = j * S + i, b = a + 1, c = a + S, d = c + 1; idx.push(a, b, d, a, d, c); }
+  sheet.setAttribute('position', new THREE.BufferAttribute(pos, 3)); sheet.setAttribute('uv', new THREE.BufferAttribute(uvs, 2)); sheet.setIndex(idx);
+  sheet.setAttribute('disp', new THREE.BufferAttribute(new Float32Array(N * 2), 2)); sheet.setAttribute('relief', new THREE.BufferAttribute(new Float32Array(N * 3), 3));
+}
+function shade(){                                       // where every node is drawn, and the relief: pulled skin tents up toward the viewer, squeezed skin ridges
+  const disp = sheet.getAttribute('disp').array, rel = sheet.getAttribute('relief').array, cells = cellsPerFig();
+  for (let j = 1; j < G; j++) for (let i = 1; i < G; i++){
+    const k = j * S + i;
+    const uxx = (ux[k + 1] - ux[k - 1]) * 0.5, uxy = (ux[k + S] - ux[k - S]) * 0.5, uyx = (uy[k + 1] - uy[k - 1]) * 0.5, uyy = (uy[k + S] - uy[k - S]) * 0.5;
+    const area = (1 + uxx) * (1 + uyy) - uxy * uyx - 1;
+    lift[k] = Math.hypot(ux[k], uy[k]) * 0.16 - Math.max(-1, Math.min(1.5, area)) * 0.9;
+    strain[k] = Math.hypot(uxx, uyy, (uxy + uyx) * 0.7071);   // how stretched (or squashed) the skin is here
+  }
+  const nx = 0.5 * G, ny = FEET_Y * G, cosT = Math.cos(head.tilt), sinT = Math.sin(head.tilt), hx = head.x * cells, hy = head.y * cells;
+  for (let j = 0; j < S; j++) for (let i = 0; i < S; i++){
+    const k = j * S + i, rx = i - nx, ry = j - ny, b = lean[k];
+    disp[k * 2] = (ux[k] + b * (cosT * rx - sinT * ry - rx + hx)) / G;
+    disp[k * 2 + 1] = (uy[k] + b * (sinT * rx + cosT * ry - ry + hy)) / G;
+    const inner = i > 0 && j > 0 && i < G && j < G;
+    rel[k * 3] = inner ? (lift[k + 1] - lift[k - 1]) * 0.5 : 0; rel[k * 3 + 1] = inner ? (lift[k + S] - lift[k - S]) * 0.5 : 0; rel[k * 3 + 2] = strain[k];
+  }
+  sheet.getAttribute('disp').needsUpdate = true; sheet.getAttribute('relief').needsUpdate = true;
+}
+
+/* ---------- the picture, carried by the sheet ---------- */
+const drawMat = new THREE.ShaderMaterial({
+  vertexShader:`attribute vec2 disp; attribute vec3 relief; varying vec2 vUv; varying vec3 vRelief;
+  void main(){ vUv = uv; vRelief = relief; gl_Position = vec4((uv + disp) * 2.0 - 1.0, 0.0, 1.0); }`,
+  fragmentShader:`
+  precision highp float; varying vec2 vUv; varying vec3 vRelief;
+  uniform sampler2D calm, texA, texB; uniform float faceMix, aCalm, bCalm, breath, lid, squeeze, wide, frown; uniform vec2 figPos, figSize, gaze, skin, mouthL, mouthR, mouthRad; uniform sampler2D thick; uniform vec2 thickPx; uniform float gummy;
+  uniform vec4 eyeW[2], eyeI[2]; uniform vec3 lidC[2];  // per eye: the white's centre and radii, the iris's centre and radii (picture uv), the lower lid's curve
+  vec4 picCalm(vec2 q){ return texture2D(calm, q); }   // the eyes are drawn from the calm take; every take has the same eyes, only the mouth differs
+  bool inLens(vec2 q){ for (int i = 0; i < 2; i++){ vec2 d = (q - eyeW[i].xy) / eyeW[i].zw; if (dot(d, d) < 1.0) return true; } return false; }
+  vec4 face(vec2 q){
+    // the mouth corners sag with the strain: pixels around a corner read from a little above, so the corner comes down
+    vec2 dl = (q - mouthL) / mouthRad, dr = (q - mouthR) / mouthRad;
+    q.y += frown * 0.045 * (exp(-dot(dl,dl)*1.5) + exp(-dot(dr,dr)*1.5));
+    for (int i = 0; i < 2; i++){
+      vec4 W = eyeW[i], I = eyeI[i]; vec3 LC = lidC[i];
+      vec2 dW = (q - W.xy) / W.zw;
+      if (dot(dW, dW) < 1.0){                           // inside the lens
+        vec4 white = (picCalm(W.xy + vec2(-0.35, 0.62) * W.zw) + picCalm(W.xy + vec2(0.0, 0.72) * W.zw) + picCalm(W.xy + vec2(0.35, 0.62) * W.zw)) / 3.0;   // clean white off the upper ring, which nothing ever covers
+        white.rgb *= 1.0 - 0.05 * smoothstep(0.75, 1.0, length(dW));
+        vec4 lidCol = picCalm(skin); bool noLid = LC.x < -0.98;   // the cheek's skin; a render with no lower lid drawn gets its lids in that colour
+        float lid0 = LC.x + LC.y * dW.x + LC.z * dW.x * dW.x;   // where his lower lid's edge is at rest
+        float rim = W.y - (sqrt(1.0 - min(0.998, dW.x * dW.x)) - 0.03) * W.w;   // the lens's bottom in this column (the lid's skin repeats below it)
+        // pulled: an upper lid comes down (a curve, lowest in the middle). The render has none, so it wears the lower lid's skin
+        // mirrored: as far into the upper lid as a pixel is, that far below the lower lid's edge it reads
+        float top = 1.0 - 2.0 * lid + 0.22 * dW.x * dW.x;
+        if (lid > 0.001 && dW.y > top){
+          float d = dW.y - top; vec2 s = vec2(q.x, max(rim, W.y + (lid0 - 0.02 - d) * W.w));
+          vec2 ds = (s - I.xy) / I.zw; vec4 c = noLid ? lidCol : (dot(ds, ds) < 1.35 ? picCalm(s - vec2(0.0, 0.025)) : picCalm(s));
+          if (d < 0.12) c.rgb *= 0.85; return c;
+        }
+        // his own lower lid, as drawn (its curve and shading): it slides up with the squeeze and drops when he is wide-eyed, so
+        // this pixel is lid if the pixel that far below or above it was lid at rest; past the lens's bottom, the bottom row repeats
+        float shift = squeeze * 0.5 - wide * 0.45;
+        if (dW.y < lid0 + shift){
+          if (noLid){ vec4 c = lidCol; if (dW.y > lid0 + shift - 0.1) c.rgb *= 0.85; return c; }   // a lower lid of plain skin, shaded along its edge
+          vec2 s = vec2(q.x, max(rim, q.y - shift * W.w));
+          vec2 ds = (s - I.xy) / I.zw;
+          return dot(ds, ds) < 1.35 ? picCalm(s - vec2(0.0, 0.025)) : picCalm(s);   // (along the iris's old edge, read clean lid from a little lower)
+        }
+        vec2 d0 = (q - I.xy) / I.zw, dI = (q - I.xy - gaze) / I.zw;
+        if (dot(dI, dI) < 1.0){                        // the iris, moved toward the pointer; the part his lid hid at rest is mirrored from the top half
+          vec2 sp = q - gaze; vec2 dsp = (sp - W.xy) / W.zw;
+          if (dsp.y < LC.x + LC.y * dsp.x + LC.z * dsp.x * dsp.x + 0.02) sp.y = 2.0 * I.y - sp.y;
+          return picCalm(sp);
+        }
+        if (dW.y < lid0 + 0.02){                       // the white his dropped lid uncovered: the white just above the lid's edge, mirrored down
+          vec2 m = vec2(q.x, q.y + 2.0 * (lid0 + 0.02 - dW.y) * W.w); vec2 dm = (m - I.xy) / I.zw, dmW = (m - W.xy) / W.zw;
+          return (dot(dm, dm) < 1.35 || dot(dmW, dmW) > 0.95) ? white : picCalm(m);
+        }
+        if (dot(d0, d0) < 1.35) return white;         // the spot the iris left (with its soft edge)
+        return picCalm(q);
+      }
+    }
+    return picCalm(q);
+  }
+  void main(){
+    vec2 p = vUv;                                       // the rest position on the sheet: the picture is painted on it (his shadow is on the ground, with the teddies')
+    vec2 q = (p - figPos) / figSize + 0.5;              // into the picture's own uv
+    q.y = (q.y - 0.0) / breath;                         // idle breath: a hair taller, feet planted at the picture's bottom
+    if (q.x < 0.0 || q.x > 1.0 || q.y < 0.0 || q.y > 1.0){ gl_FragColor = vec4(0.0); return; }
+    // the take on show, cut from the previous one over a few frames; the calm take is the drawn face (eyes that follow, lids)
+    bool eye = inLens(q);
+    vec4 drawn = (eye || aCalm > 0.5 || bCalm > 0.5) ? face(q) : vec4(0.0);
+    vec4 colB = (eye || bCalm > 0.5) ? drawn : texture2D(texB, q);
+    vec4 col = faceMix >= 1.0 ? colB : mix((eye || aCalm > 0.5) ? drawn : texture2D(texA, q), colB, faceMix);
+    // the rubber's relief (from the sheet): pulled skin tents up, squeezed skin ridges; lit from the upper left, bright on the lit
+    // flank, darker on the far one, a soft highlight on the crest; thin, hard-stretched rubber pales a little
+    vec2 slope = vRelief.xy * 0.9;
+    vec3 nrm = normalize(vec3(-slope, 1.0)); vec3 L = normalize(vec3(-0.45, 0.6, 0.75));
+    float diff = dot(nrm, L) - L.z;
+    float spec = pow(max(0.0, dot(reflect(-L, nrm), vec3(0.0, 0.0, 1.0))), 28.0) * min(1.0, length(slope) * 1.5) * 0.22;
+    float e = vRelief.z;                                // how hard this bit of rubber is stretched
+    float thin = clamp(e * 0.5 - 0.03, 0.0, 0.3);
+    col.rgb = col.rgb * (1.0 + diff * 0.9) + spec + thin * 0.35 * col.rgb;
+    // the gummy: stretched, he reads as a solid, not a sheet. His thickness map (how far inside his outline a pixel sits) gives
+    // the roundness of the pulled part: its flanks turn from the light, a sheen runs down its crest, and the harder the stretch
+    // the more it shows (at rest the render's own shading is all there is)
+    float gum = smoothstep(0.06, 0.5, e) * gummy;
+    if (gum > 0.0){
+      vec2 gt = vec2(texture2D(thick, q + vec2(thickPx.x, 0.0)).r - texture2D(thick, q - vec2(thickPx.x, 0.0)).r,
+                     texture2D(thick, q + vec2(0.0, thickPx.y)).r - texture2D(thick, q - vec2(0.0, thickPx.y)).r) * 7.0;
+      vec3 nt = normalize(vec3(-gt, 1.0));
+      float dg = dot(nt, L) - L.z;
+      float sg = pow(max(0.0, dot(reflect(-L, nt), vec3(0.0, 0.0, 1.0))), 24.0) * 0.3;
+      col.rgb = col.rgb * (1.0 + gum * dg * 1.3) + gum * sg;
+    }
+    gl_FragColor = col;
+    #include <colorspace_fragment>
+  }`,
+  uniforms:{ calm:{value:null}, texA:{value:null}, texB:{value:null}, faceMix:{value:1}, aCalm:{value:1}, bCalm:{value:1}, breath:{value:1}, lid:{value:0}, squeeze:{value:0}, wide:{value:0}, frown:{value:0},
+    figPos:{value:new THREE.Vector2(0.5, FIG.cy)}, figSize:{value:new THREE.Vector2(1, 1)}, thick:{value:null}, thickPx:{value:new THREE.Vector2()}, gummy:{value:1}, gaze:{value:new THREE.Vector2()}, skin:{value:new THREE.Vector2()},
+    mouthL:{value:new THREE.Vector2()}, mouthR:{value:new THREE.Vector2()}, mouthRad:{value:new THREE.Vector2(1, 1)},
+    eyeW:{value:[new THREE.Vector4(), new THREE.Vector4()]}, eyeI:{value:[new THREE.Vector4(), new THREE.Vector4()]}, lidC:{value:[new THREE.Vector3(), new THREE.Vector3()]} },
+  transparent:true, depthTest:false, depthWrite:false });
+const drawScene = new THREE.Scene(); drawScene.add(new THREE.Mesh(sheet, drawMat));
+
+/* ---------- loading; an alpha map of the calm take tells whether a grab lands on him ---------- */
+let alphaMap = null, AW = 0, AH = 0, imgAspect = 1;
+const loadTex = src => new Promise(res => { if (!src) return res(null); const img = new Image(); img.onload = () => { const t = new THREE.Texture(img); t.needsUpdate = true; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.colorSpace = THREE.SRGBColorSpace; t.img = img; res(t); }; img.onerror = () => res(null); img.src = src; });
+let takes = false;                                      // true once the real expression takes are in (else the shader draws them)
+const TEX = {};                                         // the takes by name; a face he does not have is one he never pulls
+Promise.all([loadTex(IMAGES.calm), loadTex(IMAGES.strain), loadTex(IMAGES.grin), loadTex(IMAGES.yell), loadTex(IMAGES.near)]).then(([calm, strainT, grinT, yellT, nearT]) => {
+  if (!calm){ status.textContent = 'picture missing'; return; }
+  TEX.calm = calm; if (strainT) TEX.strain = strainT; if (grinT) TEX.grin = grinT; if (yellT) TEX.laugh = yellT; if (nearT) TEX.near = nearT;
+  takes = !!(strainT && yellT);
+  drawMat.uniforms.calm.value = calm; drawMat.uniforms.texA.value = calm; drawMat.uniforms.texB.value = calm;
+  imgAspect = calm.img.width / calm.img.height;
+  drawMat.uniforms.figSize.value.set(FIG.h * imgAspect, FIG.h); figW = FIG.h * imgAspect;   // stage is square, so uv units are the same both ways
+  // the face's pixel measurements into picture uv (y up); the iris may wander as far as the white minus its own radius
+  const IW = calm.img.width, IH = calm.img.height, u = drawMat.uniforms, P = (x, y) => new THREE.Vector2(x / IW, 1 - y / IH);
+  FACE.eyes.forEach((e, i) => { u.eyeW.value[i].set(e.white[0]/IW, 1 - e.white[1]/IH, e.white[2]/IW, e.white[2]/IH); u.eyeI.value[i].set(e.iris[0]/IW, 1 - e.iris[1]/IH, e.iris[2]/IW, e.iris[2]/IH); u.lidC.value[i].fromArray(e.lid); });
+  u.skin.value.copy(P(FACE.skin[0], FACE.skin[1])); u.mouthL.value.copy(P(FACE.mouth.left[0], FACE.mouth.left[1])); u.mouthR.value.copy(P(FACE.mouth.right[0], FACE.mouth.right[1])); u.mouthRad.value.set(FACE.mouth.radius/IW, FACE.mouth.radius/IH);
+  const e0 = FACE.eyes[0]; GAZE_MAX.set((e0.white[2] - e0.iris[2]) * 0.85 / IW, (e0.white[2] - e0.iris[2]) * 0.85 / IH);
+  EYE_MID.set((FACE.eyes[0].white[0] + FACE.eyes[1].white[0]) / 2 / IW, 1 - (FACE.eyes[0].white[1] + FACE.eyes[1].white[1]) / 2 / IH);
+  const c = document.createElement('canvas'); AW = 128; AH = Math.round(128 / imgAspect); c.width = AW; c.height = AH;
+  const x = c.getContext('2d', { willReadFrequently:true }); x.drawImage(calm.img, 0, 0, AW, AH); alphaMap = x.getImageData(0, 0, AW, AH).data;
+  // his thickness: how far inside his outline each pixel is (the alpha, blurred three times), for the gummy shading of a stretched bit
+  { let t = new Float32Array(AW * AH); for (let i = 0; i < AW * AH; i++) t[i] = alphaMap[i * 4 + 3] / 255;
+    const R = Math.max(2, Math.round(AW / 18));
+    for (let pass = 0; pass < 3; pass++){
+      const h = new Float32Array(AW * AH);
+      for (let yy = 0; yy < AH; yy++) for (let xx = 0; xx < AW; xx++){ let sum = 0; for (let d = -R; d <= R; d++) sum += t[yy * AW + Math.max(0, Math.min(AW - 1, xx + d))]; h[yy * AW + xx] = sum / (2 * R + 1); }
+      const v = new Float32Array(AW * AH);
+      for (let yy = 0; yy < AH; yy++) for (let xx = 0; xx < AW; xx++){ let sum = 0; for (let d = -R; d <= R; d++) sum += h[Math.max(0, Math.min(AH - 1, yy + d)) * AW + xx]; v[yy * AW + xx] = sum / (2 * R + 1); }
+      t = v;
+    }
+    const bytes = new Uint8Array(AW * AH); for (let i = 0; i < AW * AH; i++) bytes[i] = Math.round(Math.min(1, t[i]) * 255);
+    const tex = new THREE.DataTexture(bytes, AW, AH, THREE.RedFormat, THREE.UnsignedByteType); tex.flipY = true; tex.minFilter = tex.magFilter = THREE.LinearFilter; tex.needsUpdate = true;
+    u.thick.value = tex; u.thickPx.value.set(1.5 / AW, 1.5 / AH); u.gummy.value = OPT.gummy; }
+  feetShadow.style.width = (figW * 0.95 * 100) + '%'; feetShadow.style.height = (figW * 0.95 * 0.26 * 100) + '%';
+  status.remove(); resize(); requestAnimationFrame(frame);
+});
+function onHim(uv){                                     // is there Minion under this stage point (skin that has been pulled aside counts where it is now)?
+  if (!alphaMap) return false;
+  const fs = drawMat.uniforms.figSize.value, fp = drawMat.uniforms.figPos.value;
+  const k = Math.round(Math.max(0, Math.min(1, uv.y)) * G) * S + Math.round(Math.max(0, Math.min(1, uv.x)) * G);
+  const rx = uv.x - ux[k] / G, ry = uv.y - uy[k] / G;
+  const qx = (rx - fp.x) / fs.x + 0.5, qy = 1 - ((ry - fp.y) / fs.y + 0.5);
+  if (qx < 0 || qx > 1 || qy < 0 || qy > 1) return false;
+  return alphaMap[((Math.min(AH-1, qy*AH|0) * AW) + Math.min(AW-1, qx*AW|0)) * 4 + 3] > 40;
+}
+
+/* ---------- sounds: rubber creaks while pulling, a boing on release, a pop when he tears loose; the site's mute key rules ---------- */
+let soundOn = !(window.mlcMuted && window.mlcMuted()), ac = null;
+addEventListener('ml-mute', e => { soundOn = !e.detail.muted; });
+function ctx(){ if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); return ac; }
+let noiseBuf = null;
+function noise(c){ if (!noiseBuf){ noiseBuf = c.createBuffer(1, c.sampleRate*0.1, c.sampleRate); const d = noiseBuf.getChannelData(0); for (let i=0;i<d.length;i++) d[i] = Math.random()*2-1; } const s = c.createBufferSource(); s.buffer = noiseBuf; return s; }
+function creak(stretch, speed){                         // a grain of rubber creak: pitch climbs with the stretch, loudness with the speed
+  if (!soundOn) return; const c = ctx(), t = c.currentTime, f = 160 + 520*stretch;
+  const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f*1.25, t+0.05);
+  const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900 + 1200*stretch; lp.Q.value = 2;
+  const g = c.createGain(); const v = Math.min(0.06, 0.012 + 0.05*speed);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t+0.008); g.gain.exponentialRampToValueAtTime(0.0001, t+0.06);
+  o.connect(lp).connect(g).connect(c.destination); o.start(t); o.stop(t+0.07);
+}
+function boing(amount){                                 // the release: a sine falling with a vibrato, as long as the pull was big
+  if (!soundOn || amount < 0.03) return; const c = ctx(), t = c.currentTime, dur = 0.25 + 0.35*amount;
+  const o = c.createOscillator(); o.type = 'triangle'; o.frequency.setValueAtTime(320 + 200*amount, t); o.frequency.exponentialRampToValueAtTime(110, t+dur);
+  const vib = c.createOscillator(); vib.frequency.value = OPT.wobble*2; const vg = c.createGain(); vg.gain.setValueAtTime(40*amount, t); vg.gain.exponentialRampToValueAtTime(1, t+dur);
+  vib.connect(vg).connect(o.frequency);
+  const g = c.createGain(); const v = 0.05 + 0.14*amount;
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t+0.012); g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+  o.connect(g).connect(c.destination); o.start(t); o.stop(t+dur+0.02); vib.start(t); vib.stop(t+dur+0.02);
+}
+function pip(){                                         // a teddy popping out: a small, high pop
+  if (!soundOn) return; const c = ctx(), t = c.currentTime;
+  const o = c.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(900 + Math.random() * 500, t); o.frequency.exponentialRampToValueAtTime(300, t+0.07);
+  const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.07, t+0.003); g.gain.exponentialRampToValueAtTime(0.0001, t+0.09);
+  o.connect(g).connect(c.destination); o.start(t); o.stop(t+0.1);
+}
+function pop(){                                         // he tears loose: a sharp pop, then the boing follows from the release
+  if (!soundOn) return; const c = ctx(), t = c.currentTime;
+  const s = noise(c); const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1800; bp.Q.value = 0.8;
+  const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.22, t+0.003); g.gain.exponentialRampToValueAtTime(0.0001, t+0.09);
+  s.connect(bp).connect(g).connect(c.destination); s.start(t); s.stop(t+0.1);
+  const o = c.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(420, t); o.frequency.exponentialRampToValueAtTime(70, t+0.12);
+  const g2 = c.createGain(); g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime(0.18, t+0.004); g2.gain.exponentialRampToValueAtTime(0.0001, t+0.14);
+  o.connect(g2).connect(c.destination); o.start(t); o.stop(t+0.15);
+}
+
+/* ---------- the finger ---------- */
+const MAX_PULL = 0.42;                                  // how far (in stage heights) he can be pulled before he tears loose
+let holding = false, grabbed = false, down = null, last = null, stretch = 0, strainS = 0, creakAt = null;
+// the pointer and the hand, in cells. A rubber band: the further the pointer goes, the less the hand follows
+let grab = null, hand = { x: 0, y: 0 }, pointerG = { x: 0, y: 0 };
+function stretchHand(){
+  if (!grab) return;
+  const dx = pointerG.x - grab.sx, dy = pointerG.y - grab.sy, len = Math.hypot(dx, dy), max = OPT.maxPull * cellsPerFig();
+  const eased = len > 0 ? (max * Math.tanh(len / max)) / len : 0;
+  const within = g => Math.max(1, Math.min(G - 1, g));
+  grab.pullX = within(grab.sx + dx * eased) - grab.sx; grab.pullY = within(grab.sy + dy * eased) - grab.sy;
+}
+const uvOf = e => { const r = stage.getBoundingClientRect(); return new THREE.Vector2((e.clientX - r.left) / r.width, 1 - (e.clientY - r.top) / r.height); };
+// the eyes follow the pointer anywhere on the page (a finger: where it last touched), and drift back to centre after a while
+const GAZE_MAX = new THREE.Vector2(), EYE_MID = new THREE.Vector2(), gazeT = new THREE.Vector2(), gazeS = new THREE.Vector2();
+let lookAt = null, lookTime = -1e9;
+addEventListener('pointermove', e => { lookAt = uvOf(e); lookTime = performance.now(); });
+addEventListener('pointerdown', e => { lookAt = uvOf(e); lookTime = performance.now(); }, true);
+stage.addEventListener('pointerdown', e => {
+  if (e.button !== 0 || !alphaMap) return; e.preventDefault();
+  stage.setPointerCapture(e.pointerId); ctx();
+  const uv = uvOf(e); holding = true; grabbed = onHim(uv); down = uv.clone(); last = uv.clone(); creakAt = uv.clone(); stretch = 0;
+  pointerG = { x: uv.x * G, y: uv.y * G }; grab = { sx: pointerG.x, sy: pointerG.y, pullX: 0, pullY: 0 }; hand = { x: grab.sx, y: grab.sy };
+  stage.classList.add('hold');
+});
+stage.addEventListener('pointermove', e => {
+  if (!holding) return; const uv = uvOf(e);
+  const d = uv.clone().sub(last), speed = d.length();
+  pointerG = { x: uv.x * G, y: uv.y * G }; stretchHand();
+  last = uv; stretch = uv.distanceTo(down);
+  if (grabbed && creakAt && uv.distanceTo(creakAt) > 0.012){ creak(Math.min(1, stretch / MAX_PULL), Math.min(1, speed*12)); creakAt = uv.clone(); }
+  if (grabbed && stretch > MAX_PULL) tear();          // torn loose: the rubber springs back while the finger is still down
+});
+let wideS = 0;
+/* ---------- which face: a cut of 80 ms between takes (the previous take is the "from" side); held pulled → the frown; after a
+   release a mood (the grin, or the laugh of the snap-back) for a moment; then calm, a little more gently ---------- */
+let faceA = 'calm', faceB = 'calm', faceMix = 1, faceSince = 0, faceMs = 80, mood = { until: 0, face: 'calm' }, near = false;
+function nearHim(now){                                  // is the pointer close to him (and recent, as for the eyes)? With a margin, so the mouth never flickers at the edge
+  if (!lookAt || now - lookTime >= 2500) return near = false;
+  const fp = drawMat.uniforms.figPos.value, fs = drawMat.uniforms.figSize.value, m = near ? NEAR.leave : NEAR.enter;
+  const dx = Math.max(0, Math.abs(lookAt.x - fp.x) - fs.x * 0.5), dy = Math.max(0, Math.abs(lookAt.y - fp.y) - fs.y * 0.5);
+  return near = Math.hypot(dx, dy) < m;
+}
+function setFace(name, ms = 80){                        // (the cut runs on the clock, not on frame deltas, so a slow frame never stalls it halfway)
+  if (!TEX[name] || name === faceB) return;
+  if (faceMix > 0.5) faceA = faceB;
+  faceB = name; faceMix = 0; faceSince = performance.now(); faceMs = ms;
+}
+function setMood(face, ms){ mood = { until: performance.now() + ms, face }; }
+function tear(){ pop(); strainS = 0; letGo(); }         // pulled past the limit: a pop, and the release does the rest (eyes wide, teddies)
+/* ---------- the teddies: Bob's own bear, a burst of them from behind him, up and out, then down past the floor ---------- */
+const bearBox = document.getElementById('bears'), ground = document.getElementById('ground'); let bears = [];
+for (const n of ['teddy', 'teddy-2']){ const i = new Image(); i.src = `../bosshistory/assets/minions/${n}.png`; }   // warm the cache
+const FLOOR = 1 - (FIG.cy - FIG.h / 2), BEAR_ASPECT = { teddy: 418 / 318, 'teddy-2': 350 / 239 }, BEAR_AIR = 0.02;   // the floor is where his soles are (stage fraction, from the top); the teddy pictures have a hair of air below the paws
+const feetShadow = document.createElement('i'); feetShadow.className = 'sh'; ground.appendChild(feetShadow);   // his own, under his feet, the same soft pool as theirs
+const mkShadow = w => { const sh = document.createElement('i'); sh.className = 'sh'; sh.style.width = (w * 1.05 * 100) + '%'; sh.style.height = (w * 0.3 * 100) + '%'; ground.appendChild(sh); return sh; };
+function burst(n = 10){
+  for (let i = 0; i < n; i++){
+    const w = 0.09 + Math.random() * 0.06;
+    const name = Math.random() < 0.6 ? 'teddy' : 'teddy-2';
+    const el = document.createElement('img'); el.src = `../bosshistory/assets/minions/${name}.png`; el.alt = ''; el.style.width = (w * 100) + '%'; bearBox.appendChild(el);
+    const ang = -Math.PI/2 + (Math.random() - 0.5) * 2.0, sp = 1.0 + Math.random() * 0.9;   // up and out, in stage units per second
+    bears.push({ el, sh: mkShadow(w), w, h: w * BEAR_ASPECT[name], x: 0.44 + Math.random() * 0.12, y: 0.42 + Math.random() * 0.12, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, rot: (Math.random() - 0.5) * 1.5, vr: (Math.random() - 0.5) * 10, asleep: false });
+  }
+  while (bears.length > 40){ const b = bears.shift(); b.el.remove(); b.sh.remove(); }   // the floor only holds so many
+  for (let k = 0; k < 4; k++) setTimeout(() => pip(), 40 + k * 55);
+}
+function flyBears(dt, r){
+  if (!bears.length) return;
+  bears = bears.filter(b => {
+    if (b.asleep) return true;
+    b.vy += 4.5 * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.rot += b.vr * dt;
+    // how far below its centre a teddy reaches at this tilt (between its box's corner and the ellipse inside it, a round bear
+    // being neither), so a tilted one rests its lowest point on the floor like an upright one, instead of sinking its box in
+    const c = Math.abs(Math.cos(b.rot)), sn = Math.abs(Math.sin(b.rot)), hw = b.w * 0.5, hh = b.h * (0.5 - BEAR_AIR);
+    const reach = 0.5 * ((c * hh + sn * hw) + Math.hypot(c * hh, sn * hw)), cy = b.y + b.h * 0.5;
+    if (cy + reach > FLOOR){                              // lands at his feet: a couple of bounces, then it lies there
+      b.y = FLOOR - reach - b.h * 0.5; b.vy = -b.vy * 0.38; b.vx *= 0.6; b.vr *= 0.5;
+      if (Math.abs(b.vy) < 0.25){ b.vy = 0; b.vx = 0; b.vr = 0; b.asleep = true; }
+    }
+    if (b.x < -0.25 || b.x > 1.15){ b.el.remove(); b.sh.remove(); return false; }   // off the sides
+    b.el.style.transform = `translate(${(b.x * r.width).toFixed(1)}px, ${(b.y * r.height).toFixed(1)}px) rotate(${b.rot.toFixed(3)}rad)`;
+    // its shadow waits on the floor: faint and small while the teddy is in the air, full once it lands
+    const up = Math.max(0, FLOOR - (cy + reach)), sc = Math.max(0.3, 1 - up * 1.8);
+    b.sh.style.opacity = Math.max(0, 1 - up * 2.6).toFixed(3);
+    b.sh.style.transform = `translate(${((b.x + b.w * 0.5 - b.w * 0.525) * r.width).toFixed(1)}px, ${((FLOOR - b.w * 0.15 - 0.006) * r.height).toFixed(1)}px) scale(${sc.toFixed(3)})`;
+    return true;
+  });
+}
+function letGo(){
+  if (!holding) return; holding = false; stage.classList.remove('hold');
+  const amt = Math.min(1, stretch / MAX_PULL);
+  if (grabbed && grab){                                 // the skin is taken as far as the hand got, and leaves it at the speed the hand was going
+    stretchHand(); const tx = grab.sx + grab.pullX, ty = grab.sy + grab.pullY, p = physics();
+    if (Math.hypot(tx - hand.x, ty - hand.y) > 0.5){ const catchUp = Math.max(0.001, Math.min(0.05, (performance.now() - lastT) / 1000)); simulate(p, catchUp, hand.x, hand.y, tx, ty, (tx - hand.x) / catchUp, (ty - hand.y) / catchUp, Math.max(1.8, OPT.grabRadius * p.cells), GRIP); }
+  }
+  if (grabbed){ boing(amt); setTimeout(() => { if (amt > 0.45){ wideS = Math.max(wideS, amt); burst(Math.round(2 + amt * 10)); } if (amt >= 1) setMood('laugh', 900); else if (amt > 0.06) setMood('grin', 650); }, 120); }   // the snap-back, a beat after the release: a big pull → eyes wide, teddies out (more the harder the pull); a grin, or the laugh only when he tore loose
+  grabbed = false; grab = null;
+}
+stage.addEventListener('pointerup', letGo); stage.addEventListener('pointercancel', letGo);
+
+/* ---------- the loop ---------- */
+function resize(){ const r = stage.getBoundingClientRect(); renderer.setSize(r.width, r.height, false); }
+addEventListener('resize', resize);
+let lastT = performance.now();
+function frame(now){
+  const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+  // the sheet: while he is held, the brush goes from where the hand was to where the rubber band puts it now; otherwise it springs
+  const p = physics();
+  if (holding && grabbed && grab){
+    const tx = grab.sx + grab.pullX, ty = grab.sy + grab.pullY;
+    simulate(p, dt, hand.x, hand.y, tx, ty, (tx - hand.x) / dt, (ty - hand.y) / dt, Math.max(1.8, OPT.grabRadius * p.cells), GRIP);
+    hand.x = tx; hand.y = ty;
+  } else simulate(p, dt, 0, 0, 0, 0, 0, 0, 0, 0);
+  swayStep(p, dt, holding && grabbed && grab ? grab.pullX : 0, holding && grabbed && grab ? grab.pullY : 0);
+  shade();
+  // how hard he is pulled, smoothed, drives the takes; released, it eases off with the wobble
+  const target = holding && grabbed ? Math.min(1, stretch / MAX_PULL) : 0;
+  strainS += (target - strainS) * Math.min(1, dt * (target > strainS ? 10 : 16));   // let go, the strain leaves with the snap, before the eyes go wide
+  wideS *= Math.exp(-dt * 1.8);                          // the wide eyes after a snap ease off in about a second (the drawn eyes only)
+  const u = drawMat.uniforms;
+  if (takes){                                            // the real takes: which one, then the cut (on the clock, which the frame stamp may lag)
+    const clock = performance.now();
+    const idle = nearHim(clock) ? 'near' : 'calm';     // the resting face: the closed smile with you close by, else the grin
+    if (holding && grabbed) setFace(stretch > 0.04 ? 'strain' : idle, 80);   // (the first few pixels of a pull keep the face he had, no grin in between)
+    else if (clock < mood.until) setFace(mood.face, 80);
+    else setFace(idle, 160);
+    faceMix = Math.min(1, (clock - faceSince) / faceMs);
+    u.texA.value = TEX[faceA]; u.texB.value = TEX[faceB]; u.faceMix.value = faceMix; u.aCalm.value = faceA === 'calm' ? 1 : 0; u.bCalm.value = faceB === 'calm' ? 1 : 0;
+    u.lid.value = 0; u.squeeze.value = 0; u.frown.value = 0; u.wide.value = 0;
+  } else { u.lid.value = strainS * 0.55; u.squeeze.value = strainS; u.frown.value = Math.min(1, strainS * 1.5); u.wide.value = wideS; }   // no takes: eyes squeeze to a slit, corners down, wide after the snap
+  flyBears(dt, stage.getBoundingClientRect());
+  { // his shadow belongs to the floor, not to his feet: it stays on the floor line and slides sideways with the bottom of him;
+    // lifted off the floor, it shrinks and fades the way the teddies' do; pressed down into the floor, it spreads a little
+    const row = Math.round(FEET_Y * G) * S, half = Math.round(G * figW * 0.2), fw = figW * 0.95;
+    const kL = row + (G >> 1) - half, kM = row + (G >> 1), kR = row + (G >> 1) + half;
+    const sx = (ux[kL] + ux[kM] + ux[kR]) / (3 * G), lift = (uy[kL] + uy[kM] + uy[kR]) / (3 * G);   // stage units: sideways, and up off the floor (negative = pushed into it)
+    const up = Math.max(0, lift), down = Math.max(0, -lift), sc = Math.max(0.3, 1 - up * 1.8) * (1 + Math.min(0.35, down * 1.2));
+    feetShadow.style.left = ((0.5 + sx - fw / 2) * 100) + '%'; feetShadow.style.top = ((1 - FEET_Y + 0.004 - fw * 0.13) * 100) + '%';
+    feetShadow.style.transform = `scale(${sc.toFixed(3)})`; feetShadow.style.opacity = Math.max(0, 1 - up * 2.6).toFixed(3); }
+  // where he looks: toward the pointer, as far as the iris can go once the pointer is a third of the stage away
+  if (lookAt && now - lookTime < 2500){
+    const fp = drawMat.uniforms.figPos.value, fs = drawMat.uniforms.figSize.value;
+    const d = lookAt.clone().sub(new THREE.Vector2(fp.x + (EYE_MID.x - 0.5) * fs.x, fp.y + (EYE_MID.y - 0.5) * fs.y));
+    const m = Math.min(1, d.length() / 0.33); gazeT.copy(d).normalize().multiplyScalar(m);
+  } else gazeT.set(0, 0);
+  gazeS.lerp(gazeT, Math.min(1, dt * 12));
+  drawMat.uniforms.gaze.value.set(gazeS.x * GAZE_MAX.x, gazeS.y * GAZE_MAX.y);
+  drawMat.uniforms.breath.value = 1 + Math.sin(now/1000*2.1) * 0.006;
+  renderer.clear(); renderer.render(drawScene, cam);
+  requestAnimationFrame(frame);
+}
+</script>
+</body>
+</html>

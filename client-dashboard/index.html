@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Client dashboard</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* ===== Design tokens ===== */
+:root{
+  --bg:#f4f4f9;
+  --card:#ffffff;
+  --ink:#101218;
+  --ink-soft:#3f4552;
+  --sub:#9297a2;
+  --faint:#a7abb5;
+  --line:#edeff3;
+  --soft:#f3f4f7;
+  --lime:#dbe84b;
+  --lime-deep:#cfe03c;
+  --teal:#48b3c4;
+  --teal-soft:#d8eef3;
+  --green:#4e7f5c;
+  --red:#bd585c;
+  --r-xl:24px;
+  --r-lg:20px;
+  --r-md:16px;
+  --pad:18px;
+  --shadow:0 1px 2px rgba(17,19,26,.04),0 22px 44px -34px rgba(17,19,26,.35);
+  --shadow-btn:0 1px 2px rgba(17,19,26,.04),0 6px 16px -10px rgba(17,19,26,.22);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  font-size:13px;
+  line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:2px solid #7d8be6;outline-offset:3px;border-radius:12px}
+::selection{background:rgba(219,232,75,.55)}
+svg{display:block}
+.i{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.i-14{width:14px;height:14px}
+.i-18{width:18px;height:18px}
+
+/* ===== Shell ===== */
+.app{display:flex;min-height:100vh;align-items:stretch}
+.rail{
+  width:84px;flex:none;background:#fff;
+  display:flex;flex-direction:column;justify-content:space-between;align-items:center;
+  padding:90px 0 30px;
+}
+.rail-group{display:flex;flex-direction:column;gap:8px}
+.rail-btn{
+  width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+  color:#9aa0ab;transition:background .18s,color .18s,transform .18s;
+}
+.rail-btn:hover{background:#f3f4f7;color:#4d525d}
+.rail-btn.active{background:#14161c;color:#fff}
+.rail-btn.active:hover{background:#14161c;color:#fff}
+.rail-btn.soft{background:#f2f3f6;color:#6d7280}
+.rail-btn.soft:hover{background:#ebedf2}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+
+/* ===== Top bar ===== */
+.topbar{height:76px;display:flex;align-items:center;gap:16px;padding:0 38px;flex:none}
+.brand{width:26px;height:28px;display:grid;place-items:center;color:#0c0e13}
+.brand svg{width:19px;height:25px;stroke-width:3.4}
+.nav{display:flex;align-items:center;gap:4px}
+.nav-item{
+  height:34px;padding:0 14px;border-radius:999px;display:flex;align-items:center;gap:7px;
+  font-size:12px;font-weight:500;color:#7c828d;white-space:nowrap;
+  transition:background .18s,color .18s;
+}
+.nav-item:hover{background:#eceef3;color:#3e434e}
+.nav-item.active{background:#14161c;color:#fff}
+.nav-item.active:hover{background:#14161c}
+.nav-item .i{color:#9aa0aa}
+.nav-item.active .i{color:#fff}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.avatars{display:flex;margin-right:6px}
+.mini-avatar{
+  width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+  color:#fff;font-size:9px;font-weight:700;letter-spacing:.02em;
+  box-shadow:0 0 0 2px var(--bg);
+}
+.mini-avatar+.mini-avatar{margin-left:-8px}
+.av-orange{background:#df7c3c}
+.av-blue{background:#41608a}
+.av-green{background:#4e8a62}
+.av-dark{background:#15171d;font-size:10px}
+.btn-soft{
+  height:36px;padding:0 16px;border-radius:999px;background:#fff;display:flex;align-items:center;gap:7px;
+  font-size:11.5px;font-weight:500;color:#1a1d23;box-shadow:var(--shadow-btn);
+  transition:transform .16s,box-shadow .16s;
+}
+.btn-soft:hover{transform:translateY(-1px);box-shadow:0 2px 4px rgba(17,19,26,.05),0 10px 20px -12px rgba(17,19,26,.3)}
+.btn-soft .i{color:#5d6270}
+.icon-btn{
+  width:36px;height:36px;border-radius:50%;background:#fff;display:grid;place-items:center;color:#5d6270;
+  box-shadow:var(--shadow-btn);position:relative;transition:transform .16s,box-shadow .16s;
+}
+.icon-btn:hover{transform:translateY(-1px);box-shadow:0 2px 4px rgba(17,19,26,.05),0 10px 20px -12px rgba(17,19,26,.3)}
+.icon-btn .dot{position:absolute;top:9px;right:10px;width:5px;height:5px;border-radius:50%;background:#e25563}
+.avatar-lg{
+  width:38px;height:38px;border-radius:50%;background:#4f6d91;display:grid;place-items:center;
+  color:#fff;font-size:11px;font-weight:600;letter-spacing:.04em;
+  box-shadow:0 3px 10px -4px rgba(40,60,90,.5);margin-left:2px;
+}
+
+/* ===== Page ===== */
+.page{padding:12px 38px 46px;display:flex;flex-direction:column;flex:1}
+.crumb{display:flex;align-items:center;gap:8px;font-size:11.5px;color:#9ba0aa;height:16px}
+.crumb .sep{color:#bcc0c9;display:flex}
+.crumb .here{color:#454b57;font-weight:500}
+.page-head{margin-top:6px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.page-head h1{font-size:33px;line-height:42px;font-weight:600;letter-spacing:-.035em;color:#0b0d12}
+.tools{display:flex;align-items:center;gap:8px;margin-top:-4px}
+.round{
+  width:38px;height:38px;border-radius:50%;background:#fff;display:grid;place-items:center;color:#5c616d;
+  box-shadow:var(--shadow-btn);transition:transform .16s,box-shadow .16s;
+}
+.round:hover{transform:translateY(-1px);box-shadow:0 2px 4px rgba(17,19,26,.05),0 10px 20px -12px rgba(17,19,26,.3)}
+.chip{
+  height:38px;padding:0 15px;border-radius:999px;background:#fff;display:flex;align-items:center;gap:8px;
+  font-size:11.5px;font-weight:500;color:#171a20;white-space:nowrap;box-shadow:var(--shadow-btn);
+  transition:transform .16s,box-shadow .16s;
+}
+.chip:hover{transform:translateY(-1px);box-shadow:0 2px 4px rgba(17,19,26,.05),0 10px 20px -12px rgba(17,19,26,.3)}
+.chip .i{color:#5f6470}
+.btn-dark{
+  height:38px;padding:0 19px;border-radius:999px;background:#16181e;color:#fff;
+  font-size:12px;font-weight:500;letter-spacing:.005em;white-space:nowrap;
+  box-shadow:0 8px 18px -10px rgba(20,22,30,.55);transition:transform .16s,background .16s;
+}
+.btn-dark:hover{transform:translateY(-1px);background:#1d2027}
+.date-wrap{position:relative}
+.menu{
+  position:absolute;top:46px;left:0;min-width:212px;background:#fff;border-radius:18px;padding:6px;
+  box-shadow:0 2px 6px rgba(17,19,26,.06),0 24px 48px -20px rgba(17,19,26,.35);
+  opacity:0;visibility:hidden;transform:translateY(-6px);transition:.18s;z-index:40;
+}
+.menu.open{opacity:1;visibility:visible;transform:translateY(0)}
+.menu-item{
+  width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:9px 11px;border-radius:12px;font-size:12px;color:#2b2f38;text-align:left;
+}
+.menu-item:hover{background:#f5f6f9}
+.menu-item span{font-size:10.5px;color:#9aa0aa}
+.menu-item.sel{background:#f5f6f9;font-weight:600}
+.menu-item.sel::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--lime)}
+
+/* ===== Grid ===== */
+.grid{
+  margin-top:40px;display:grid;gap:15px;
+  grid-template-columns:1.02fr 1.02fr .94fr 1.16fr;
+  grid-template-rows:296px 212px;
+  grid-template-areas:
+    "plan activity virtual wallet"
+    "plan spend spend contract";
+}
+.card{
+  background:var(--card);border-radius:var(--r-xl);padding:var(--pad);
+  box-shadow:var(--shadow);position:relative;display:flex;flex-direction:column;min-width:0;
+}
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.card-title{font-size:13px;line-height:17px;font-weight:600;letter-spacing:-.015em;color:#101218}
+.mini-actions{display:flex;gap:5px;flex:none}
+.mini-btn{
+  width:24px;height:24px;border-radius:50%;background:#f3f4f7;display:grid;place-items:center;
+  color:#5e6470;transition:background .16s,color .16s;
+}
+.mini-btn:hover{background:#e9ebf1;color:#30343c}
+.mini-btn .i{width:11px;height:11px;stroke-width:1.7}
+.k-label{font-size:10px;color:#9a9fa9;letter-spacing:0}
+.mt-12{margin-top:12px}
+.mt-14{margin-top:14px}
+.big-num{
+  display:flex;align-items:flex-end;gap:3px;
+  font-size:40px;line-height:1.02;font-weight:600;letter-spacing:-.038em;color:#0f1116;
+  font-variant-numeric:tabular-nums;
+}
+.big-num .cur{font-size:12px;font-weight:500;margin-bottom:4px;letter-spacing:0}
+.big-num .cents{color:#a3a8b3;font-weight:500;letter-spacing:-.02em}
+.big-num .unit{font-size:10px;font-weight:500;color:#6e7380;margin-bottom:3px;letter-spacing:0}
+.delta{display:flex;align-items:center;gap:3px;font-size:10px;margin-top:4px}
+.delta .i{width:11px;height:11px;stroke-width:1.9}
+.delta.up{color:var(--green)}
+.delta.down{color:var(--red)}
+
+/* ===== Plan card ===== */
+.plan{
+  grid-area:plan;overflow:hidden;padding-bottom:22px;
+  background:
+    radial-gradient(120% 55% at 50% 32%,rgba(255,255,255,.5) 0%,rgba(255,255,255,0) 62%),
+    linear-gradient(180deg,#d9def1 0%,#cfd5e9 46%,#dfe4f0 78%,#e5eaf3 100%);
+  box-shadow:0 1px 2px rgba(17,19,26,.03),0 26px 50px -36px rgba(24,32,70,.4);
+  padding:var(--pad) 18px 30px;
+}
+.plan-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 4px}
+.plan-top span{font-size:11.5px;color:#5e6474;font-weight:500;letter-spacing:-.01em}
+.plan-close{
+  width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.55);
+  display:grid;place-items:center;color:#626878;font-size:13px;line-height:1;
+  transition:background .16s,transform .16s;
+}
+.plan-close:hover{background:#fff;transform:rotate(90deg)}
+.plan-art{flex:1;display:grid;place-items:center;padding:26px 0 0;min-height:0}
+.prism{width:152px;height:auto;max-height:100%}
+.plan-panel{
+  background:rgba(255,255,255,.62);
+  border:1px solid rgba(255,255,255,.55);
+  border-radius:16px;padding:15px 13px 14px;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 8px 24px -20px rgba(30,38,80,.5);
+}
+.panel-row{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.panel-title{font-size:13px;font-weight:600;letter-spacing:-.015em;color:#101218}
+.badge-lime{
+  display:inline-flex;align-items:center;gap:4px;background:var(--lime);color:#2c3108;
+  font-size:8.5px;font-weight:600;padding:4px 8px;border-radius:999px;white-space:nowrap;
+  letter-spacing:0;
+}
+.badge-lime .i{width:10px;height:10px;stroke-width:1.8}
+.panel-desc{font-size:9.5px;line-height:1.5;color:#7b8190;margin-top:5px}
+.spark{width:100%;height:24px;margin-top:6px;opacity:.9}
+.learn-btn{
+  display:inline-flex;align-items:center;gap:9px;background:#fff;border-radius:999px;
+  padding:4px 5px 4px 12px;font-size:11px;font-weight:600;letter-spacing:-.01em;color:#111318;
+  box-shadow:0 6px 16px -10px rgba(24,32,60,.5);margin-top:7px;
+  transition:transform .16s,box-shadow .16s;
+}
+.learn-btn:hover{transform:translateY(-1px);box-shadow:0 10px 22px -12px rgba(24,32,60,.55)}
+.learn-btn .go{
+  width:24px;height:24px;border-radius:50%;background:#14161c;color:#fff;
+  display:grid;place-items:center;
+}
+.learn-btn .go .i{width:12px;height:12px;stroke-width:1.8}
+
+/* ===== Activity ===== */
+.activity{grid-area:activity;padding-bottom:16px}
+.anum{margin-top:2px;font-size:43px}
+.plot{flex:1;display:flex;flex-direction:column;min-height:0;padding-top:2px;margin-top:-15px}
+.bars{flex:1;display:flex;align-items:flex-end;gap:12px;min-height:0;padding:2px 6px 0}
+.bar{
+  flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;
+  position:relative;min-width:0;
+}
+.bar .fill{
+  width:100%;max-width:30px;height:var(--h);border-radius:10px;
+  background:linear-gradient(180deg,#f7f8fa 0%,#f0f1f5 100%);
+  transition:filter .2s;
+}
+.bar.hi .fill{
+  max-width:36px;border-radius:11px;
+  background:linear-gradient(180deg,#e3ee5c 0%,#d5e33d 100%);
+  box-shadow:0 10px 22px -12px rgba(186,202,46,.65);
+}
+.bar .tag{
+  position:absolute;bottom:calc(var(--h) + 6px);left:50%;transform:translateX(-50%);
+  background:var(--lime);color:#2b3006;font-size:8px;font-weight:600;letter-spacing:-.005em;
+  padding:3px 7px;border-radius:999px;white-space:nowrap;
+}
+.bar .tip{
+  position:absolute;bottom:calc(var(--h) + 8px);left:50%;transform:translate(-50%,4px);
+  background:#17191f;color:#fff;font-size:9px;font-weight:500;padding:3px 7px;border-radius:8px;
+  opacity:0;pointer-events:none;transition:.16s;white-space:nowrap;z-index:2;
+}
+.bar:hover .fill{filter:brightness(.97)}
+.bar:hover .tip{opacity:1;transform:translate(-50%,0)}
+.bar.hi:hover .tip{opacity:0}
+.axis{
+  display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:7px;
+  font-size:8.5px;color:#a8acb6;text-align:center;letter-spacing:-.005em;
+}
+
+/* ===== Virtual cards ===== */
+.virtual{grid-area:virtual}
+.vnum{margin-top:1px;font-size:26px}
+.vnum .cur{font-size:11px;margin-bottom:4px}
+.bars-legend{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding-top:16px}
+.bar-row{
+  height:27px;border-radius:999px;background:#f3f4f7;padding:0 12px;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  font-size:9.5px;color:#818794;letter-spacing:-.005em;white-space:nowrap;
+}
+.bar-row b{font-weight:600;color:#14161b;font-size:10px}
+.bar-row.reserve{width:62%;padding:0 10px;font-size:8.5px}
+.bar-row.reserve b{font-size:9px}
+
+/* ===== Wallet ===== */
+.wallet{
+  grid-area:wallet;overflow:visible;padding-bottom:38px;
+  background:
+    radial-gradient(90% 70% at 18% 8%,rgba(255,255,255,.35) 0%,rgba(255,255,255,0) 60%),
+    linear-gradient(155deg,#cddcd1 0%,#c3d7c9 42%,#b2cdbf 100%);
+  box-shadow:0 1px 2px rgba(20,40,30,.05),0 24px 48px -34px rgba(30,60,45,.45);
+  justify-content:flex-end;
+}
+.wallet-chips{position:absolute;top:18px;right:18px;height:30px;width:47px}
+.wallet-chips i{position:absolute;width:30px;height:30px;border-radius:50%;display:block}
+.wallet-chips .light{right:0;top:2px;background:#a9bcae;z-index:1}
+.wallet-chips .dark{right:20px;top:0;background:#232e28;z-index:2}
+.wallet-num{font-size:27px;letter-spacing:-.04em;color:#17221c}
+.wallet-num .cur{font-size:13px;margin-bottom:4px;color:#1b2620}
+.wallet-num .cents{color:#47564c}
+.wallet-meta{display:flex;align-items:center;justify-content:space-between;margin-top:6px;
+  font-size:9px;color:#3e4f44;letter-spacing:.07em;font-weight:500}
+.wallet-open{
+  position:absolute;left:-21px;top:50%;transform:translateY(-50%);
+  width:44px;height:44px;border-radius:50%;background:#fff;display:grid;place-items:center;color:#1c2620;
+  box-shadow:0 14px 28px -10px rgba(24,42,32,.35);transition:transform .18s,box-shadow .18s;
+}
+.wallet-open:hover{transform:translateY(-50%) scale(1.05);box-shadow:0 18px 32px -10px rgba(24,42,32,.4)}
+.wallet-open .i{width:14px;height:14px;stroke-width:1.8}
+
+/* ===== Total spent ===== */
+.spend{grid-area:spend}
+.spend-body{flex:1;display:flex;gap:18px;min-height:0;margin-top:4px}
+.spend-left{width:146px;flex:none;display:flex;flex-direction:column}
+.snum{margin-top:1px;font-size:30px}
+.snum .cur{font-size:14px;margin-bottom:4px}
+.pills{margin-top:auto;display:flex;flex-direction:column;align-items:flex-start;gap:7px}
+.stat-pill{
+  display:inline-flex;align-items:center;gap:5px;height:27px;padding:0 11px;border-radius:999px;
+  background:#f3f4f7;font-size:9px;color:#8b919c;letter-spacing:-.005em;
+}
+.stat-pill b{font-size:10.5px;font-weight:600;color:#14161b;letter-spacing:-.01em}
+.spend-chart{flex:1;min-width:0;display:flex;flex-direction:column;padding-top:30px}
+.linechart{width:100%;flex:1;min-height:0;overflow:visible}
+.spend-axis{display:grid;grid-template-columns:repeat(7,1fr);font-size:8.5px;color:#a8acb6;text-align:center;margin-top:4px}
+
+/* ===== Contract type ===== */
+.contract{grid-area:contract;padding:18px 20px 16px}
+.contract .card-title{font-size:15.5px}
+.select{
+  margin-top:6px;display:flex;align-items:center;gap:6px;width:100%;
+  padding:2px 0 8px;border-bottom:1px solid var(--line);
+  font-size:10.5px;color:#1a1d23;font-weight:500;letter-spacing:-.01em;text-align:left;
+}
+.select .i{width:12px;height:12px;color:#3c424e;stroke-width:1.9}
+.select:hover{color:#000}
+.bubbles{flex:1;position:relative;min-height:86px;margin-top:4px}
+.bubble{
+  position:absolute;border-radius:50%;display:grid;place-items:center;
+  font-size:9px;font-weight:500;letter-spacing:-.01em;
+}
+.b1{width:38px;height:38px;left:10%;top:22%;background:var(--teal-soft);color:#2b3d40}
+.b2{width:92px;height:92px;left:46%;top:2%;background:var(--teal);color:#fff;font-size:10px;font-weight:600}
+.b3{width:40px;height:40px;right:3.5%;top:28%;background:var(--teal-soft);color:#2b3d40}
+.cstats{display:grid;grid-template-columns:repeat(3,1fr);align-items:end;gap:8px}
+.cstats b{display:block;font-size:16px;font-weight:600;letter-spacing:-.03em;color:#11141a;line-height:1.15}
+.cstats span{display:block;font-size:9.5px;color:#a6aab4;margin-top:2px;letter-spacing:-.005em}
+
+/* ===== Toast ===== */
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translate(-50%,14px);
+  background:#15171d;color:#fff;font-size:12px;padding:10px 16px;border-radius:999px;
+  box-shadow:0 18px 40px -16px rgba(10,12,20,.55);opacity:0;pointer-events:none;
+  transition:opacity .22s,transform .22s;z-index:80;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ===== Entrance ===== */
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.card{animation:rise .5s cubic-bezier(.22,.8,.3,1) both}
+.plan{animation-delay:.02s}.activity{animation-delay:.06s}.virtual{animation-delay:.1s}
+.wallet{animation-delay:.14s}.spend{animation-delay:.18s}.contract{animation-delay:.22s}
+
+/* ===== Responsive ===== */
+@media (max-width:1260px){
+  .grid{grid-template-columns:1.05fr 1fr .92fr 1fr;grid-template-rows:296px 214px}
+  .page-head h1{font-size:31px}
+}
+@media (max-width:1100px){
+  .page{padding:14px 26px 40px}
+  .topbar{padding:0 26px}
+  .grid{
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:250px 268px 300px 252px;
+    grid-template-areas:"plan activity" "plan virtual" "wallet contract" "spend spend";
+  }
+  .plan{min-height:0;padding:16px 18px 20px}
+  .plan-art{padding:8px 0 0}
+  .prism{width:122px}
+  .plan-panel{padding:13px 12px 13px}
+  .plot{margin-top:-6px}
+  .rail{width:74px}
+}
+@media (max-width:820px){
+  .topbar{height:auto;min-height:74px;gap:10px;flex-wrap:wrap;padding:14px 18px}
+  .nav-item{padding:0 12px;font-size:12px}
+  .avatars{display:none}
+  .page{padding:6px 18px 34px}
+  .page-head{flex-direction:column;align-items:stretch;gap:14px}
+  .page-head h1{font-size:27px;line-height:36px}
+  .tools{width:100%;justify-content:flex-start;flex-wrap:wrap}
+  .grid{grid-template-columns:1fr;grid-template-rows:auto;grid-template-areas:"plan" "activity" "virtual" "wallet" "spend" "contract";margin-top:16px}
+  .plan{min-height:430px;padding:16px 16px 20px}
+  .plan-art{padding:16px 0 8px}
+  .prism{width:112px}
+  .activity{min-height:330px}
+  .virtual{min-height:310px}
+  .wallet{min-height:290px}
+  .contract{min-height:250px}
+  .rail{width:60px;padding-top:52px}
+  .rail-btn{width:38px;height:38px}
+  .spend-body{flex-direction:column;gap:10px}
+  .spend-left{width:auto}
+  .spend-chart{padding-top:6px;min-height:150px}
+  .spend{min-height:330px}
+  .pills{flex-direction:row;flex-wrap:wrap;margin-top:10px}
+}
+@media (prefers-reduced-motion:reduce){
+  .card{animation:none}
+  *{transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== Left rail ===== -->
+  <aside class="rail" aria-label="Primary">
+    <div class="rail-group">
+      <button class="rail-btn active" aria-label="Home" title="Home">
+        <svg class="i i-18" viewBox="0 0 24 24"><path d="M4 10.6 12 4l8 6.6V19a1.4 1.4 0 0 1-1.4 1.4h-3.4v-5.1h-6.4v5.1H5.4A1.4 1.4 0 0 1 4 19Z"/></svg>
+      </button>
+      <button class="rail-btn" aria-label="Payments" title="Payments">
+        <svg class="i i-18" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.6"/><path d="M3 9.6h18"/></svg>
+      </button>
+      <button class="rail-btn" aria-label="Documents" title="Documents">
+        <svg class="i i-18" viewBox="0 0 24 24"><path d="M6.5 3.5h7.2L18.5 8v12.5h-12Z"/><path d="M13.5 3.5V8h5"/></svg>
+      </button>
+      <button class="rail-btn" aria-label="Messages" title="Messages">
+        <svg class="i i-18" viewBox="0 0 24 24"><path d="M4.6 6.3h14.8v9.4H9.8L5.7 19v-3.3H4.6Z"/></svg>
+      </button>
+      <button class="rail-btn soft" aria-label="Appearance" title="Appearance">
+        <svg class="i i-18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.6"/><path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6"/></svg>
+      </button>
+    </div>
+    <div class="rail-group">
+      <button class="rail-btn" aria-label="Help" title="Help">
+        <svg class="i i-18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M12 16.2v.1M9.8 9.3a2.3 2.3 0 1 1 3.4 2c-.7.4-1.2.9-1.2 1.7"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <div class="main">
+
+    <!-- ===== Top bar ===== -->
+    <header class="topbar">
+      <div class="brand" aria-label="Prism">
+        <svg viewBox="0 0 20 26" aria-hidden="true"><path d="M2.4 23 10 3.2 17.6 23" fill="none" stroke="currentColor" stroke-linecap="round"/></svg>
+      </div>
+
+      <nav class="nav" aria-label="Sections">
+        <button class="nav-item active" data-nav>
+          <svg class="i i-14" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1.8"/><rect x="14" y="4" width="6" height="6" rx="1.8"/><rect x="4" y="14" width="6" height="6" rx="1.8"/><rect x="14" y="14" width="6" height="6" rx="1.8"/></svg>
+          Dashboard
+        </button>
+        <button class="nav-item" data-nav>
+          <svg class="i i-14" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.6"/><path d="M3 9.6h18"/></svg>
+          Payments
+        </button>
+        <button class="nav-item" data-nav>
+          <svg class="i i-14" viewBox="0 0 24 24"><path d="M7 20V4h6.2L20 10.4V20"/><path d="M13.2 4v6.4H20"/></svg>
+          Reports
+        </button>
+      </nav>
+
+      <div class="topbar-right">
+        <div class="avatars" aria-label="Team members">
+          <span class="mini-avatar av-orange">AH</span>
+          <span class="mini-avatar av-blue">MR</span>
+          <span class="mini-avatar av-green">SU</span>
+          <span class="mini-avatar av-dark">+6</span>
+        </div>
+        <button class="btn-soft" data-demo="Add manager">
+          <svg class="i i-14" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          Add manager
+        </button>
+        <button class="icon-btn" aria-label="Notifications" data-demo="Notifications">
+          <span class="dot"></span>
+          <svg class="i" viewBox="0 0 24 24"><path d="M18 9.2a6 6 0 0 0-12 0c0 5-2 6.3-2 6.3h16s-2-1.3-2-6.3"/><path d="M10.4 18.6a1.9 1.9 0 0 0 3.2 0"/></svg>
+        </button>
+        <button class="icon-btn" aria-label="Mail" data-demo="Inbox">
+          <svg class="i" viewBox="0 0 24 24"><rect x="3.4" y="6" width="17.2" height="12" rx="2.4"/><path d="m4.6 7.2 7.4 5.6 7.4-5.6"/></svg>
+        </button>
+        <div class="avatar-lg">AK</div>
+      </div>
+    </header>
+
+    <!-- ===== Page ===== -->
+    <main class="page">
+      <div class="crumb">
+        <span>Home</span>
+        <span class="sep"><svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg></span>
+        <span class="here">Dashboard</span>
+      </div>
+
+      <div class="page-head">
+        <h1>Client dashboard</h1>
+        <div class="tools">
+          <button class="round" aria-label="Search" data-demo="Search">
+            <svg class="i" viewBox="0 0 24 24"><circle cx="10.7" cy="10.7" r="6.2"/><path d="m15.4 15.4 4 4"/></svg>
+          </button>
+          <button class="round" aria-label="Filters" data-demo="Filters">
+            <svg class="i" viewBox="0 0 24 24"><path d="M6.5 4v5.4M6.5 14.6V20M12 4v9.4M12 18.6V20M17.5 4v2.4M17.5 11.6V20"/><circle cx="6.5" cy="12" r="2"/><circle cx="12" cy="16" r="2"/><circle cx="17.5" cy="9" r="2"/></svg>
+          </button>
+
+          <div class="date-wrap">
+            <button class="chip" id="dateBtn" aria-expanded="false">
+              <svg class="i i-14" viewBox="0 0 24 24"><rect x="3.6" y="5.4" width="16.8" height="15" rx="3"/><path d="M8 3.6v3.4M16 3.6v3.4"/></svg>
+              <span id="dateLabel">20-27 Jan</span>
+              <svg class="i i-14" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></svg>
+            </button>
+            <div class="menu" id="dateMenu" role="menu">
+              <button class="menu-item sel" data-range="20-27 Jan">20-27 Jan <span>This week</span></button>
+              <button class="menu-item" data-range="13-19 Jan">13-19 Jan <span>Last week</span></button>
+              <button class="menu-item" data-range="1-31 Jan">1-31 Jan <span>January</span></button>
+            </div>
+          </div>
+
+          <button class="chip" data-demo="Add widget">
+            <svg class="i i-14" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+            Add widget
+          </button>
+          <button class="btn-dark" data-demo="Create a report">Create a report</button>
+        </div>
+      </div>
+
+      <section class="grid" aria-label="Dashboard widgets">
+
+        <!-- ===== Pro plan ===== -->
+        <article class="card plan" id="planCard">
+          <div class="plan-top">
+            <span>Pro plan</span>
+            <button class="plan-close" aria-label="Dismiss pro plan" data-demo="Dismiss widget">&times;</button>
+          </div>
+
+          <div class="plan-art">
+            <svg class="prism" viewBox="0 0 126 152" fill="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="gemG" x1="26" y1="10" x2="104" y2="102" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#8bd3ff"/>
+                  <stop offset=".38" stop-color="#a4c3ff"/>
+                  <stop offset=".72" stop-color="#bcb5fd"/>
+                  <stop offset="1" stop-color="#cbb1f8"/>
+                </linearGradient>
+                <linearGradient id="baseG" x1="34" y1="120" x2="92" y2="148" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#9fb0d6"/>
+                  <stop offset=".55" stop-color="#8da1cb"/>
+                  <stop offset="1" stop-color="#7d92c0"/>
+                </linearGradient>
+                <linearGradient id="baseTop" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0" stop-color="#b9c6e2"/>
+                  <stop offset="1" stop-color="#a5b4d7"/>
+                </linearGradient>
+              </defs>
+              <path d="M63 8.6c1.9 0 3.6 1.1 4.6 2.8l31.2 48.9c1.5 2.4 1.5 5.4 0 7.8L66.8 113.4c-1.9 3-6.2 3-8.1 0L25.7 68.1c-1.5-2.4-1.5-5.4 0-7.8L57.7 11.4c1-1.7 2.7-2.8 4.6-2.8Z" fill="url(#gemG)"/>
+              <path d="M63 8.6c1.9 0 3.6 1.1 4.6 2.8l31.2 48.9c1.5 2.4 1.5 5.4 0 7.8L66.8 113.4c-1.9 3-6.2 3-8.1 0L25.7 68.1c-1.5-2.4-1.5-5.4 0-7.8L57.7 11.4c1-1.7 2.7-2.8 4.6-2.8Z" fill="#fff" opacity=".18"/>
+              <path d="M23 124.4h-.3c-2.6 0-4.8 2-5.2 4.6l-2.5 12.1c-.4 2.4 1.5 4.5 3.9 4.5h88.2c2.4 0 4.3-2.1 3.9-4.5l-2.5-12.1c-.4-2.6-2.6-4.6-5.2-4.6h-.3z" fill="url(#baseG)"/>
+              <path d="M26 120.8h74c1.5 0 2.7 1.2 2.7 2.7S101.5 126.2 100 126.2h-74c-1.5 0-2.7-1.2-2.7-2.7s1.2-2.7 2.7-2.7z" fill="url(#baseTop)" opacity=".9"/>
+            </svg>
+          </div>
+
+          <div class="plan-panel">
+            <div class="panel-row">
+              <span class="panel-title">Advantages</span>
+              <span class="badge-lime">
+                <svg class="i" viewBox="0 0 24 24"><path d="M3.5 9.5h17v5h-17z"/><path d="M7 9.5v5M17 9.5v5"/></svg>
+                15 days
+              </span>
+            </div>
+            <p class="panel-desc">What you unlock on the pro tier</p>
+            <svg class="spark" viewBox="0 0 220 22" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M4 19C38 19 58 12 96 9.5S168 6 216 3.4" stroke="#c7cbd6" stroke-width="1.3" stroke-dasharray="1.6 5" stroke-linecap="round" fill="none"/>
+            </svg>
+            <button class="learn-btn" data-demo="Learn more">
+              Learn more
+              <span class="go"><svg class="i" viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+            </button>
+          </div>
+        </article>
+
+        <!-- ===== Activity ===== -->
+        <article class="card activity">
+          <div class="card-head">
+            <div class="card-title">Activity</div>
+            <div class="mini-actions">
+              <button class="mini-btn" aria-label="Chart settings" data-demo="Chart settings">
+                <svg class="i" viewBox="0 0 24 24"><path d="M8 5v6M8 15v4M16 5v3M16 12v7"/><circle cx="8" cy="13" r="1.8"/><circle cx="16" cy="10" r="1.8"/></svg>
+              </button>
+              <button class="mini-btn" aria-label="Expand activity" data-demo="Expand widget">
+                <svg class="i" viewBox="0 0 24 24"><path d="M7 17 17 7M9.5 7H17v7.5"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="k-label mt-12">Worked this week</div>
+          <div class="big-num anum"><span>186</span><span class="unit">h</span></div>
+
+          <div class="plot">
+            <div class="bars">
+              <div class="bar" style="--h:54%"><span class="fill"></span><span class="tip">3h 12m</span></div>
+              <div class="bar" style="--h:72%"><span class="fill"></span><span class="tip">5h 20m</span></div>
+              <div class="bar" style="--h:60%"><span class="fill"></span><span class="tip">4h 05m</span></div>
+              <div class="bar" style="--h:82%"><span class="fill"></span><span class="tip">6h 45m</span></div>
+              <div class="bar hi" style="--h:100%"><span class="tag">18.30h</span><span class="fill"></span><span class="tip">9h 30m</span></div>
+              <div class="bar" style="--h:66%"><span class="fill"></span><span class="tip">4h 15m</span></div>
+              <div class="bar" style="--h:50%"><span class="fill"></span><span class="tip">2h 40m</span></div>
+            </div>
+            <div class="axis">
+              <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- ===== Virtual cards ===== -->
+        <article class="card virtual">
+          <div class="card-head">
+            <div class="card-title">Virtual cards</div>
+            <button class="mini-btn" aria-label="Card options" data-demo="Card options">
+              <svg class="i" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/><circle cx="9" cy="8" r="1.6"/><circle cx="15" cy="16" r="1.6"/></svg>
+            </button>
+          </div>
+
+          <div class="k-label mt-14">Total balance</div>
+          <div class="big-num vnum"><span class="cur">$</span>6,010<span class="cents">.29</span></div>
+          <div class="delta up">
+            <svg class="i" viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg>
+            $205.00
+          </div>
+
+          <div class="bars-legend">
+            <div class="bar-row"><span>Primary</span><b>72%</b></div>
+            <div class="bar-row reserve"><span>Reserve</span><b>28%</b></div>
+          </div>
+        </article>
+
+        <!-- ===== Wallet ===== -->
+        <article class="card wallet" aria-label="Virtual wallet card">
+          <div class="wallet-chips" aria-hidden="true"><i class="light"></i><i class="dark"></i></div>
+          <div class="wallet-balance">
+            <div class="big-num wallet-num"><span class="cur">$</span>390<span class="cents">.00</span></div>
+            <div class="wallet-meta"><span>&bull;&bull;&bull;&nbsp;6802</span><span>06/28</span></div>
+          </div>
+          <button class="wallet-open" aria-label="Open virtual card" data-demo="Open card">
+            <svg class="i" viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          </button>
+        </article>
+
+        <!-- ===== Total spent ===== -->
+        <article class="card spend">
+          <div class="card-head">
+            <div class="card-title">Total spent</div>
+            <div class="mini-actions">
+              <button class="mini-btn" aria-label="Chart settings" data-demo="Chart settings">
+                <svg class="i" viewBox="0 0 24 24"><path d="M8 5v6M8 15v4M16 5v3M16 12v7"/><circle cx="8" cy="13" r="1.8"/><circle cx="16" cy="10" r="1.8"/></svg>
+              </button>
+              <button class="mini-btn" aria-label="Expand spend" data-demo="Expand widget">
+                <svg class="i" viewBox="0 0 24 24"><path d="M7 17 17 7M9.5 7H17v7.5"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="spend-body">
+            <div class="spend-left">
+              <div class="k-label">Spent this week</div>
+              <div class="big-num snum"><span class="cur">$</span>820<span class="cents">.65</span></div>
+              <div class="delta down">
+                <svg class="i" viewBox="0 0 24 24"><path d="m7 7 10 10M17 9v8H9"/></svg>
+                $605.00
+              </div>
+              <div class="pills">
+                <span class="stat-pill"><b>10</b> Wallets</span>
+                <span class="stat-pill"><b>26</b> Accounts</span>
+              </div>
+            </div>
+
+            <div class="spend-chart">
+              <svg class="linechart" viewBox="0 0 600 132" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <linearGradient id="areaG" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="rgba(18,20,26,.075)"/>
+                    <stop offset=".75" stop-color="rgba(18,20,26,.015)"/>
+                    <stop offset="1" stop-color="rgba(18,20,26,0)"/>
+                  </linearGradient>
+                </defs>
+                <g stroke="#14171d" stroke-opacity=".08" stroke-width="1" stroke-dasharray="3 7">
+                  <line x1="40" y1="16" x2="40" y2="132"/><line x1="128" y1="20" x2="128" y2="132"/>
+                  <line x1="216" y1="14" x2="216" y2="132"/><line x1="304" y1="12" x2="304" y2="132"/>
+                  <line x1="392" y1="14" x2="392" y2="132"/><line x1="480" y1="12" x2="480" y2="132"/>
+                  <line x1="568" y1="12" x2="568" y2="132"/>
+                </g>
+                <path d="M40 94C62 94 100 99.5 128 99.5c26 0 60-19.5 88-19.5 30 0 62-7 88-10 32-3.5 68-8.5 104-11 30-2 60-1.5 88-4 6-.5 12-1 22-1.5V132H40Z" fill="url(#areaG)"/>
+                <path d="M40 94C62 94 100 99.5 128 99.5c26 0 60-19.5 88-19.5 30 0 62-7 88-10 32-3.5 68-8.5 104-11 30-2 60-1.5 88-4 6-.5 12-1 22-1.5"
+                      fill="none" stroke="#15181e" stroke-width="1.7" vector-effect="non-scaling-stroke" stroke-linecap="round"/>
+                <line x1="304" y1="10" x2="304" y2="132" stroke="#15181e" stroke-opacity=".22" stroke-width="1.2" stroke-dasharray="4 7" vector-effect="non-scaling-stroke"/>
+                <circle cx="304" cy="80" r="3.4" fill="#dbe84b"/>
+                <circle cx="304" cy="80" r="7.5" fill="#dbe84b" opacity=".18"/>
+              </svg>
+              <div class="spend-axis">
+                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ===== Contract type ===== -->
+        <article class="card contract">
+          <div class="card-head">
+            <div class="card-title">Contract type</div>
+          </div>
+
+          <button class="select" data-demo="Contract filter">
+            Learn more
+            <svg class="i" viewBox="0 0 24 24"><path d="m6.5 9.5 5.5 5.5 5.5-5.5"/></svg>
+          </button>
+
+          <div class="bubbles">
+            <div class="bubble b1">4%</div>
+            <div class="bubble b2">86%</div>
+            <div class="bubble b3">10%</div>
+          </div>
+
+          <div class="cstats">
+            <div><b>140</b><span>Minutes</span></div>
+            <div><b>48</b><span>Services</span></div>
+            <div><b>16</b><span>Hourly</span></div>
+          </div>
+        </article>
+
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  var toast = document.getElementById('toast');
+  var toastTimer = null;
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toast.classList.remove('show'); }, 2200);
+  }
+
+  // Left rail selection
+  document.querySelectorAll('.rail .rail-group').forEach(function(group){
+    group.querySelectorAll('.rail-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var buttons = btn.parentElement.querySelectorAll('.rail-btn');
+        buttons.forEach(function(b){ b.classList.remove('active'); });
+        btn.classList.add('active');
+      });
+    });
+  });
+
+  // Top nav selection
+  document.querySelectorAll('.nav-item').forEach(function(item){
+    item.addEventListener('click', function(){
+      document.querySelectorAll('.nav-item').forEach(function(i){ i.classList.remove('active'); });
+      item.classList.add('active');
+    });
+  });
+
+  // Date range menu
+  var dateBtn = document.getElementById('dateBtn');
+  var dateMenu = document.getElementById('dateMenu');
+  var dateLabel = document.getElementById('dateLabel');
+  function closeMenu(){
+    dateMenu.classList.remove('open');
+    dateBtn.setAttribute('aria-expanded','false');
+  }
+  dateBtn.addEventListener('click', function(e){
+    e.stopPropagation();
+    var open = dateMenu.classList.toggle('open');
+    dateBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  dateMenu.querySelectorAll('.menu-item').forEach(function(item){
+    item.addEventListener('click', function(){
+      dateMenu.querySelectorAll('.menu-item').forEach(function(i){ i.classList.remove('sel'); });
+      item.classList.add('sel');
+      dateLabel.textContent = item.dataset.range;
+      closeMenu();
+    });
+  });
+  document.addEventListener('click', closeMenu);
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeMenu(); });
+
+  // Placeholder actions for a static replica
+  document.querySelectorAll('[data-demo]').forEach(function(el){
+    el.addEventListener('click', function(e){
+      e.stopPropagation();
+      showToast('Demo only \u00b7 ' + el.dataset.demo + ' isn\u2019t wired up');
+    });
+  });
+})();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+

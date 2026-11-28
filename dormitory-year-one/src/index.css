@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+html, body, #root { margin: 0; height: 100%; background: #1a0f08; overflow: hidden; }
+
+@keyframes fadeUp {
+  0% { opacity: 0; transform: translate(-50%, 20px) scale(0.9); }
+  20% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -30px) scale(1.05); }
+}

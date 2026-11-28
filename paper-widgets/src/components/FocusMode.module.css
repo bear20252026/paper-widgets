@@ -1,0 +1,85 @@
+/* Everything in the tile; `.on` flips every colour to the dark state */
+.face {
+  position: absolute;
+  inset: 0;
+  color: var(--ink);
+}
+
+.on {
+  color: var(--focus-text);
+}
+
+/* The dark state: near-black with an ultramarine glow top right, faded in per frame */
+.dark {
+  position: absolute;
+  inset: 0;
+  background: var(--focus-dark);
+  opacity: 0;
+}
+
+/* The label (Label.tsx) gets this module's `label` class too, only so the dark state can recolour it */
+.on .label {
+  color: var(--focus-muted);
+}
+
+.moon {
+  position: absolute;
+  left: var(--moon-x);
+  top: var(--moon-y);
+  width: var(--moon-well);
+  height: var(--moon-well);
+  border-radius: 50%;
+  background: var(--wash);
+  display: grid;
+  place-items: center;
+}
+
+.on .moon {
+  background: var(--focus-well);
+}
+
+.state {
+  position: absolute;
+  left: var(--state-x);
+  top: var(--state-y);
+  font-size: var(--state-size);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--state-tracking);
+}
+
+.caption {
+  position: absolute;
+  left: var(--state-caption-x);
+  top: var(--state-caption-y);
+  font-size: var(--small);
+  color: var(--muted);
+}
+
+.on .caption {
+  color: var(--focus-muted);
+}
+
+.toggle {
+  position: absolute;
+  left: var(--switch-x);
+  top: var(--switch-y);
+  width: var(--switch-w);
+  height: var(--switch-h);
+  border-radius: var(--round);
+  background: var(--hair);
+}
+
+.on .toggle {
+  background: var(--accent);
+}
+
+.knob {
+  position: absolute;
+  left: var(--switch-inset);
+  top: var(--switch-inset);
+  width: var(--switch-knob);
+  height: var(--switch-knob);
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: var(--switch-knob-shadow);
+}

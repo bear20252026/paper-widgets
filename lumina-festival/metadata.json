@@ -1,0 +1,8 @@
+{
+  "name": "Lumina Festival",
+  "description": "Immersive event landing page with interactive scroll effects.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

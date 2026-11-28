@@ -1,0 +1,164 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
+  --font-serif: "Instrument Serif", "Songti SC", "STSong", Georgia, serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: #f3f2ec;
+  color: #222923;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+select,
+input,
+textarea {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid rgba(7, 193, 96, 0.45);
+  outline-offset: 1px;
+}
+
+::selection {
+  background: #bdeecf;
+  color: #123421;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+img {
+  -webkit-user-drag: none;
+}
+
+.chat-canvas {
+  background-color: #f2f2f2;
+  background-image: radial-gradient(rgba(23, 38, 27, 0.035) 0.65px, transparent 0.65px);
+  background-size: 15px 15px;
+}
+
+.stage-canvas {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.32), transparent 38%),
+    radial-gradient(ellipse at 18% 5%, rgba(231, 238, 219, 0.72), transparent 55%),
+    radial-gradient(ellipse at 82% 92%, rgba(216, 229, 208, 0.6), transparent 55%),
+    #e9e9e1;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(105, 112, 100, 0.26) transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(100, 108, 95, 0.22);
+  border-radius: 999px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+select {
+  color-scheme: light;
+}
+select option {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  background: white;
+  color: #222;
+}
+
+@keyframes scanLine {
+  0% {
+    transform: translateY(-86px);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(86px);
+    opacity: 0;
+  }
+}
+
+.scan-line {
+  animation: scanLine 2.8s ease-in-out infinite;
+}
+
+@keyframes softFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.soft-float {
+  animation: softFloat 7s ease-in-out infinite;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-up {
+  animation: fadeUp 0.5s ease-out both;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #b9b9b9;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .scan-line,
+  .soft-float {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

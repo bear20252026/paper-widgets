@@ -1,0 +1,11 @@
+node_modules
+dist
+
+# the original captures (about 2.6 GB) and the plots used to place the rig; see the README
+raw
+analysis
+
+# every captured gaussian with view-dependent colour (125 MB), built locally for ?detail=sh
+public/morph-sh
+
+.DS_Store

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <link rel="icon" href="data:," />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FL3 Bench Study</title>
+<meta name="description" content="A live bench study of the Lamborghini FL3 air-cooled three-cylinder diesel from the 2R tractor, 1961 to 1967.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,400;112,600;125,500&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,600;0,6..96,800;1,6..96,400;1,6..96,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/addons/" } }
+</script>
+</head>
+<body>
+<div class="sheet" id="sheet">
+  <!-- print furniture -->
+  <div class="reg tl"></div><div class="reg tr"></div><div class="reg bl"></div><div class="reg br"></div>
+  <div class="colourbar" aria-hidden="true"><i class="k100"></i><i class="k60"></i><i class="k30"></i><i class="o100"></i><i class="o50"></i><i class="c100"></i><i class="c50"></i><i class="paper"></i></div>
+  <div class="frame">
+    <header class="runhead">
+      <span>Bench study · <em>banco prova</em></span>
+      <span class="mid">Air-cooled diesel · three cylinders · direct injection</span>
+      <span>Sheet 03</span>
+    </header>
+
+    <main class="grid">
+      <section class="left">
+        <p class="kicker">Lamborghini Trattori · 1961–1967</p>
+        <h1 class="title"><span class="marque">Lamborghini</span><span class="fl3">FL<b>3</b></span></h1>
+        <p class="deck">Three cylinders. No radiator.</p>
+        <p class="lede">Before the supercars, Lamborghini built tractors. The 2R of 1961 carried this engine: 2,193 cc of direct-injection diesel and no radiator, cooled by a belt-driven blower and cast fins. About 2,000 were sold by 1967, and tractor money paid for the move into cars in 1963.</p>
+
+        <div class="console">
+          <div class="controls">
+            <div class="ctl keyctl">
+              <button id="key" class="key" aria-label="Ignition key: start or stop (Space)">
+                <span class="key-face"><span class="key-bar"></span></span>
+              </button>
+              <div class="lbl"><span class="en">Ignition</span> <i>avviamento</i></div>
+              <div class="keystate mono" id="keystate">Start</div>
+            </div>
+            <div class="ctl lever" id="throttle" data-value="0" role="slider" aria-label="Hand throttle" tabindex="0">
+              <canvas class="quad"></canvas>
+              <div class="lbl"><span class="en">Hand throttle</span> <i>acceleratore</i></div>
+              <div class="mono val" id="throttleval">700 rpm</div>
+            </div>
+            <div class="ctl lever" id="load" data-value="0" role="slider" aria-label="PTO brake" tabindex="0">
+              <canvas class="quad"></canvas>
+              <div class="lbl"><span class="en">PTO brake</span> <i>freno prova</i></div>
+              <div class="mono val" id="loadval">0 %</div>
+            </div>
+          </div>
+          <div class="views" role="tablist">
+            <button data-view="painted" class="on"><span class="n">1</span>Painted <i>verniciato</i></button>
+            <button data-view="cutaway"><span class="n">2</span>Cutaway <i>sezione</i></button>
+            <button data-view="airflow"><span class="n">3</span>Airflow <i>aria</i></button>
+            <button data-view="exploded"><span class="n">4</span>Exploded <i>esploso</i></button>
+          </div>
+          <div class="toggles">
+            <button id="slow"><span class="n">S</span>Slow motion <i>rallentatore</i></button>
+            <button id="sound" class="on">Sound <i>suono</i></button>
+            <button id="resetview">Reset view <i>vista</i></button>
+          </div>
+          <p class="narration" id="narration">Turn the key. The FL3 is cold, on its stand, and full of diesel.</p>
+        </div>
+      </section>
+
+      <section class="stage" id="stage" aria-label="3D engine, drag to turn, scroll to zoom">
+        <div class="bignum" aria-hidden="true">3</div>
+        <div class="stagecap"><span>Fig. 1</span> On the test stand <i>sul banco</i></div>
+        <div class="viewlabel" id="viewlabel">Painted · <i>verniciato</i></div>
+        <svg class="callouts" id="callouts"></svg>
+        <div class="labels" id="labels"></div>
+        <div class="hint" id="hint">drag to turn · scroll to zoom</div>
+      </section>
+
+      <section class="right">
+        <figure class="inst"><figcaption><b>Tachometer</b> <i>contagiri</i><span class="mono">×100 rpm</span></figcaption><canvas id="tach"></canvas></figure>
+        <figure class="inst"><figcaption><b>The cycle</b> <i>il ciclo</i><span class="mono">720°</span></figcaption><canvas id="cycle"></canvas></figure>
+        <figure class="inst"><figcaption><b>Indicator diagram</b> <i>diagramma</i><span class="mono">cyl 1 · p–V</span></figcaption><canvas id="pv"></canvas></figure>
+        <figure class="inst"><figcaption><b>Chart recorder</b> <i>registratore</i><span class="mono">rpm · kW</span></figcaption><canvas id="chart"></canvas></figure>
+      </section>
+    </main>
+
+    <section class="strip">
+      <figure class="dwg" data-dwg="front"><figcaption><b>Front</b> <i>vista frontale</i></figcaption><div class="dwgbox"><canvas class="ov"></canvas></div></figure>
+      <figure class="dwg" data-dwg="side"><figcaption><b>Right side</b> <i>fianco destro</i></figcaption><div class="dwgbox"><canvas class="ov"></canvas></div></figure>
+      <figure class="dwg" data-dwg="plan"><figcaption><b>Plan</b> <i>pianta</i></figcaption><div class="dwgbox"><canvas class="ov"></canvas></div></figure>
+      <figure class="dwg" data-dwg="section"><figcaption><b>Section A-A</b> <i>sezione A-A</i></figcaption><div class="dwgbox"><canvas class="ov"></canvas></div></figure>
+      <aside class="readings">
+        <div class="rhead"><b>Readings</b> <i>letture</i><span class="tag">live, modelled</span></div>
+        <dl>
+          <div><dt>Speed <i>giri</i></dt><dd><span id="r-rpm">0</span><small>rpm</small></dd></div>
+          <div><dt>Power <i>potenza</i></dt><dd><span id="r-hp">0.0</span><small>hp</small> <span class="sub" id="r-kw">0.0 kW</span></dd></div>
+          <div><dt>Torque <i>coppia</i></dt><dd><span id="r-nm">0</span><small>N·m</small></dd></div>
+          <div><dt>Fuel <i>gasolio</i></dt><dd><span id="r-fuel">0.0</span><small>l/h</small></dd></div>
+          <div><dt>Cooling air <i>aria</i></dt><dd><span id="r-air">0.0</span><small>m³/min</small></dd></div>
+          <div><dt>Head temp. <i>testata</i></dt><dd><span id="r-head">22</span><small>°C</small></dd></div>
+        </dl>
+        <p class="foot">Published: 3 cylinders, bore 92 mm, stroke 110 mm, 2,193 cc, 39 hp (29.1 kW) at 2,200 rpm, electric starter, Bosch injection, about 2,000 2Rs built 1961 to 1967. Every other figure is <b>modelled</b>; thermal time runs 30× real time. An independent study, not affiliated with Lamborghini.</p>
+      </aside>
+    </section>
+  </div>
+</div>
+<canvas id="gl" aria-hidden="true"></canvas>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

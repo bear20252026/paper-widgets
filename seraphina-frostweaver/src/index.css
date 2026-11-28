@@ -1,0 +1,151 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Cinzel", serif;
+  --font-body: "Inter", sans-serif;
+  --font-quote: "Cormorant Garamond", serif;
+
+  --color-frost-300: #8ef0ff;
+  --color-frost-400: #54e6ff;
+  --color-frost-500: #22c8ee;
+  --color-abyss-800: #141b31;
+  --color-abyss-900: #0b1122;
+  --color-abyss-950: #060a18;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: #060a18;
+}
+
+/* ---------- cinematic overlays ---------- */
+.vignette {
+  background: radial-gradient(ellipse 120% 90% at 50% 42%, transparent 52%, rgba(4, 8, 20, 0.55) 100%);
+}
+.top-shade {
+  background: linear-gradient(to bottom, rgba(4, 8, 20, 0.72), transparent 22%);
+}
+.bottom-shade {
+  background: linear-gradient(to top, rgba(4, 8, 20, 0.82), transparent 30%);
+}
+.grain {
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- frosted glass panels ---------- */
+.panel {
+  background: linear-gradient(160deg, rgba(19, 27, 51, 0.78), rgba(9, 13, 28, 0.82));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(126, 224, 255, 0.16);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(190, 242, 255, 0.12);
+}
+.panel-edge {
+  border: 1px solid rgba(126, 224, 255, 0.14);
+  background: linear-gradient(160deg, rgba(23, 33, 62, 0.6), rgba(10, 15, 32, 0.6));
+}
+.text-glow {
+  text-shadow: 0 0 26px rgba(84, 230, 255, 0.55), 0 0 64px rgba(84, 230, 255, 0.25);
+}
+.hairline {
+  background: linear-gradient(90deg, transparent, rgba(142, 240, 255, 0.65), transparent);
+  height: 1px;
+}
+
+/* ---------- stat bars ---------- */
+@keyframes barGrow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.stat-fill {
+  transform-origin: left center;
+  animation: barGrow 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  background: linear-gradient(90deg, #1c5f8f 0%, #22c8ee 55%, #b6f6ff 100%);
+  box-shadow: 0 0 14px rgba(84, 230, 255, 0.45);
+}
+
+/* ---------- floating rune chips ---------- */
+@keyframes pulseChip {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+.chip-glow { animation: pulseChip 3.2s ease-in-out infinite; }
+
+/* ---------- incoming side panel ---------- */
+.lore-panel {
+  transition: transform 0.55s cubic-bezier(0.32, 0.72, 0.24, 1), opacity 0.45s ease;
+  transform: translateX(calc(100% + 3rem));
+  opacity: 0;
+  pointer-events: none;
+}
+.lore-panel.open {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ---------- skill cards ---------- */
+.skill-card {
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.skill-card:hover {
+  transform: translateX(-6px);
+  border-color: rgba(126, 224, 255, 0.4);
+  box-shadow: 0 8px 32px rgba(34, 200, 238, 0.14), inset 0 1px 0 rgba(190, 242, 255, 0.18);
+}
+
+/* ---------- icon buttons ---------- */
+.icon-btn {
+  transition: all 0.25s ease;
+}
+.icon-btn:hover {
+  border-color: rgba(126, 224, 255, 0.45);
+  color: #baf3ff;
+  box-shadow: 0 0 22px rgba(84, 230, 255, 0.22);
+}
+.icon-btn.active {
+  border-color: rgba(126, 224, 255, 0.6);
+  color: #0b1122;
+  background: linear-gradient(160deg, #8ef0ff, #22c8ee);
+  box-shadow: 0 0 30px rgba(84, 230, 255, 0.4);
+}
+
+/* ---------- voice flash ---------- */
+@keyframes voiceFlash {
+  0% { opacity: 0; transform: translateY(10px) scale(0.96); }
+  18% { opacity: 1; transform: translateY(0) scale(1); }
+  78% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-8px); }
+}
+.voice-flash {
+  animation: voiceFlash 2.6s ease forwards;
+}
+
+@keyframes spinSlow {
+  to { transform: rotate(360deg); }
+}
+.spin-slow { animation: spinSlow 14s linear infinite; }
+
+@keyframes shimmerLine {
+  0% { background-position: -200% 50%; }
+  100% { background-position: 200% 50%; }
+}
+.shimmer-text {
+  background: linear-gradient(110deg, #eaf6ff 20%, #8ef0ff 38%, #ffffff 50%, #8ef0ff 62%, #eaf6ff 80%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmerLine 4.5s linear infinite;
+}
+
+::selection {
+  background: rgba(84, 230, 255, 0.3);
+}

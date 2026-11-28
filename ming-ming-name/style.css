@@ -1,0 +1,404 @@
+/* 教育部隸書 TW-MOE-Li · CC BY-ND 3.0 TW · 中華民國教育部 */
+@font-face{
+  font-family:'TW-MOE-Li';
+  src:url('fonts/TW-MOE-Li.woff2') format('woff2'), url('fonts/TW-MOE-Li.ttf') format('truetype');
+  font-weight:400; font-style:normal; font-display:swap;
+}
+:root{
+  /* type: title 18 / body 11 / caption 9 — Space Mono reads large, so body sits under 12 */
+  --ink:#4a443c;
+  --ink-soft:#7a7166;
+  --ink-faint:#b8ad9f;
+  --ink-caption:#c9bdb0;
+  --cinnabar:#b73a2b; --cinnabar-soft:rgba(183,58,43,.42);
+  --felt-base:#eeece6;
+  --felt:none;
+  --ui:'ZCOOL XiaoWei','Noto Serif SC',serif;
+  --mono:'Space Mono',ui-monospace,"SF Mono",Menlo,monospace;
+  --fs-title:18px;
+  --fs-title-en:12px;
+  --fs-body:12px;
+  --fs-caption:10px;
+  --fs-name:28px;
+  --fs-name-sm:15px;
+  --gap-sec:16px;
+  --rule:rgba(43,38,32,.13);
+  /* the third term keeps the vertical sheet's width inside its 48vw stage,
+     so mid-size windows shrink the sheet instead of distorting it */
+  --sheetH:min(760px, calc(100vh - 72px), 79vw);
+  --goldleaf:none;
+  --sel-stroke:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 8' preserveAspectRatio='none'%3E%3Cpath d='M3 4.4 C30 1.6 165 2 197 3.4 L197 4 C165 6.4 30 6 3 5.6 Z' fill='%23b73a2b' opacity='.55'/%3E%3C/svg%3E");
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:var(--mono), var(--ui); font-size:var(--fs-body); color:var(--ink);
+  background:var(--felt-base); display:flex; justify-content:center; align-items:center; overflow:hidden;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:var(--felt); background-size:var(--feltsize,220px);
+}
+#desk{
+  position:relative; z-index:1;
+  display:flex; align-items:stretch; justify-content:center;
+  gap:clamp(36px, 5vw, 72px);
+  height:var(--sheetH);
+  max-width:min(1120px, 94vw);
+}
+#panel{
+  /* fluid between laptop and desktop, so the pair always centres with equal margins */
+  width:clamp(280px, 36vw, 400px); height:100%;
+  display:flex; flex-direction:column;
+}
+#panelScroll{flex:1; overflow-y:auto; padding-right:18px; scrollbar-width:thin; scrollbar-color:rgba(111,99,85,.3) transparent}
+h1{display:flex; flex-direction:row; align-items:center; gap:10px; font-weight:400}
+h1 .cn{font-family:var(--ui); font-size:var(--fs-title); letter-spacing:.14em; color:var(--ink); line-height:1}
+h1 .en{
+  font-family:var(--mono); font-size:var(--fs-title-en); font-weight:400;
+  letter-spacing:.04em; color:var(--ink-soft); line-height:1;
+}
+h1 .seal-dot{display:inline-block; width:6px; height:6px; background:var(--cinnabar); flex-shrink:0}
+#nameInput{
+  display:block; width:100%; border:none; outline:none; margin-top:2px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 6' preserveAspectRatio='none'%3E%3Cpath d='M0 3.2 C40 1.7 160 1.7 200 2.8 L200 3.3 C160 4.5 40 4.5 0 3.9 Z' fill='%236f6355' opacity='.55'/%3E%3C/svg%3E") bottom left/100% 4px no-repeat;
+  padding:4px 2px 11px;
+  font-family:inherit; font-size:var(--fs-body); color:var(--ink-soft); letter-spacing:.02em;
+}
+#nameInput::placeholder{color:var(--ink-caption); font-size:var(--fs-caption)}
+#nameInput:focus{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 6' preserveAspectRatio='none'%3E%3Cpath d='M2 3.3 C34 1.3 168 1.5 198 2.7 L198 3.1 C168 4.7 34 4.5 2 4.3 Z' fill='%23b73a2b' opacity='.6'/%3E%3C/svg%3E")}
+.inkline{
+  height:4px; flex-shrink:0;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 6' preserveAspectRatio='none'%3E%3Cpath d='M0 3.2 C40 1.7 160 1.7 200 2.8 L200 3.3 C160 4.5 40 4.5 0 3.9 Z' fill='%236f6355' opacity='.45'/%3E%3C/svg%3E") center/100% 100% no-repeat;
+}
+#tabs{display:flex; gap:28px; margin-top:36px}
+.tab{
+  font-family:var(--mono); font-size:var(--fs-body); letter-spacing:.08em; color:var(--ink-faint);
+  padding:4px 1px 10px; cursor:pointer; position:relative; user-select:none; font-weight:400; transition:color .15s;
+}
+.tab:hover{color:var(--ink-soft)}
+.tab.on{color:var(--ink); font-weight:400}
+.tab.on::after{
+  content:""; position:absolute; left:-3px; right:-1px; bottom:-3px; height:5px;
+  background:var(--sel-stroke) center/100% 100% no-repeat;
+}
+.sec{display:none; padding:36px 0 2px}
+.sec.on{display:block}
+.hint{font-family:inherit; font-size:var(--fs-caption); color:var(--ink-caption); letter-spacing:.01em; line-height:1.7; margin-top:18px}
+.grp{margin-bottom:40px}
+.sechead{display:flex; align-items:baseline; gap:8px; margin:0 0 var(--gap-sec); line-height:1}
+.sechead .cn{display:none}
+.sechead .en{font-family:var(--mono); font-size:var(--fs-caption); color:var(--ink-caption); letter-spacing:.08em; text-transform:lowercase; font-weight:400; line-height:1}
+.sechead .en u{color:var(--ink-soft); text-decoration-color:var(--cinnabar-soft); text-underline-offset:3px}
+.sechead .pyb{font-size:var(--fs-caption); color:var(--ink-caption)}
+#nameRow{display:flex; align-items:flex-end; gap:16px; margin:16px 0 0; padding-left:2px; flex-wrap:wrap}
+#nameRow:empty{display:none}
+.bigchar{
+  font-size:var(--fs-name); line-height:1.15; cursor:pointer; position:relative; padding:2px 6px 10px;
+  color:var(--ink-faint); transition:color .15s ease;
+}
+.bigchar:hover{color:var(--ink-soft)}
+.bigchar.active{color:var(--ink)}
+.bigchar.sur{cursor:default; color:var(--ink-faint)}
+.bigchar.sur:hover{color:var(--ink-faint)}
+.bigchar.active::after{
+  content:""; position:absolute; left:2px; right:2px; bottom:0; height:5px;
+  background:var(--sel-stroke) center/100% 100% no-repeat;
+}
+#meaningLine{font-size:var(--fs-body); line-height:1.7; margin:6px 0 2px 4px}
+.mseg{color:var(--ink-faint); cursor:pointer; transition:color .15s}
+.mseg:hover{color:var(--ink-soft)}
+.mseg b{font-size:inherit; font-weight:400; color:inherit}
+.mseg.on{color:var(--ink-soft)}
+.mseg.on b{color:var(--ink)}
+.msep{color:var(--ink-faint)}
+#sources{margin:5px 0 0 4px}
+.srcChip{
+  display:inline-flex; align-items:center; gap:6px; cursor:pointer; margin:3px 12px 3px 0;
+  font-size:var(--fs-body); color:var(--cinnabar);
+  border-bottom:1px dashed var(--cinnabar-soft); padding-bottom:2px;
+}
+.srcQuote{
+  margin:4px 0 8px 36px; padding:7px 0 7px 13px; border-left:1px solid var(--cinnabar-soft);
+  font-family:var(--ui); font-size:var(--fs-body); line-height:1.7; display:none;
+}
+.srcQuote.on{display:block}
+.srcQuote .from{display:block; margin-top:5px; font-family:var(--mono); font-size:var(--fs-caption); color:var(--ink-caption)}
+.srcQuote em{font-style:normal; color:var(--cinnabar)}
+#charOptions{margin-top:28px}
+#charOptions:empty{display:none}
+.opt{
+  display:flex; align-items:center; gap:12px; padding:3px 0; cursor:pointer;
+}
+.opt .oc{
+  font-size:var(--fs-name-sm); width:28px; text-align:left; line-height:1.25;
+  /* symmetric padding: the room kept for the selection stroke below used to
+     lift the character 3px above its pinyin and meaning */
+  color:var(--ink-faint); position:relative; padding:6px 0; transition:color .15s;
+}
+.opt .om{font-family:var(--mono); font-size:var(--fs-caption); color:var(--ink-caption); transition:color .1s}
+.opt:hover .oc{color:var(--ink-soft)}
+.opt:hover .om{color:var(--ink-faint)}
+.opt.sel .oc{color:var(--ink)}
+.opt.sel .oc::after{
+  content:""; position:absolute; left:0; right:4px; bottom:0; height:5px;
+  background:var(--sel-stroke) center/100% 100% no-repeat;
+}
+.opt.sel .om{color:var(--ink-faint)}
+.opy{
+  font-family:var(--mono); font-size:var(--fs-caption); color:var(--ink-caption); min-width:42px;
+  cursor:pointer; letter-spacing:.02em; transition:color .15s; flex-shrink:0;
+}
+.opy:hover{color:var(--cinnabar)}
+.osrc{
+  margin-left:auto; font-family:var(--mono); font-size:var(--fs-caption); color:var(--ink-caption); cursor:pointer;
+  border-bottom:1px dashed transparent; white-space:nowrap;
+  padding-bottom:1px; flex-shrink:0; transition:color .15s, border-color .15s;
+}
+.osrc:hover{color:var(--cinnabar); border-bottom-color:var(--cinnabar-soft)}
+.wdline{font-family:var(--mono); font-size:var(--fs-body); color:var(--ink-soft); line-height:1.7}
+.wdline b{font-size:var(--fs-name-sm); font-weight:400; color:var(--ink); margin-right:8px}
+.wdpy{font-family:var(--mono); font-size:var(--fs-caption); color:var(--ink-caption); cursor:pointer; transition:color .15s}
+.wdpy:hover{color:var(--cinnabar)}
+.wdnote{font-family:var(--mono); font-size:var(--fs-caption); color:var(--ink-caption); margin-top:10px; line-height:1.6}
+#calliRow{display:flex; flex-direction:column}
+.calli{
+  padding:8px 0; cursor:pointer;
+  display:flex; align-items:baseline; gap:12px; position:relative;
+}
+.calli:first-child{padding-top:0}
+.calli .sample{
+  font-size:var(--fs-name-sm); line-height:1.15; width:28px; text-align:center; flex-shrink:0;
+  color:var(--ink-faint); position:relative; padding-bottom:6px; transition:color .15s;
+}
+.calli .meta{
+  flex:1; min-width:0; display:flex; align-items:baseline; gap:10px;
+}
+.calli .script, .calli .who, .calli .word{
+  font-family:var(--mono); font-size:var(--fs-body);
+  letter-spacing:.02em; white-space:nowrap; font-weight:400; transition:color .15s;
+}
+.calli .script{color:var(--ink-caption); min-width:13ch}
+.calli .who{color:var(--ink-faint)}
+.calli .word{margin-left:auto; padding-left:12px; text-align:right; color:var(--ink-caption)}
+.calli:hover .sample,
+.calli:hover .who{color:var(--ink-soft)}
+.calli.sel .sample,
+.calli.sel .who{color:var(--ink)}
+.calli.sel .script,
+.calli:hover .script,
+.calli.sel .word,
+.calli:hover .word{color:var(--ink-caption)}
+.calli.sel .sample::after{
+  content:""; position:absolute; left:0; right:0; bottom:0; height:5px;
+  background:var(--sel-stroke) center/100% 100% no-repeat;
+}
+#paperRow{display:flex; gap:40px; align-items:flex-start; padding-left:8px}
+.paperSw{cursor:pointer; text-align:left; position:relative; flex:0 0 32px; width:32px; overflow:visible}
+.paperSw .sw{
+  width:32px; height:32px; margin:0; border:1px solid rgba(43,38,32,.16);
+  transition:border-color .15s; position:relative; overflow:hidden;
+}
+.paperSw .sw::after{
+  content:""; position:absolute; inset:0; opacity:.85;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .42 0 0 0 0 .28 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23s)'/%3E%3C/svg%3E");
+}
+.paperSw:hover .sw{border-color:rgba(43,38,32,.34)}
+.paperSw .pl{
+  display:block; font-family:var(--mono); font-size:var(--fs-body);
+  color:var(--ink-faint); margin-top:6px; line-height:1; text-transform:lowercase;
+  white-space:nowrap; font-weight:400; position:relative; padding-bottom:6px;
+  text-align:left; transition:color .15s;
+}
+.paperSw:hover .pl{color:var(--ink-soft)}
+.paperSw.sel .pl{color:var(--ink)}
+.paperSw.sel .pl::after{
+  content:""; position:absolute; left:0; right:0; bottom:0; height:5px;
+  background:var(--sel-stroke) center/100% 100% no-repeat;
+}
+#orientRow{display:flex; gap:20px}
+.orientBtn{
+  cursor:pointer; padding:0 0 8px; position:relative;
+  font-family:var(--mono); font-size:var(--fs-body); letter-spacing:.04em; line-height:1;
+  color:var(--ink-faint); text-transform:lowercase; font-weight:400; transition:color .15s;
+}
+.orientBtn:hover{color:var(--ink-soft)}
+.orientBtn.sel{color:var(--ink)}
+.orientBtn.sel::after{
+  content:""; position:absolute; left:0; right:0; bottom:0; height:5px;
+  background:var(--sel-stroke) center/100% 100% no-repeat;
+}
+#bottomBar{
+  padding:16px 8px 0 0; margin-top:6px;
+  display:flex; align-items:center; flex-wrap:wrap; gap:16px 20px;
+}
+.tgl{display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none}
+.tgl .mk, #btnDl .mk{
+  font-family:var(--ui); font-size:var(--fs-body); line-height:1; flex-shrink:0;
+  color:var(--ink-faint); transition:color .15s;
+}
+.tgl .lab, #btnDl .lab{font-family:var(--mono); font-size:var(--fs-body); color:var(--ink-faint); letter-spacing:.04em; text-transform:lowercase; transition:color .15s}
+.tgl:hover .mk{color:var(--ink-soft)}
+.tgl:hover .lab{color:var(--ink-soft)}
+.tgl.on .mk{color:var(--cinnabar)}
+.tgl.on .lab{color:var(--ink)}
+.tgl.disabled{opacity:.38; cursor:not-allowed}
+#btnDl{
+  margin-left:auto; border:none; background:transparent; cursor:pointer; padding:0;
+  display:flex; align-items:center; gap:8px;
+}
+#btnDl:hover .mk{color:var(--cinnabar)}
+#btnDl:hover .lab{color:var(--ink)}
+#footer{
+  position:fixed; left:0; right:0; bottom:13px; text-align:center; z-index:2;
+  font-family:var(--mono); font-size:var(--fs-caption); letter-spacing:.14em;
+  color:var(--ink-faint); pointer-events:none;
+}
+#footer a, #footer button{pointer-events:auto}
+#ftTwt{color:inherit; text-decoration:none; cursor:pointer; transition:color .15s}
+#ftTwt:hover{color:var(--ink-soft)}
+#ftHeart{
+  font:inherit; font-size:13px; line-height:1; background:none; border:none; cursor:pointer;
+  color:var(--cinnabar); display:inline-block; padding:0 3px; vertical-align:-1px;
+  transform-origin:center; transition:transform .18s ease;
+}
+#ftHeart:hover{animation:ftwiggle .55s ease infinite}
+#ftHeart.beat{animation:ftbeat .5s ease}
+/* once loved, the mark turns into the character itself — 爱, cinnabar, bold */
+#ftHeart.loved{font-family:var(--ui); font-weight:700; font-size:12.5px; vertical-align:0}
+@keyframes ftwiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-14deg)}75%{transform:rotate(14deg)}}
+@keyframes ftbeat{0%{transform:scale(1)}30%{transform:scale(1.5)}55%{transform:scale(1.08)}75%{transform:scale(1.32)}100%{transform:scale(1)}}
+#stage{
+  /* a fixed box shared by both orientations, so toggling never reflows the page */
+  position:relative; z-index:1; width:min(660px,48vw); height:100%;
+  display:flex; align-items:center; justify-content:center;
+  padding:0; overflow:visible;
+}
+#paper{
+  position:relative; border-radius:2px;
+  /* one far, diffuse shadow — no vignette on the sheet itself */
+  box-shadow:0 24px 70px rgba(70,48,15,.16), 0 4px 18px rgba(70,48,15,.05);
+}
+#paper::before{
+  content:""; position:absolute; inset:0; pointer-events:none; border-radius:2px;
+  background-image:var(--paperTex); background-size:256px 256px;
+  opacity:.75;
+}
+#paper.v{height:100%; aspect-ratio:35/58; width:auto; max-width:100%}
+#paper.h{width:100%; aspect-ratio:64/26; height:auto}
+#paper.p-su{background-color:rgba(246,239,223,.72)}
+#paper.p-gu{background-color:rgba(233,213,172,.78)}
+#paper.p-sajin{background-color:rgba(233,213,172,.78)}
+#paper.p-sajin::after{
+  content:""; position:absolute; inset:0; pointer-events:none; border-radius:2px;
+  background-image:var(--goldleaf); background-size:300px; opacity:1;
+}
+#paper.p-mizige{background-color:rgba(246,239,223,.72)}
+#paper.p-zhu{background-color:rgba(155,42,30,.92)}
+#paper.p-zhu::before{opacity:.4}
+#paper.p-zhu::after{
+  content:""; position:absolute; inset:0; pointer-events:none; border-radius:2px;
+  background-image:var(--goldleaf); background-size:300px; opacity:1;
+}
+#charCol{position:absolute; display:flex; z-index:3; align-items:flex-start}
+#paper.v #charCol{flex-direction:row-reverse; left:55%; top:9%; transform:translateX(-50%)}
+#paper.h #charCol{flex-direction:column; left:52%; top:50%; transform:translate(-50%,-50%)}
+.col{display:flex}
+#paper.v .col{flex-direction:column}
+#paper.h .col{flex-direction:row-reverse}
+.cell{
+  width:var(--cell,calc(var(--sheetH)*0.225)); height:var(--cell,calc(var(--sheetH)*0.225));
+  display:flex; align-items:center; justify-content:center;
+  position:relative;
+}
+#paper.h .cell{width:var(--cell,140px); height:var(--cell,140px)}
+#paper.p-mizige .cell{
+  outline:1px solid rgba(183,58,43,.45);
+  background-image:
+    linear-gradient(0deg, transparent calc(50% - .5px), rgba(183,58,43,.22) calc(50% - .5px) calc(50% + .5px), transparent calc(50% + .5px)),
+    linear-gradient(90deg, transparent calc(50% - .5px), rgba(183,58,43,.22) calc(50% - .5px) calc(50% + .5px), transparent calc(50% + .5px)),
+    linear-gradient(45deg, transparent calc(50% - .5px), rgba(183,58,43,.18) calc(50% - .5px) calc(50% + .5px), transparent calc(50% + .5px)),
+    linear-gradient(135deg, transparent calc(50% - .5px), rgba(183,58,43,.18) calc(50% - .5px) calc(50% + .5px), transparent calc(50% + .5px));
+}
+.cell .glyph{font-size:calc(var(--cell,calc(var(--sheetH)*0.225))*0.855); line-height:1; color:var(--ink); transform-origin:center center}
+#paper.h .cell .glyph{font-size:calc(var(--cell,140px)*0.855)}
+#paper.p-zhu .glyph{color:#e2bd63}
+.inkin{animation:inkin .9s ease both}
+@keyframes inkin{from{opacity:0; filter:blur(7px); transform:scale(1.05)} to{opacity:1; filter:blur(0); transform:scale(1)}}
+.cell .glyph{display:block}
+/* 行/草/隶 stroke animation draws on a canvas a little larger than the cell,
+   centred on it, so the brush has room beyond the glyph's edges */
+.cell .brushcv{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); pointer-events:none}
+/* when stroke animation is on, the hanzi-writer character IS the final glyph —
+   what the brush writes is what stays; no swap to the display font afterwards.
+   never restyle its svg paths: the animated stroke's thickness is an inline
+   attribute, and a CSS stroke-width overrides it down to a hairline */
+.write{
+  -webkit-mask-image:linear-gradient(135deg,#000 42%,transparent 58%);
+  mask-image:linear-gradient(135deg,#000 42%,transparent 58%);
+  -webkit-mask-size:300% 300%; mask-size:300% 300%;
+  animation:brushout .8s cubic-bezier(.5,.1,.4,1) both;
+}
+@keyframes brushout{
+  from{-webkit-mask-position:100% 100%; mask-position:100% 100%}
+  to{-webkit-mask-position:0% 0%; mask-position:0% 0%}
+}
+#paper.empty .glyph{opacity:.1}
+#paper.p-zhu.empty .glyph{opacity:.25}
+#colBlock{position:absolute; z-index:3; display:flex; flex-direction:column; align-items:center; gap:0; width:70px}
+/* the colophon owns its place; the seal is stamped OVER its tail and moves nothing */
+#sealBox{position:absolute; left:50%; bottom:-14px; transform:translateX(-50%) rotate(-3deg)}
+#colophon{order:1}
+#paper.v #colBlock{left:9%; bottom:8%}
+#paper.h #colBlock{left:5.5%; bottom:6%; flex-direction:row-reverse; align-items:flex-end; width:auto; gap:8px}
+#paper.h #colophon{font-size:13px}
+/* the horizontal sheet's colophon is smaller, so its seal is too (≈3× the colophon size, as on the vertical sheet) */
+#paper.h #sealBox{margin-top:0; width:40px; height:40px; bottom:-10px}
+#paper.h #sealBox canvas{width:40px; height:40px}
+#colophon{
+  writing-mode:vertical-rl; font-size:15px;
+  color:#4a4136; letter-spacing:.26em; line-height:1.9;
+}
+#paper.p-zhu #colophon{color:#dbb977}
+#paper.p-zhu #sealBox.ghost{opacity:.38}
+#paper.empty #colophon{opacity:.28}
+#sealBox{
+  width:56px; height:56px; background:none; border:none; box-shadow:none; padding:0;
+}
+#sealBox canvas{
+  display:block; width:56px; height:56px;
+  opacity:.78; mix-blend-mode:multiply;   /* seal paste is translucent: ink shows through */
+}
+/* while the name is being written, the colophon and seal wait their turn:
+   text first, then the colophon character by character, then the stamp */
+#paper.writing #colophon{opacity:0}
+#sealBox.held{opacity:0}
+#colophon .kc{display:inline; opacity:0; animation:kcin .45s ease both}
+@keyframes kcin{from{opacity:0; filter:blur(3px)} to{opacity:1; filter:blur(0)}}
+#sealBox.stamping{animation:stamp .8s cubic-bezier(.3,1.2,.35,1) both}
+@keyframes stamp{
+  0%{transform:translateX(-50%) translateY(-30px) scale(1.22) rotate(-8deg); opacity:0}
+  38%{transform:translateX(-50%) translateY(1px) scale(.965) rotate(-2.4deg); opacity:1}
+  55%{transform:translateX(-50%) translateY(0) scale(.985) rotate(-3.2deg)}
+  72%{transform:translateX(-50%) scale(1.015) rotate(-2.9deg)}
+  100%{transform:translateX(-50%) scale(1) rotate(-3deg)}
+}
+#sealBox.ghost{opacity:.32; border:none; background:none; padding:0; display:block}
+#sealBox.off{display:none}
+.f-kai{font-family:'Ma Shan Zheng',cursive}
+.f-xing{font-family:'Zhi Mang Xing',cursive}
+.f-cao{font-family:'Liu Jian Mao Cao',cursive}
+.f-li{font-family:'TW-MOE-Li','Noto Serif SC',serif}
+/* ── mobile: stack the panel above the sheet, page scrolls ── */
+@media (max-width:719px){
+  html,body{height:auto}
+  body{display:block; overflow:auto; padding:24px 18px 56px}
+  #desk{flex-direction:column; height:auto; max-width:100%; gap:34px}
+  #panel{width:100%; min-width:0; height:auto}
+  #panelScroll{overflow:visible; padding-right:0}
+  #tabs{margin-top:26px}
+  #stage{width:100%; height:auto}
+  #paper.v{height:auto; width:min(88vw,420px); aspect-ratio:35/58}
+  #paper.h{width:100%; height:auto}
+  #footer{position:static; margin-top:44px}
+}

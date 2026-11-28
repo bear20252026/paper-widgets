@@ -1,0 +1,192 @@
+/* The player's text column starts at --player-x: the label follows it */
+.player {
+  --label-left: var(--player-x);
+}
+
+.cover {
+  position: absolute;
+  left: var(--cover-inset);
+  top: var(--cover-inset);
+  width: var(--cover-size);
+  height: var(--cover-size);
+  border-radius: var(--cover-radius);
+  overflow: hidden;
+}
+
+.art {
+  position: absolute;
+  inset: 0;
+}
+
+/* First cover: ultramarine, a peach sun cut by the corner, a rule and a catalogue mark */
+.artA {
+  background: var(--cover-a);
+}
+
+.aDisc {
+  position: absolute;
+  right: var(--cover-a-disc-right);
+  top: var(--cover-a-disc-top);
+  width: var(--cover-a-disc-size);
+  height: var(--cover-a-disc-size);
+  border-radius: 50%;
+  background: var(--cover-a-disc);
+}
+
+.aRule {
+  position: absolute;
+  left: var(--cover-a-x);
+  bottom: var(--cover-a-rule-bottom);
+  width: var(--cover-a-rule-w);
+  height: var(--cover-a-rule-h);
+  background: var(--white);
+  opacity: var(--cover-a-rule-opacity);
+}
+
+.aMark {
+  position: absolute;
+  left: var(--cover-a-x);
+  bottom: var(--cover-a-mark-bottom);
+  font-family: var(--font-mono);
+  font-size: var(--cover-a-mark-size);
+  letter-spacing: var(--cover-a-mark-tracking);
+  color: var(--white);
+}
+
+/* Second cover: paper, a black disc and a small ultramarine square */
+.artB {
+  background: var(--cover-b);
+}
+
+.bDisc {
+  position: absolute;
+  left: var(--cover-b-disc-x);
+  top: var(--cover-b-disc-y);
+  width: var(--cover-b-disc-size);
+  height: var(--cover-b-disc-size);
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.bSquare {
+  position: absolute;
+  right: var(--cover-b-square-inset);
+  bottom: var(--cover-b-square-inset);
+  width: var(--cover-b-square);
+  height: var(--cover-b-square);
+  border-radius: var(--cover-b-square-radius);
+  background: var(--accent);
+}
+
+/* Five equaliser bars standing on the label's line; their height is written per frame */
+.eq {
+  position: absolute;
+  left: var(--eq-x);
+  top: var(--eq-y);
+  width: var(--eq-w);
+  height: var(--eq-h);
+}
+
+.eqBar {
+  position: absolute;
+  left: calc(var(--i) * var(--eq-pitch));
+  bottom: 0;
+  width: var(--eq-bar);
+  border-radius: var(--eq-radius);
+  background: var(--accent);
+}
+
+.title {
+  position: absolute;
+  left: var(--player-x);
+  top: var(--title-y);
+  font-size: var(--title-size);
+  letter-spacing: var(--title-tracking);
+}
+
+.artist {
+  position: absolute;
+  left: var(--artist-x);
+  top: var(--artist-y);
+  font-size: var(--artist-size);
+  color: var(--muted);
+}
+
+.progress {
+  position: absolute;
+  left: var(--player-x);
+  top: var(--progress-y);
+  width: var(--progress-w);
+  height: var(--progress-h);
+  border-radius: var(--round);
+  background: var(--track);
+  overflow: hidden;
+}
+
+.fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: var(--round);
+  background: var(--ink);
+}
+
+/* On the playhead: left is written per frame, the margin pulls it back by (about) half */
+.knob {
+  position: absolute;
+  top: var(--knob-y);
+  width: var(--knob);
+  height: var(--knob);
+  margin-left: var(--knob-pull);
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: var(--knob-shadow);
+}
+
+.time {
+  position: absolute;
+  top: var(--times-y);
+  font-family: var(--font-mono);
+  font-size: var(--times-size);
+  color: var(--muted);
+}
+
+.elapsed {
+  left: var(--player-x);
+}
+
+.length {
+  left: var(--length-x);
+}
+
+.button {
+  position: absolute;
+  top: var(--button-y);
+  width: var(--button);
+  height: var(--button);
+  display: grid;
+  place-items: center;
+}
+
+.prev {
+  left: var(--prev-x);
+}
+
+.next {
+  left: var(--next-x);
+  border-radius: 50%;
+}
+
+.play {
+  position: absolute;
+  left: var(--play-x);
+  top: var(--play-y);
+  width: var(--play);
+  height: var(--play);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--white);
+}

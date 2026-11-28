@@ -1,0 +1,8 @@
+{
+  "name": "Narrated Storybook Maker (Template)",
+  "description": "An autonomous illustrated storybook & dramatized classic audiobook studio powered by the Gemini Managed Agent and the Gemini API CLI across the Gemini model catalog.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,77 @@
+/* One full-bleed room whose colour follows the light; the glass pill sits in the middle of it. */
+.stage {
+  min-height: 100%;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  padding-block: var(--stage-pad-block);
+  padding-left: max(var(--stage-pad-inline), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--stage-pad-inline), env(safe-area-inset-right, 0px));
+  overflow-x: clip;
+}
+.wrap {
+  width: 100%;
+  max-width: var(--wrap-max);
+  display: grid;
+  justify-items: center;
+}
+.tank {
+  position: relative;
+  max-width: 100%;
+}
+.tank canvas {
+  display: block;
+  max-width: 100%;
+}
+/* The switch: an invisible button over the pill; the engine sizes it to the pill */
+.hit {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.hit:active {
+  cursor: grabbing;
+}
+.hit:focus {
+  outline: none;
+}
+.hit:focus-visible {
+  outline: var(--focus-ring-width) solid var(--fg);
+  outline-offset: var(--focus-ring-offset);
+}
+.vh {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+/* The demo pointer: shown only while the demo plays; the engine moves it */
+.cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: var(--cursor-size);
+  height: var(--cursor-size);
+  display: none;
+  pointer-events: none;
+  filter: var(--cursor-shadow);
+  transform-origin: 0 0;
+}
+.cursor[data-on] {
+  display: block;
+}
+.cursor path {
+  transform-origin: 3px 2px;
+}
+.cursor[data-down] path {
+  scale: var(--cursor-press);
+}

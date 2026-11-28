@@ -1,0 +1,28 @@
+{
+  "name": "paper-widgets",
+  "private": true,
+  "version": "0.25.0",
+  "description": "A library of 78 finished, self-contained pieces across six categories — data, widget, page, object, scene and play — plus a separate Workshop of 24 early cuts, source cuts, prototypes, server-dependent demos, alternate editions and studies — each in its own folder, each liftable.",
+  "scripts": {
+    "install:pieces": "node scripts/install-pieces.mjs",
+    "dev": "node scripts/dev-piece.mjs",
+    "dev:widgets": "npm --prefix paper-widgets run dev",
+    "dev:aquarium": "npm --prefix aquarium-toggle run dev",
+    "dev:pip": "npm --prefix pip-login run dev",
+    "dev:finance": "npm --prefix finance-dashboard run dev",
+    "dev:puzzle": "npm --prefix puzzlecard run dev",
+    "dev:client": "node scripts/serve-piece.mjs client-dashboard",
+    "dev:xiaolu": "node scripts/dev-piece.mjs xiaolu-staff",
+    "dev:sundrel": "node scripts/serve-piece.mjs sundrel-metrics",
+    "dev:lumiloom": "node scripts/serve-piece.mjs lumiloom",
+    "dev:grow": "node scripts/serve-piece.mjs text-grow",
+    "dev:minionslab": "node scripts/serve-piece.mjs minionslab",
+    "dev:prism": "node scripts/serve-piece.mjs prism",
+    "test": "npm --prefix puzzlecard test",
+    "galleries": "node scripts/build-galleries.mjs",
+    "readme": "node scripts/build-readme.mjs",
+    "build": "node scripts/build-site.mjs",
+    "site": "node scripts/build-site.mjs",
+    "serve": "node scripts/serve-site.mjs"
+  }
+}

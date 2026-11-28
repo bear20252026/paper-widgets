@@ -1,0 +1,38 @@
+@font-face {
+  font-family: Geist;
+  src: url("/fonts/Geist-400.woff2") format("woff2");
+  font-weight: 400;
+  font-display: block;
+}
+@font-face {
+  font-family: Geist;
+  src: url("/fonts/Geist-500.woff2") format("woff2");
+  font-weight: 500;
+  font-display: block;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/GeistMono-500.woff2") format("woff2");
+  font-weight: 500;
+  font-display: block;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html {
+  height: 100%;
+  background: var(--page);
+  overflow: hidden;
+}
+/* Fixed and clipped, so a phone never widens its layout viewport to fit the 1080-px stage */
+body {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--page);
+}

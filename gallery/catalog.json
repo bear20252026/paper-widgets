@@ -1,0 +1,2263 @@
+{
+  "pieces": [
+    {
+      "id": "paper-widgets",
+      "href": "./paper-widgets/",
+      "title": "Paper Widgets",
+      "dataText": "paper widgets seven everyday widgets in one paper-white style, on an 11-second loop. every frame is a pure function of time, so it exports frame-exact. react 19 vite 8 css modules",
+      "copy": "Seven everyday widgets in one paper-white style, on an 11-second loop. Every frame is a pure function of time, so it exports frame-exact.",
+      "tags": [
+        "React 19",
+        "Vite 8",
+        "CSS Modules"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#f4f2ec",
+        "b": "#2b36ff",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "widget"
+    },
+    {
+      "id": "aquarium-toggle",
+      "href": "./aquarium-toggle/",
+      "title": "Aquarium Toggle",
+      "dataText": "aquarium toggle a light/dark switch that is a glass pill holding a pixel aquarium: 144 × 76 cells at 30 hz, drawn by one webgl2 shader. react 19 webgl2 canvas",
+      "copy": "A light/dark switch that is a glass pill holding a pixel aquarium: 144 × 76 cells at 30 Hz, drawn by one WebGL2 shader.",
+      "tags": [
+        "React 19",
+        "WebGL2",
+        "Canvas"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#a9e0d3",
+        "b": "#287a88",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "widget"
+    },
+    {
+      "id": "pip-login",
+      "href": "./pip-login/",
+      "title": "Pip Login",
+      "dataText": "pip login a sign-in card with a little robot: led eyes read along as you type, cross out a bad email and turn to hearts on sign-in. react 19 canvas led 14 s loop",
+      "copy": "A sign-in card with a little robot: LED eyes read along as you type, cross out a bad email and turn to hearts on sign-in.",
+      "tags": [
+        "React 19",
+        "Canvas LED",
+        "14 s loop"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#f4f2ee",
+        "b": "#141416",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "widget"
+    },
+    {
+      "id": "finance-dashboard",
+      "href": "./finance-dashboard/",
+      "title": "Finance Dashboard",
+      "dataText": "finance dashboard twelve cards on warm cream, cut from a reference at 1624 × 900 — sparklines, dot matrices, and buttons that answer back. react 19 inline svg motion",
+      "copy": "Twelve cards on warm cream, cut from a reference at 1624 × 900 — sparklines, dot matrices, and buttons that answer back.",
+      "tags": [
+        "React 19",
+        "inline SVG",
+        "motion"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#eaeae6",
+        "b": "#ff5b14",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "data"
+    },
+    {
+      "id": "interactive-data-dashboard",
+      "href": "./interactive-data-dashboard/",
+      "title": "Folio — Data Dashboard",
+      "dataText": "folio — data dashboard a data-visualisation template with responsive svg charts, live filters, scrollytelling columns and seven wcag-aa themes; switch the edition and export the table. svg scrollytelling 7 themes",
+      "copy": "A data-visualisation template with responsive SVG charts, live filters, scrollytelling columns and seven WCAG-AA themes; switch the edition and export the table.",
+      "tags": [
+        "SVG",
+        "scrollytelling",
+        "7 themes"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#ede7dd",
+        "b": "#6c50f6",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "data"
+    },
+    {
+      "id": "expense-receipts-analytics",
+      "href": "./expense-receipts-analytics/",
+      "title": "Shoebox — Spend Audit",
+      "dataText": "shoebox — spend audit a receipt-reconciliation desk: drop photos into a tray, review extracted line items, catch duplicates and read the spend charts. the shelf cut opens a five-receipt sample ledger; ocr needs its server. react receipts dashboard",
+      "copy": "A receipt-reconciliation desk: drop photos into a tray, review extracted line items, catch duplicates and read the spend charts. The shelf cut opens a five-receipt sample ledger; OCR needs its server.",
+      "tags": [
+        "React",
+        "receipts",
+        "dashboard"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#f1eadc",
+        "b": "#334f3f",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "workshop",
+      "kind": "server-cut",
+      "note": "The sample ledger is here; receipt OCR needs its server.",
+      "category": "data"
+    },
+    {
+      "id": "sundrel-metrics",
+      "href": "./sundrel-metrics/",
+      "title": "Sundrel Metrics",
+      "dataText": "sundrel metrics a project manager's dashboard: a lime hero, seven cards on a sage field, a ball made of gradients, and a task that drops into the roadmap. one html file inline js dashboard",
+      "copy": "A project manager's dashboard: a lime hero, seven cards on a sage field, a ball made of gradients, and a task that drops into the roadmap.",
+      "tags": [
+        "one HTML file",
+        "inline JS",
+        "dashboard"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#e4ecd4",
+        "b": "#bfd94a",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "data"
+    },
+    {
+      "id": "night-dial",
+      "href": "./night-dial/",
+      "title": "Night Dial",
+      "dataText": "night dial a sleep schedule dial wrapped around a day-and-night sphere: set bedtime and wake, turn the hours, watch the light change. react vite svg",
+      "copy": "A sleep schedule dial wrapped around a day-and-night sphere: set bedtime and wake, turn the hours, watch the light change.",
+      "tags": [
+        "React",
+        "Vite",
+        "SVG"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#0d1730",
+        "b": "#efc775",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "widget"
+    },
+    {
+      "id": "vinyl-archive",
+      "href": "./vinyl-archive/",
+      "title": "Sable — Disc Archive",
+      "dataText": "sable — disc archive a 3d record archive: sleeves on a shelf, a disc you can pull out and spin, and a sleeve that opens into a release page. react three.js audio",
+      "copy": "A 3D record archive: sleeves on a shelf, a disc you can pull out and spin, and a sleeve that opens into a release page.",
+      "tags": [
+        "React",
+        "three.js",
+        "audio"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#111013",
+        "b": "#d9cfbf",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "object"
+    },
+    {
+      "id": "vinyl-archive-early",
+      "href": "./vinyl-archive-early/",
+      "title": "Sable — Archive Wall",
+      "dataText": "sable — archive wall the first cut of sable's archive: sixteen record cases on a curved platter, a 1994–2009 timeline, and a sleeve that opens into a release page. react three.js archive",
+      "copy": "The first cut of Sable's archive: sixteen record cases on a curved platter, a 1994–2009 timeline, and a sleeve that opens into a release page.",
+      "tags": [
+        "React",
+        "three.js",
+        "archive"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#141218",
+        "b": "#d8c1a0",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "workshop",
+      "kind": "early-cut",
+      "note": "The first cut of the Sable archive; the finished Disc Archive is on the shelf.",
+      "category": "object"
+    },
+    {
+      "id": "discography",
+      "href": "./discography/",
+      "title": "Discography",
+      "dataText": "discography a rack of cds you can handle: pull a jewel case off the shelf, turn it over, open the booklet and put the disc on a player for a thirty-second preview. solidjs three.js cd archive",
+      "copy": "A rack of CDs you can handle: pull a jewel case off the shelf, turn it over, open the booklet and put the disc on a player for a thirty-second preview.",
+      "tags": [
+        "SolidJS",
+        "three.js",
+        "CD archive"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#17151a",
+        "b": "#d9c3a0",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "object"
+    },
+    {
+      "id": "vinyl-player",
+      "href": "./vinyl-player/",
+      "title": "Vinyl — Record Player",
+      "dataText": "vinyl — record player a record player simulated from the groove up: the music is cut into a spiral, and a stylus on a cantilever reads the two walls back on the audio thread. hiss, crackle and scratches are the geometry, not effects; drop a file in and the lathe cuts it. web audio webgl2 no dependencies",
+      "copy": "A record player simulated from the groove up: the music is cut into a spiral, and a stylus on a cantilever reads the two walls back on the audio thread. Hiss, crackle and scratches are the geometry, not effects; drop a file in and the lathe cuts it.",
+      "tags": [
+        "Web Audio",
+        "WebGL2",
+        "no dependencies"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#0d0f13",
+        "b": "#cdbfa6",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "object"
+    },
+    {
+      "id": "orbend-dashboard",
+      "href": "./orbend-dashboard/",
+      "title": "Orbend",
+      "dataText": "orbend a two-page sales dashboard: revenue and channels, a dense order table, and a drawer that opens on a row. react tailwind dashboard",
+      "copy": "A two-page sales dashboard: revenue and channels, a dense order table, and a drawer that opens on a row.",
+      "tags": [
+        "React",
+        "Tailwind",
+        "dashboard"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#0e1116",
+        "b": "#9ae6b4",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "data"
+    },
+    {
+      "id": "amara-dashboard",
+      "href": "./amara-dashboard/",
+      "title": "Amara",
+      "dataText": "amara a finance dashboard in a warm paper palette: balances, cards, a spending timeline and a quiet navigation rail. react tailwind dashboard",
+      "copy": "A finance dashboard in a warm paper palette: balances, cards, a spending timeline and a quiet navigation rail.",
+      "tags": [
+        "React",
+        "Tailwind",
+        "dashboard"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#f4efe6",
+        "b": "#b4553a",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "data"
+    },
+    {
+      "id": "wetrust-console",
+      "href": "./wetrust-console/",
+      "title": "WeTrust Console",
+      "dataText": "wetrust console an enterprise wechat-ecosystem governance console: a china tile map, dense tables, a command palette and a guided tour. react tailwind console",
+      "copy": "An enterprise WeChat-ecosystem governance console: a China tile map, dense tables, a command palette and a guided tour.",
+      "tags": [
+        "React",
+        "Tailwind",
+        "console"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#101828",
+        "b": "#ff8a3d",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "data"
+    },
+    {
+      "id": "wechat-login",
+      "href": "./wechat-login/",
+      "title": "WeChat Login",
+      "dataText": "wechat login a wechat sign-in prototype: a phone frame, a qr code that pretends to scan, and the states that follow it. react qr code prototype",
+      "copy": "A WeChat sign-in prototype: a phone frame, a QR code that pretends to scan, and the states that follow it.",
+      "tags": [
+        "React",
+        "QR code",
+        "prototype"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#0b0f0c",
+        "b": "#07c160",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "workshop",
+      "kind": "prototype",
+      "note": "A sign-in prototype; the QR pretends to scan.",
+      "category": "widget"
+    },
+    {
+      "id": "wechat-unfolded",
+      "href": "./wechat-unfolded/",
+      "title": "微信 unfolded",
+      "dataText": "微信 unfolded a dual-platform wechat ui archive: 12 desktop screens and 26 phone screens, live-synced, with dark mode, type-size controls and design-spec overlays. react 38 screens design system",
+      "copy": "A dual-platform WeChat UI archive: 12 desktop screens and 26 phone screens, live-synced, with dark mode, type-size controls and design-spec overlays.",
+      "tags": [
+        "React",
+        "38 screens",
+        "design system"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#eef1ea",
+        "b": "#07c160",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "page"
+    },
+    {
+      "id": "alphaqubit",
+      "href": "./alphaqubit/",
+      "title": "AlphaQubit",
+      "dataText": "alphaqubit a quantum error-decoding visualisation: a 3d surface-code lattice, decoder diagrams and the numbers behind them. react react-three-fiber science",
+      "copy": "A quantum error-decoding visualisation: a 3D surface-code lattice, decoder diagrams and the numbers behind them.",
+      "tags": [
+        "React",
+        "react-three-fiber",
+        "science"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#05070f",
+        "b": "#6ee7ff",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "data"
+    },
+    {
+      "id": "seam-transitions",
+      "href": "./seam-transitions/",
+      "title": "Seam Transitions",
+      "dataText": "seam transitions eleven ways to animate the seam between a dark hero and the page that scrolls over it — ink bleed, crumble, fray, kintsugi, roots, sediment — all driven by gsap scrollsmoother. gsap scrollsmoother 11 studies",
+      "copy": "Eleven ways to animate the seam between a dark hero and the page that scrolls over it — ink bleed, crumble, fray, kintsugi, roots, sediment — all driven by GSAP ScrollSmoother.",
+      "tags": [
+        "GSAP",
+        "ScrollSmoother",
+        "11 studies"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#101820",
+        "b": "#d8c08a",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "workshop",
+      "kind": "study",
+      "note": "Eleven transition studies around one seam, not a complete page.",
+      "category": "widget"
+    },
+    {
+      "id": "every-joule",
+      "href": "./every-joule/",
+      "title": "Every Joule",
+      "dataText": "every joule a three-page science lesson: a pop-up book on energy stores that turns its own pages, sources and teachers' notes. three.js book education",
+      "copy": "A three-page science lesson: a pop-up book on energy stores that turns its own pages, sources and teachers' notes.",
+      "tags": [
+        "three.js",
+        "book",
+        "education"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#f7f2e7",
+        "b": "#d97706",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "page"
+    },
+    {
+      "id": "audio-storybooks",
+      "href": "./audio-storybooks/",
+      "title": "Audio Storybooks",
+      "dataText": "audio storybooks a storybook studio: an illustrated page, a narrator's timeline and an audio player, built around a managed agent that writes and reads a book. the shelf cut keeps the reader; generation needs its server. react storybook audio",
+      "copy": "A storybook studio: an illustrated page, a narrator's timeline and an audio player, built around a managed agent that writes and reads a book. The shelf cut keeps the reader; generation needs its server.",
+      "tags": [
+        "React",
+        "storybook",
+        "audio"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#f3ead8",
+        "b": "#b26b4e",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "workshop",
+      "kind": "server-cut",
+      "note": "The reader is here; the agent that writes and reads a book needs its server.",
+      "category": "page"
+    },
+    {
+      "id": "cathedral-walk",
+      "href": "./cathedral-walk/",
+      "title": "Cathedral Walk",
+      "dataText": "cathedral walk a first-person walk down a reconstructed cathedral nave — stone, glass, time of day — in plain three.js. three.js no build walk",
+      "copy": "A first-person walk down a reconstructed cathedral nave — stone, glass, time of day — in plain three.js.",
+      "tags": [
+        "three.js",
+        "no build",
+        "walk"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#1b1a17",
+        "b": "#d9c7a3",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "little-prince",
+      "href": "./little-prince/",
+      "title": "The Little Prince",
+      "dataText": "the little prince a procedural character study: front, side and back views, wireframe inspection, an idle preview and a glb export. react-three-fiber glb character",
+      "copy": "A procedural character study: front, side and back views, wireframe inspection, an idle preview and a GLB export.",
+      "tags": [
+        "react-three-fiber",
+        "GLB",
+        "character"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#f2e5c8",
+        "b": "#3b5bdb",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "workshop",
+      "kind": "study",
+      "note": "A character study with inspection and GLB export, not a full scene.",
+      "category": "object"
+    },
+    {
+      "id": "anywhere",
+      "href": "./anywhere/",
+      "title": "Anywhere",
+      "dataText": "anywhere a paper globe of forty-eight places: spin it, open a place card, read where the picture was taken. the shelf cut includes an illustrated sample traveller. react globe photography",
+      "copy": "A paper globe of forty-eight places: spin it, open a place card and read where the picture was taken. The shelf cut includes an illustrated sample traveller.",
+      "tags": [
+        "React",
+        "globe",
+        "photography"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#0b1220",
+        "b": "#66e3b4",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "page"
+    },
+    {
+      "id": "earshot-fennec",
+      "href": "./earshot-fennec/",
+      "title": "EARSHOT",
+      "dataText": "earshot a game-marketing site for a fennec fox that outruns a morphing world: a salt-flat hero, three auto-advancing worlds, the kit, routes, league and a live distance counter. react 19 tailwind 4 site",
+      "copy": "A game-marketing site for a fennec fox that outruns a morphing world: a salt-flat hero, three auto-advancing worlds, the kit, routes, league and a live distance counter.",
+      "tags": [
+        "React 19",
+        "Tailwind 4",
+        "site"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#e2b08a",
+        "b": "#2b2320",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "page"
+    },
+    {
+      "id": "e-commerce-landing-page",
+      "href": "./e-commerce-landing-page/",
+      "title": "Material Flask",
+      "dataText": "material flask a water-bottle brand cut as an editorial product page: a matte flask, macro photography, scroll-driven chapters and a quiet purchase path. react gsap commerce",
+      "copy": "A water-bottle brand cut as an editorial product page: a matte flask, macro photography, scroll-driven chapters and a quiet purchase path.",
+      "tags": [
+        "React",
+        "GSAP",
+        "commerce"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#f2efe7",
+        "b": "#8c9b7a",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "page"
+    },
+    {
+      "id": "lumina-festival",
+      "href": "./lumina-festival/",
+      "title": "Lumina Festival",
+      "dataText": "lumina festival an immersive festival landing page in deep indigo: a fluid light field, glitch type, artist cards and a small ai concierge. react motion festival",
+      "copy": "An immersive festival landing page in deep indigo: a fluid light field, glitch type, artist cards and a small AI concierge.",
+      "tags": [
+        "React",
+        "motion",
+        "festival"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#1b1c4a",
+        "b": "#ec7dc0",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "page"
+    },
+    {
+      "id": "client-dashboard",
+      "href": "./client-dashboard/",
+      "title": "Client Dashboard",
+      "dataText": "client dashboard a client-management dashboard cut from a reference at 794 x 444: a lavender pro plan card with a floating prism, a week of worked hours in bars, virtual cards, a spending line and a contract-type bubble field. one html file inline svg dashboard",
+      "copy": "A client-management dashboard cut from a reference at 794 x 444: a lavender plan card with a floating prism, a week of worked hours in bars, virtual cards, a spending line and a contract-type bubble field.",
+      "tags": [
+        "one HTML file",
+        "inline SVG",
+        "dashboard"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#dfe3f2",
+        "b": "#cfe03c",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "data"
+    },
+    {
+      "id": "rollbank-dashboard",
+      "href": "./rollbank-dashboard/",
+      "title": "RollBank Dashboard",
+      "dataText": "rollbank dashboard a finance dashboard cut from a reference at 832 x 482: a dark frame around a pale room with a balance chart, a periwinkle credit card, a half-ring 90% gauge, three transactions and a 60/40 spending bar. one html file inline svg dashboard",
+      "copy": "A finance dashboard cut from a reference at 832 × 482: a dark frame around a pale room — a balance chart, a periwinkle credit card, a half-ring 90% gauge, three transactions and a two-tone spending bar.",
+      "tags": [
+        "one HTML file",
+        "inline SVG",
+        "dashboard"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#a3b8ee",
+        "b": "#17171e",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "data"
+    },
+    {
+      "id": "ming-ming-name",
+      "href": "./ming-ming-name/",
+      "title": "明名 · Ming Ming",
+      "dataText": "明名 ming ming write your chinese name a calligraphy desk: type a name in any language, swap the characters, set it in kai, xing, cao or li, add a seal, watch the strokes and download a png. hanzi-writer calligraphy no build",
+      "copy": "A calligraphy desk: type a name in any language, swap the characters, set it down in kai, xing, cao or li, add a seal, watch the strokes arrive and take a PNG away.",
+      "tags": [
+        "hanzi-writer",
+        "calligraphy",
+        "no build"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#efe7d4",
+        "b": "#1c1a17",
+        "m": "rgba(20,20,22,0.35)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "widget"
+    },
+    {
+      "id": "room-style-visualizer",
+      "href": "./room-style-visualizer/",
+      "title": "Space Lift — Room Visualizer",
+      "dataText": "space lift — room visualizer a room-redesign studio: upload a photograph of your space, pick a style and swipe between generated directions. the static cut keeps the studio; image generation needs its server. react interiors studio",
+      "copy": "A room-redesign studio: upload a photograph of your space, pick a style and swipe between generated directions. The static cut keeps the studio; image generation needs its server.",
+      "tags": [
+        "React",
+        "interiors",
+        "studio"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#e8e0d2",
+        "b": "#9c8468",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "workshop",
+      "kind": "server-cut",
+      "note": "The studio is here; image generation needs its server.",
+      "category": "object"
+    },
+    {
+      "id": "zemu-dashboard",
+      "href": "./zemu-dashboard/",
+      "title": "Zemü Dashboard",
+      "dataText": "zemu dashboard a personal-finance dashboard cut from a reference at 770 x 424: a mint-to-lime balance card, a five-month bar chart, a spending ring, stacked cards over a lavender one, a subscription list and a transaction ledger. one html file inline svg dashboard",
+      "copy": "A personal-finance dashboard cut from a reference at 770 × 424: a mint-to-lime balance card, a five-month bar chart, a spending ring, stacked cards over a lavender one and a subscription list.",
+      "tags": [
+        "one HTML file",
+        "inline SVG",
+        "dashboard"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#0d0d10",
+        "b": "#cbeb6e",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "data"
+    },
+    {
+      "id": "yuanshan-crm",
+      "href": "./yuanshan-crm/",
+      "title": "Yuanshan CRM",
+      "dataText": "yuanshan crm a consultancy client desk: an ink-green monthly overview and five-stage funnel, a pipeline advanced by dragging, a searchable client ledger, a communication timeline and six languages, on warm paper. react 19 vite 7 tailwind 4 dnd-kit",
+      "copy": "A consultancy's client desk: an ink-green monthly overview and five-stage funnel, a pipeline advanced by dragging, a searchable client ledger and a communication timeline, in six languages.",
+      "tags": [
+        "React 19",
+        "Vite 7",
+        "Tailwind 4"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#f6f5f0",
+        "b": "#1e3a32",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "data"
+    },
+    {
+      "id": "xiaolu-staff",
+      "href": "./xiaolu-staff/?locale=zh-CN#/staff",
+      "title": "小鹿美术 · 教务小本子",
+      "dataText": "xiaolu art studio class notebook a children's art-studio notebook: today's lessons, a weekly timetable, young-artist profiles, roll call, lesson balances and a small artwork wall. react 19 trpc in-page six languages",
+      "copy": "A children's art-studio class notebook: today's lessons, a weekly timetable, young-artist profiles, roll call, lesson balances and a small artwork wall.",
+      "tags": [
+        "React 19",
+        "tRPC in-page",
+        "6 languages"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#fff8ec",
+        "b": "#e8a26a",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "data"
+    },
+    {
+      "id": "ai-talk-radio",
+      "href": "./ai-talk-radio/",
+      "title": "AI Talk Radio",
+      "dataText": "ai talk radio a radio-studio desk: type a prompt, shape a show rundown, choose voices and music, and listen to a generated broadcast. the shelf cut opens the console; generation needs its server. react radio studio",
+      "copy": "A radio-studio desk: type a prompt, shape a show rundown, choose voices and music, and listen to a generated broadcast. The shelf cut opens the console; generation needs its server.",
+      "tags": [
+        "React",
+        "radio",
+        "studio"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#1a1320",
+        "b": "#ffb45e",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "workshop",
+      "kind": "server-cut",
+      "note": "The console is here; broadcast generation needs its server.",
+      "category": "widget"
+    },
+    {
+      "id": "sunlit-crown",
+      "href": "./sunlit-crown/",
+      "title": "The Sunlit Crown",
+      "dataText": "the sunlit crown a throne hall in one file: columns, hanging banners, dust in the light, and a crown at the far end. three.js one file architecture",
+      "copy": "A throne hall in one file: columns, hanging banners, dust in the light, and a crown at the far end.",
+      "tags": [
+        "three.js",
+        "one file",
+        "architecture"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#d9b26a",
+        "b": "#6b2a1e",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "aetheria",
+      "href": "./aetheria/",
+      "title": "Aetheria",
+      "dataText": "aetheria a whale carrying a castle through a pastel sky; drag to look around, scroll to drift closer. react three.js procedural",
+      "copy": "A whale carrying a castle through a pastel sky; drag to look around, scroll to drift closer.",
+      "tags": [
+        "React",
+        "three.js",
+        "procedural"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#9fd8e8",
+        "b": "#f4d9b0",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "aetheria-panorama",
+      "href": "./aetheria-panorama/",
+      "title": "Aetheria — Panorama",
+      "dataText": "aetheria — panorama the image-based cut of aetheria: a painted whale and castle projected onto depth-relief layers, four chapters and a slow drift. react three.js image-based",
+      "copy": "The image-based cut of Aetheria: a painted whale and castle projected onto depth-relief layers, four chapters and a slow drift.",
+      "tags": [
+        "React",
+        "three.js",
+        "image-based"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#a9d8ea",
+        "b": "#f2c6a0",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "workshop",
+      "kind": "alternate",
+      "note": "The image-based cut of Aetheria; the procedural original is on the shelf.",
+      "category": "scene"
+    },
+    {
+      "id": "ivory-sanctuary",
+      "href": "./ivory-sanctuary/",
+      "title": "The Ivory Sanctuary",
+      "dataText": "the ivory sanctuary a white-domed sanctuary on a stair between earth and sky, above a sea of clouds. enter it, drag to look around, and walk the quiet terrace. three.js sanctuary one file",
+      "copy": "A white-domed sanctuary on a stair between earth and sky, above a sea of clouds. Enter it, drag to look around, and walk the quiet terrace.",
+      "tags": [
+        "three.js",
+        "sanctuary",
+        "one file"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#dce7f1",
+        "b": "#f6efdf",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "aetherwick-dormitory",
+      "href": "./aetherwick-dormitory/",
+      "title": "The Dormitory",
+      "dataText": "the dormitory a witch's dormitory in golden-hour light: a lived-in room, a desk, a field journal and a portrait that follows. react css interior",
+      "copy": "A witch's dormitory in golden-hour light: a lived-in room, a desk, a field journal and a portrait that follows.",
+      "tags": [
+        "React",
+        "CSS",
+        "interior"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#2a1d14",
+        "b": "#d9b98a",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "dormitory-restored",
+      "href": "./dormitory-restored/",
+      "title": "The Dormitory — Restored",
+      "dataText": "the dormitory — restored the illustrated cut of the aetherwick dormitory: elara and her white owl in golden light, a field journal and a companion panel, with atmosphere, sound and photo mode. react vite illustration",
+      "copy": "The illustrated cut of the Aetherwick dormitory: Elara and her white owl in golden light, a field journal and a companion panel, with atmosphere, sound and photo mode.",
+      "tags": [
+        "React",
+        "Vite",
+        "illustration"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#22160f",
+        "b": "#e8b56a",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "workshop",
+      "kind": "alternate",
+      "note": "The illustrated cut of the Aetherwick dormitory.",
+      "category": "scene"
+    },
+    {
+      "id": "dormitory-year-one",
+      "href": "./dormitory-year-one/",
+      "title": "Dormitory — Year One",
+      "dataText": "dormitory — year one a third-person witch dormitory: elara in a crimson robe, two owls, a day counter, a room to explore and a house chat that asks whether you fed the owl. react-three-fiber rpg room",
+      "copy": "A third-person witch dormitory: Elara in a crimson robe, two owls, a day counter, a room to explore and a house chat that asks whether you fed the owl.",
+      "tags": [
+        "react-three-fiber",
+        "RPG",
+        "room"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#2a1a12",
+        "b": "#e0a35a",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "workshop",
+      "kind": "alternate",
+      "note": "An RPG cut of the same dormitory.",
+      "category": "scene"
+    },
+    {
+      "id": "lumiloom",
+      "href": "./lumiloom/",
+      "title": "Lumiloom",
+      "dataText": "lumiloom a dressmaker's room after dark: a gown in simulated tulle, a wand for a cursor, and a pattern book of ten finished dresses. webgl2 cloth one file",
+      "copy": "A dressmaker's room after dark: a gown in simulated tulle, a wand for a cursor, and a pattern book of ten finished dresses.",
+      "tags": [
+        "WebGL2",
+        "cloth",
+        "one file"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#181420",
+        "b": "#e79ab5",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "prism",
+      "href": "./prism/",
+      "title": "Prism",
+      "dataText": "prism white light through rings of glass prisms, diffraction film and dichroic cubes, landing as a flower of spectra on a plaster wall. three.js optics one file",
+      "copy": "White light through rings of glass prisms, diffraction film and dichroic cubes, landing as a flower of spectra on a plaster wall.",
+      "tags": [
+        "three.js",
+        "optics",
+        "one file"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#0a0a0f",
+        "b": "#8b7cf6",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "koi-cloud-sea",
+      "href": "./koi-cloud-sea/",
+      "title": "Koi of the Cloud Sea",
+      "dataText": "koi of the cloud sea an animated voxel diorama: a koi swimming over a sea of clouds with a small garden on its back. three.js voxel one file",
+      "copy": "An animated voxel diorama: a koi swimming over a sea of clouds with a small garden on its back.",
+      "tags": [
+        "three.js",
+        "voxel",
+        "one file"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#dfe9f5",
+        "b": "#e0654f",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "koi-cloud-sea-stylized",
+      "href": "./koi-cloud-sea-stylized/",
+      "title": "Koi of the Cloud Sea — Stylized",
+      "dataText": "koi of the cloud sea — stylized the same koi and sky garden in smooth stylized realism: a pink koi carries a temple garden over cloud banks, with wide-orbit controls. three.js one file stylized",
+      "copy": "The same koi and sky garden in smooth stylized realism: a pink koi carries a temple garden over cloud banks, with wide-orbit controls.",
+      "tags": [
+        "three.js",
+        "one file",
+        "stylized"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#f0c9b0",
+        "b": "#d98a86",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "workshop",
+      "kind": "alternate",
+      "note": "The smooth stylized cut of the voxel koi.",
+      "category": "scene"
+    },
+    {
+      "id": "koi-garden",
+      "href": "./koi-garden/",
+      "title": "Koi Garden",
+      "dataText": "koi garden a voxel koi carrying a japanese garden over a sea of clouds — about fifteen thousand voxels, one html file. three.js voxel one file",
+      "copy": "A voxel koi carrying a Japanese garden over a sea of clouds — about fifteen thousand voxels, one HTML file.",
+      "tags": [
+        "three.js",
+        "voxel",
+        "one file"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#ffe9d2",
+        "b": "#d9543d",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "rain-dance",
+      "href": "./rain-dance/",
+      "title": "Eight Beats of Rain",
+      "dataText": "eight beats of rain eight scenes of love in the rain, cut together as one three.js poem. react three.js sequence",
+      "copy": "Eight scenes of love in the rain, cut together as one three.js poem.",
+      "tags": [
+        "React",
+        "three.js",
+        "sequence"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#171a22",
+        "b": "#8ab4ff",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "rain-waltz",
+      "href": "./rain-waltz/",
+      "title": "Rain Waltz",
+      "dataText": "rain waltz a single-file poem in eight scenes: a girl under a lamplight, rain and a red-lit street, moved through by a waltz. three.js one file poem",
+      "copy": "A single-file poem in eight scenes: a girl under a lamplight, rain and a red-lit street, moved through by a waltz.",
+      "tags": [
+        "three.js",
+        "one file",
+        "poem"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#2a1114",
+        "b": "#c4553d",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "blossom-valley",
+      "href": "./blossom-valley/",
+      "title": "Sakura Storm Valley",
+      "dataText": "sakura storm valley a procedural anime valley of cherry blossoms: wind, falling petals and hills that keep going. react three.js procedural",
+      "copy": "A procedural anime valley of cherry blossoms: wind, falling petals and hills that keep going.",
+      "tags": [
+        "React",
+        "three.js",
+        "procedural"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#fbe9ef",
+        "b": "#e26d9a",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "chaco-canyon",
+      "href": "./chaco-canyon/",
+      "title": "Chaco Canyon",
+      "dataText": "chaco canyon a 3d digital twin of pueblo bonito: lidar stages, archival plates and an archaeoastronomy view of the great house. three.js data heritage",
+      "copy": "A 3D digital twin of Pueblo Bonito: LiDAR stages, archival plates and an archaeoastronomy view of the great house.",
+      "tags": [
+        "three.js",
+        "data",
+        "heritage"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#d9a06a",
+        "b": "#5b3a24",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "mochi-puff",
+      "href": "./mochi-puff/",
+      "title": "Mochi-Puff",
+      "dataText": "mochi-puff a gpu fur simulation: comb a fluffy creature, then switch scenes and paint grass across a meadow. three.js webgl gpu",
+      "copy": "A GPU fur simulation: comb a fluffy creature, then switch scenes and paint grass across a meadow.",
+      "tags": [
+        "three.js",
+        "WebGL",
+        "GPU"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#f6e8ef",
+        "b": "#c98bb0",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "object"
+    },
+    {
+      "id": "yarn-world",
+      "href": "./yarn-world/",
+      "title": "Yarn World",
+      "dataText": "yarn world a knitted island you can pull apart: tug the yarn ball to knit the quilt, house, sheep and river into place, then unravel the loose end and send it all back. three.js procedural knit island",
+      "copy": "A knitted island you can pull apart: tug the yarn ball to knit the quilt, house, sheep and river into place, then unravel the loose end and send it all back.",
+      "tags": [
+        "three.js",
+        "procedural knit",
+        "island"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#8db56b",
+        "b": "#f4d7b2",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "play"
+    },
+    {
+      "id": "golden-hour-fox",
+      "href": "./golden-hour-fox/",
+      "title": "Golden Hour Fox",
+      "dataText": "golden hour fox a voxel fox on a ridge at golden hour, built block by block. three.js voxel one file",
+      "copy": "A voxel fox on a ridge at golden hour, built block by block.",
+      "tags": [
+        "three.js",
+        "voxel",
+        "one file"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#f3c27a",
+        "b": "#8a4b2a",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "golden-hour-fox-alt",
+      "href": "./golden-hour-fox-alt/",
+      "title": "Golden Hour Fox — Close Cut",
+      "dataText": "golden hour fox — close cut the second camera cut of golden hour fox: the same wheat field, tree and fox, framed lower and closer to the crop. three.js voxel one file",
+      "copy": "The second camera cut of Golden Hour Fox: the same wheat field, tree and fox, framed lower and closer to the crop.",
+      "tags": [
+        "three.js",
+        "voxel",
+        "one file"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#d9772f",
+        "b": "#f4d8a8",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "workshop",
+      "kind": "alternate",
+      "note": "A second camera cut of Golden Hour Fox.",
+      "category": "scene"
+    },
+    {
+      "id": "rain-alley-source",
+      "href": "./rain-alley-source/",
+      "title": "Rain Alley — Source Layer",
+      "dataText": "rain alley — source layer the upstream source of the 40-second webgl rain film: a single-file shinjuku alley scene plus the hyperframes edit project, without the nine baked takes or the delivery render. webgl 2 one file hyperframes source cut",
+      "copy": "The upstream source layer of Rain Alley: a single-file WebGL 2 Shinjuku alley scene, plus the HyperFrames edit project and tools. The 40-second film, nine baked takes and 172 MB render stay upstream.",
+      "tags": [
+        "WebGL 2",
+        "one file",
+        "HyperFrames",
+        "source cut"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#0b1217",
+        "b": "#c4553d",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "workshop",
+      "kind": "source-cut",
+      "note": "The film stays upstream; this is the scene and edit source only. Baked takes and the delivery render are not mirrored.",
+      "category": "scene"
+    },
+    {
+      "id": "lamplighter",
+      "href": "./lamplighter/",
+      "title": "The Lamplighter",
+      "dataText": "the lamplighter a tiny voxel planet, its lamplighter and the lights he keeps. three.js voxel one file",
+      "copy": "A tiny voxel planet, its lamplighter and the lights he keeps.",
+      "tags": [
+        "three.js",
+        "voxel",
+        "one file"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#131a2b",
+        "b": "#ffcf7a",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "asteroid-b612",
+      "href": "./asteroid-b612/",
+      "title": "Asteroid B612",
+      "dataText": "asteroid b612 a clay asteroid, a rose and a quiet twilight sky. three.js voxel one file",
+      "copy": "A clay asteroid, a rose and a quiet twilight sky.",
+      "tags": [
+        "three.js",
+        "voxel",
+        "one file"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#2a2233",
+        "b": "#e2618a",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "rose-garden",
+      "href": "./rose-garden/",
+      "title": "Rose Garden",
+      "dataText": "rose garden a clay rose pavilion, still and warm, in a single file. three.js clay one file",
+      "copy": "A clay rose pavilion, still and warm, in a single file.",
+      "tags": [
+        "three.js",
+        "clay",
+        "one file"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#e8c9c2",
+        "b": "#7a3b3b",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "saltus-sx8",
+      "href": "./saltus-sx8/",
+      "title": "Saltus SX-8",
+      "dataText": "saltus sx-8 a procedural robotic jumping spider: rappel, walk, leap, open every assembly and tear it down. three.js simulator one file",
+      "copy": "A procedural robotic jumping spider: rappel, walk, leap, open every assembly and tear it down.",
+      "tags": [
+        "three.js",
+        "simulator",
+        "one file"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#0e1412",
+        "b": "#9ee37d",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "object"
+    },
+    {
+      "id": "nautilus-nx-12",
+      "href": "./nautilus-nx-12/",
+      "title": "Nautilus NX-12",
+      "dataText": "nautilus nx-12 a chambered-nautilus submersible you can open up, part by part, and read the live sim. three.js simulator one file",
+      "copy": "A chambered-nautilus submersible you can open up, part by part, and read the live sim.",
+      "tags": [
+        "three.js",
+        "simulator",
+        "one file"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#0a1a22",
+        "b": "#63d3c9",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "object"
+    },
+    {
+      "id": "great-white-jelly",
+      "href": "./great-white-jelly/",
+      "title": "Great White Jelly",
+      "dataText": "great white jelly a soft-body study of a great white shark cast in two layers of jelly, lying on its belly on the table. three.js soft body one file",
+      "copy": "A soft-body study of a great white shark cast in two layers of jelly, lying on its belly on the table.",
+      "tags": [
+        "three.js",
+        "soft body",
+        "one file"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#cfe3ea",
+        "b": "#5b8fa8",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "workshop",
+      "kind": "study",
+      "note": "A soft-body material study on a shark, not a scene.",
+      "category": "object"
+    },
+    {
+      "id": "jelly-zoo",
+      "href": "./jelly-zoo/",
+      "title": "Jelly Zoo",
+      "dataText": "jelly zoo a basket of needle-felted animals that are all soft body: poke, squash, drag, pet and toss them, or tip the basket over and pour them out. three.js soft body toy",
+      "copy": "A basket of needle-felted animals that are all soft body: poke, squash, drag, pet and toss them, or tip the basket over and pour them out.",
+      "tags": [
+        "three.js",
+        "soft body",
+        "toy"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#f1ddd8",
+        "b": "#d89ca8",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "play"
+    },
+    {
+      "id": "hollywood-sky-island",
+      "href": "./hollywood-sky-island/",
+      "title": "Hollywood — Voxel Sky Island",
+      "dataText": "hollywood — voxel sky island a floating hollywood built block by block: the hills and sign, a chinese theatre, a ferris wheel, palms and a pool on a slab of layered earth over a pastel cloud sea. three.js voxel one file",
+      "copy": "A floating Hollywood built block by block: the hills and sign, a Chinese Theatre, a ferris wheel, palms and a pool on a slab of layered earth over a pastel cloud sea.",
+      "tags": [
+        "three.js",
+        "voxel",
+        "one file"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#f0c6c8",
+        "b": "#8c5848",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "sunny-well",
+      "href": "./sunny-well/",
+      "title": "Sunny Well",
+      "dataText": "sunny well a bright voxel meadow with a stone well under a wooden roof: scroll to lower the bucket, drag the crank to wind it back up, and orbit the clearing. three.js voxel one file",
+      "copy": "A bright voxel meadow with a stone well under a wooden roof: scroll to lower the bucket, drag the crank to wind it back up, and orbit the clearing.",
+      "tags": [
+        "three.js",
+        "voxel",
+        "one file"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#8ecae6",
+        "b": "#f4e7b8",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "a-small-light",
+      "href": "./a-small-light/",
+      "title": "A Small Light",
+      "dataText": "a small light an animated voxel prince alone on a rose-coloured dune: a crown-shaped constellation gathers above him, motes rise from the sand, and dusk turns into night. three.js voxel particles",
+      "copy": "An animated voxel prince alone on a rose-coloured dune: a crown-shaped constellation gathers above him, motes rise from the sand, and dusk turns into night.",
+      "tags": [
+        "three.js",
+        "voxel",
+        "particles"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#8b5d68",
+        "b": "#211a2a",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "atx-bench-build",
+      "href": "./atx-bench-build/",
+      "title": "ATX — Bench Build Study",
+      "dataText": "atx — bench build study an atx desktop taken apart and put back together on one technical sheet: a 3d case, assemble and disassemble runs, four views, live temperatures, fan curves and four generated drawings. three.js bench build one file",
+      "copy": "An ATX desktop taken apart and put back together on one technical sheet: a 3D case, assemble and disassemble runs, four views, live temperatures, fan curves and four generated drawings.",
+      "tags": [
+        "three.js",
+        "bench build",
+        "one file"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#e7e2d3",
+        "b": "#2e5b4f",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "workshop",
+      "kind": "study",
+      "note": "A bench-build technical study, not a playable room.",
+      "category": "object"
+    },
+    {
+      "id": "koerner-hall",
+      "href": "./koerner-hall/",
+      "title": "Koerner Hall — Spatial Acoustics",
+      "dataText": "koerner hall — spatial acoustics toronto's koerner hall as a 3d acoustic model: a c. 1780 stein-schule fortepiano, five period recordings and seat-by-seat listening across 1,135 seats. three.js acoustics fortepiano",
+      "copy": "Toronto's Koerner Hall as a 3D acoustic model: a c. 1780 Stein-Schule fortepiano, five period recordings and seat-by-seat listening across 1,135 seats.",
+      "tags": [
+        "three.js",
+        "acoustics",
+        "fortepiano"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#1a1510",
+        "b": "#c4a272",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "lamborghini-fl3",
+      "href": "./lamborghini-fl3/",
+      "title": "Lamborghini FL3 — Bench Study",
+      "dataText": "lamborghini fl3 — bench study the air-cooled three-cylinder diesel from the 1961 lamborghini 2r, as a running bench study: four views, live instruments, four blueline drawings. turn the key and it catches. three.js engine one file",
+      "copy": "The air-cooled three-cylinder diesel from the 1961 Lamborghini 2R, as a running bench study: four views, live instruments, four blueline drawings. Turn the key and it catches.",
+      "tags": [
+        "three.js",
+        "engine",
+        "one file"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#f0e6d2",
+        "b": "#d95a2b",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "workshop",
+      "kind": "study",
+      "note": "A bench study of an engine; the assembly is the piece.",
+      "category": "object"
+    },
+    {
+      "id": "fl3-first-cut",
+      "href": "./fl3-first-cut/",
+      "title": "FL3 Bench Study — First Cut",
+      "dataText": "fl3 bench study — first cut the first painted-plate cut of the lamborghini fl3 study: one technical sheet, hand-drawn instruments, blueline plates and a running engine. three.js engine one file",
+      "copy": "The first painted-plate cut of the Lamborghini FL3 study: one technical sheet, hand-drawn instruments, blueline plates and a running engine.",
+      "tags": [
+        "three.js",
+        "engine",
+        "one file"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#e8e0cf",
+        "b": "#b54b32",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "workshop",
+      "kind": "early-cut",
+      "note": "The first painted-plate cut of the FL3 bench study.",
+      "category": "object"
+    },
+    {
+      "id": "starship-flight",
+      "href": "./starship-flight/",
+      "title": "Starship Flight Study",
+      "dataText": "starship flight study a two-stage starship run as a flight study: range safety, stage and recovery, throttle and propellant, an ascent trajectory and four model views. three.js flight study one file",
+      "copy": "A two-stage Starship run as a flight study: range safety, stage and recovery, throttle and propellant, an ascent trajectory and four model views.",
+      "tags": [
+        "three.js",
+        "flight study",
+        "one file"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#0b0e14",
+        "b": "#9aa6b8",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "workshop",
+      "kind": "study",
+      "note": "A flight-study instrument panel, not a full experience.",
+      "category": "object"
+    },
+    {
+      "id": "eiffel-construction",
+      "href": "./eiffel-construction/",
+      "title": "Eiffel Tower — 14-Second Build",
+      "dataText": "eiffel tower — 14-second build the 1887–1889 construction compressed into fourteen seconds: eight cranes, 285 figures, five lifts, a scrubbable timeline and a live source panel. three.js glsl construction",
+      "copy": "The 1887–1889 construction compressed into fourteen seconds: eight cranes, 285 figures, five lifts, a scrubbable timeline and a live source panel.",
+      "tags": [
+        "three.js",
+        "GLSL",
+        "construction"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#0b1327",
+        "b": "#d9a24b",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "eiffel-tower-3d",
+      "href": "./eiffel-tower-3d/",
+      "title": "Eiffel Tower 3D",
+      "dataText": "eiffel tower 3d gustave eiffel's 1889 tower as a walkable reconstruction from the original engineering plates: climb the galleries, inspect the lifts and read the archive. three.js architecture archive",
+      "copy": "Gustave Eiffel's 1889 tower as a walkable reconstruction from the original engineering plates: climb the galleries, inspect the lifts and read the archive.",
+      "tags": [
+        "three.js",
+        "architecture",
+        "archive"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#0c1624",
+        "b": "#d2a65b",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "splat-fashion",
+      "href": "./splat-fashion/",
+      "title": "Splat Fashion",
+      "dataText": "splat fashion three real outfits captured as gaussian splats on one figure: it breathes, its head follows the camera, every piece is labelled, and one outfit morphs into the next — a rig with no mesh. playcanvas. playcanvas gaussian splats webgpu",
+      "copy": "Three real outfits captured as Gaussian splats on one figure: it breathes, its head follows the camera, every piece is labelled, and one outfit morphs into the next — a rig with no mesh. PlayCanvas.",
+      "tags": [
+        "PlayCanvas",
+        "Gaussian splats",
+        "WebGPU"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#efe6dc",
+        "b": "#15161a",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "object"
+    },
+    {
+      "id": "slop-newyork",
+      "href": "./slop-newyork/",
+      "title": "Slop New York",
+      "dataText": "slop new york mrdoob's new york simulation: manhattan on foot, by car, by bicycle or by helicopter, built from building footprints, trees, subway entrances and the road network, in three.js webgpu and tsl. three.js webgpu city",
+      "copy": "mrdoob's New York simulation: Manhattan on foot, by car, by bicycle or by helicopter, built from building footprints, trees, subway entrances and the road network, in three.js WebGPU and TSL.",
+      "tags": [
+        "three.js",
+        "WebGPU",
+        "city"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#c8d6e4",
+        "b": "#20242b",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "text-grow",
+      "href": "./text-grow/",
+      "title": "Text Grow",
+      "dataText": "text grow type a word and it sprouts into flowers, trees, grass or a crowd of minions — the bloom sweeps left to right, then settles back into ink. canvas 2d vanilla js emoji",
+      "copy": "Type a word and it sprouts into flowers, trees, grass or a crowd of minions — the bloom sweeps left to right, then settles back into ink.",
+      "tags": [
+        "Canvas 2D",
+        "vanilla JS",
+        "emoji"
+      ],
+      "plate": "plate--play",
+      "accent": {
+        "a": "#f2eee4",
+        "b": "#232320",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "widget"
+    },
+    {
+      "id": "minionslab",
+      "href": "./minionslab/",
+      "title": "Minion Lab",
+      "dataText": "minion lab six rooms around one squishy yellow character: a brick portrait, eleven bosses, an exploded teardown, a banana line, a pixel town, a rubber sheet. three.js whole site no build",
+      "copy": "Six rooms around one squishy yellow character: a brick portrait, eleven bosses, an exploded teardown, a banana line, a pixel town, a rubber sheet.",
+      "tags": [
+        "Three.js",
+        "whole site",
+        "no build"
+      ],
+      "plate": "plate--play",
+      "accent": {
+        "a": "#ffe14d",
+        "b": "#2b2b2b",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "play"
+    },
+    {
+      "id": "puzzlecard",
+      "href": "./puzzlecard/",
+      "title": "Puzzle Card",
+      "dataText": "puzzle card a photo cut into a jigsaw, and a letter on the back of the print. assemble it and the card turns over. the one piece that runs in the dark. webgl2 no build sealed link",
+      "copy": "A photo cut into a jigsaw, and a letter on the back of the print. Assemble it and the card turns over. The one piece that runs in the dark.",
+      "tags": [
+        "WebGL2",
+        "no build",
+        "sealed link"
+      ],
+      "plate": "plate--play",
+      "accent": {
+        "a": "#17171a",
+        "b": "#ff7a45",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "play"
+    },
+    {
+      "id": "skyhoop-cup",
+      "href": "./skyhoop-cup/",
+      "title": "Skyhoop Cup",
+      "dataText": "skyhoop cup broomstick hoops over a floating isle: pick a role, a match length and the weather, then fly. three.js game one file",
+      "copy": "Broomstick hoops over a floating isle: pick a role, a match length and the weather, then fly.",
+      "tags": [
+        "three.js",
+        "game",
+        "one file"
+      ],
+      "plate": "plate--play",
+      "accent": {
+        "a": "#ffd166",
+        "b": "#ef476f",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "play"
+    },
+    {
+      "id": "argon-tennis",
+      "href": "./argon-tennis/",
+      "title": "Argon Tennis",
+      "dataText": "argon tennis a 3d arcade tennis match with expressive mii players, frantic racket kinematics, a stadium crowd and optional webcam or phone motion controls. three.js tennis game",
+      "copy": "A 3D arcade tennis match with expressive Mii players, frantic racket kinematics, a stadium crowd and optional webcam or phone motion controls.",
+      "tags": [
+        "three.js",
+        "tennis",
+        "game"
+      ],
+      "plate": "plate--play",
+      "accent": {
+        "a": "#12331f",
+        "b": "#d4e157",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "play"
+    },
+    {
+      "id": "chamonix-ski-sim",
+      "href": "./chamonix-ski-sim/",
+      "title": "Chamonix — Off-Piste",
+      "dataText": "chamonix — off-piste a first-person freeride run on real chamonix / mont blanc terrain: carve powder, launch rollers, pole the flats and ski switch. three.js terrain ski",
+      "copy": "A first-person freeride run on real Chamonix / Mont Blanc terrain: carve powder, launch rollers, pole the flats and ski switch.",
+      "tags": [
+        "three.js",
+        "terrain",
+        "ski"
+      ],
+      "plate": "plate--play",
+      "accent": {
+        "a": "#dbe8f4",
+        "b": "#8ea7bf",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "play"
+    },
+    {
+      "id": "dusk-patrol",
+      "href": "./dusk-patrol/",
+      "title": "Dusk Patrol",
+      "dataText": "dusk patrol last light over lake country: steer with the mouse, roll, boost, and keep the patrol. three.js game one file",
+      "copy": "Last light over lake country: steer with the mouse, roll, boost, and keep the patrol.",
+      "tags": [
+        "three.js",
+        "game",
+        "one file"
+      ],
+      "plate": "plate--play",
+      "accent": {
+        "a": "#2b1d2e",
+        "b": "#ff9e6d",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "play"
+    },
+    {
+      "id": "dusk-patrol-source-cut",
+      "href": "./dusk-patrol-source-cut/",
+      "title": "Dusk Patrol — Source Cut",
+      "dataText": "dusk patrol — source cut the source cut of dusk patrol: a pixel-art fighter over lake country at last light, steered with the mouse, rolled with a click, afterburner on hold, missiles on right-click. three.js game one file",
+      "copy": "The source cut of Dusk Patrol: a pixel-art fighter over lake country at last light, steered with the mouse, rolled with a click, afterburner on hold, missiles on right-click.",
+      "tags": [
+        "three.js",
+        "game",
+        "one file"
+      ],
+      "plate": "plate--play",
+      "accent": {
+        "a": "#1a2130",
+        "b": "#e0855a",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "workshop",
+      "kind": "source-cut",
+      "note": "The source cut of Dusk Patrol; the playable cut is on the shelf.",
+      "category": "play"
+    },
+    {
+      "id": "sparrow-sim",
+      "href": "./sparrow-sim/",
+      "title": "Sparrow",
+      "dataText": "sparrow a house sparrow out of an attic studio and across a four-block storybook neighbourhood: swoop rooftops, canals and bistro terraces through twelve small deeds. three.js flight story",
+      "copy": "A house sparrow out of an attic studio and across a four-block storybook neighbourhood: swoop rooftops, canals and bistro terraces through twelve small deeds.",
+      "tags": [
+        "three.js",
+        "flight",
+        "story"
+      ],
+      "plate": "plate--play",
+      "accent": {
+        "a": "#f4d9a8",
+        "b": "#8c6d4f",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "play"
+    },
+    {
+      "id": "wizard-chess",
+      "href": "./wizard-chess/",
+      "title": "Wizard Chess",
+      "dataText": "wizard chess chess in a wizard hall, with animated pieces and a board that answers every move. react three.js chess",
+      "copy": "Chess in a wizard hall, with animated pieces and a board that answers every move.",
+      "tags": [
+        "React",
+        "three.js",
+        "chess"
+      ],
+      "plate": "plate--play",
+      "accent": {
+        "a": "#1a1424",
+        "b": "#c9a227",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "play"
+    },
+    {
+      "id": "paper-snake",
+      "href": "./paper-snake/",
+      "title": "Paper Snake",
+      "dataText": "paper snake 纸格竞技场 — a paper-cut snake arena with skins, missions, ranks, power-ups and a chinese/english interface. pixi react game",
+      "copy": "纸格竞技场 — a paper-cut snake arena with skins, missions, ranks, power-ups and a Chinese/English interface.",
+      "tags": [
+        "Pixi",
+        "React",
+        "game"
+      ],
+      "plate": "plate--play",
+      "accent": {
+        "a": "#f4f1ea",
+        "b": "#1f6feb",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "play"
+    },
+    {
+      "id": "pixel-jazz",
+      "href": "./pixel-jazz/",
+      "title": "Pixel Jazz Band",
+      "dataText": "pixel jazz band a pixel-art jazz club: five animals on stage, a set generated in the browser, a scrolling score and a mixer for every instrument. react web audio pixel art",
+      "copy": "A pixel-art jazz club: five animals on stage, a set generated in the browser, a scrolling score and a mixer for every instrument.",
+      "tags": [
+        "React",
+        "Web Audio",
+        "pixel art"
+      ],
+      "plate": "plate--play",
+      "accent": {
+        "a": "#1b1410",
+        "b": "#d9a441",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "play"
+    },
+    {
+      "id": "ensemble",
+      "href": "./ensemble/",
+      "title": "Ensemble",
+      "dataText": "ensemble a sticker-built band: compose instruments, beats, voices and a venue on a paper stage, then send the band to a one-minute generated performance. the shelf cut keeps the sticker board. react music stickers",
+      "copy": "A sticker-built band: compose instruments, beats, voices and a venue on a paper stage, then send the band to a one-minute generated performance. The shelf cut keeps the sticker board.",
+      "tags": [
+        "React",
+        "music",
+        "stickers"
+      ],
+      "plate": "plate--play",
+      "accent": {
+        "a": "#f3e7d6",
+        "b": "#e46b4a",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "workshop",
+      "kind": "server-cut",
+      "note": "The sticker board is here; the generated performance needs its server.",
+      "category": "play"
+    },
+    {
+      "id": "carrot-defense",
+      "href": "./carrot-defense/",
+      "title": "保卫萝卜 · Carrot Defense",
+      "dataText": "保卫萝卜 · carrot defense a full tower-defense game: 100 levels over four chapters, 35 tower types at three tiers, 25 enemy types, boss waves, endless mode and relics — all drawn in canvas, all sound synthesised. canvas 2d 100 levels game",
+      "copy": "A full tower-defense game: 100 levels over four chapters, 35 tower types at three tiers, 25 enemy types, boss waves, endless mode and relics — all drawn in Canvas, all sound synthesised.",
+      "tags": [
+        "Canvas 2D",
+        "100 levels",
+        "game"
+      ],
+      "plate": "plate--play",
+      "accent": {
+        "a": "#4e8b3f",
+        "b": "#25452a",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "play"
+    },
+    {
+      "id": "huarongdao",
+      "href": "./huarongdao/",
+      "title": "华容道 · Klotski",
+      "dataText": "华容道 huarongdao klotski a wooden klotski board: slide the blocks, walk the red one out through the gate, and every solve becomes an ink painting. canvas 2d wood ink puzzle",
+      "copy": "A wooden klotski board: slide the blocks, walk the red one out through the gate, and every solve becomes an ink painting.",
+      "tags": [
+        "Canvas 2D",
+        "wood &amp; ink",
+        "puzzle"
+      ],
+      "plate": "plate--play",
+      "accent": {
+        "a": "#2b2320",
+        "b": "#a63b2c",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "play"
+    },
+    {
+      "id": "parking-bench",
+      "href": "./parking-bench/",
+      "title": "Parking Bench",
+      "dataText": "parking bench a 6×6 sliding-car race on a sunlit oak table, with a five-lap timing tower and a live model's-view feed; the board and solver are here, the ai opponent needs its server. three.js puzzle race",
+      "copy": "A 6×6 sliding-car race on a sunlit oak table, with a five-lap timing tower and a live model's-view feed; the board and solver are here, the AI opponent needs its server.",
+      "tags": [
+        "three.js",
+        "puzzle",
+        "race"
+      ],
+      "plate": "plate--play",
+      "accent": {
+        "a": "#efe8d6",
+        "b": "#9b6b45",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "workshop",
+      "kind": "server-cut",
+      "note": "The board and solver are here; the AI opponent needs its server.",
+      "category": "play"
+    },
+    {
+      "id": "heart-lab",
+      "href": "./heart-lab/",
+      "title": "heart lab",
+      "dataText": "heart lab a heart-shaped formula lab: ink, motion, duration and line weight, a scrubbable timeline, and svg export, still or animated. svg matter-js toy",
+      "copy": "A heart-shaped formula lab: choose ink, motion, duration and line weight, scrub the drawing, then export it still or animated as SVG.",
+      "tags": [
+        "SVG",
+        "matter-js",
+        "toy"
+      ],
+      "plate": "plate--play",
+      "accent": {
+        "a": "#f4ece6",
+        "b": "#c0392b",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "widget"
+    },
+    {
+      "id": "qr-pet",
+      "href": "./qr-pet/",
+      "title": "QR Pet",
+      "dataText": "qr pet type a link, let it become a qr code, then let the code become a 3d cat or dog: coat, pose, a drag-to-spin stage, share and download. three.js qr toy",
+      "copy": "Type a link, let it become a QR code, then let the code become a 3D cat or dog: coat, pose, a drag-to-spin stage, share and download.",
+      "tags": [
+        "three.js",
+        "QR code",
+        "toy"
+      ],
+      "plate": "plate--play",
+      "accent": {
+        "a": "#161819",
+        "b": "#efe1c8",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "play"
+    },
+    {
+      "id": "fluid-simulation",
+      "href": "./fluid-simulation/",
+      "title": "Fluid Simulation",
+      "dataText": "fluid simulation a webgl fluid field that follows the pointer: dye blooms, curls and settles under bloom and sunrays, with a panel for every term. webgl glsl gpu toy pavel dobryakov",
+      "copy": "A WebGL fluid field that follows the pointer: dye blooms, curls and settles under bloom and sunrays, with a panel for every term.",
+      "tags": [
+        "WebGL",
+        "GLSL",
+        "toy"
+      ],
+      "plate": "plate--play",
+      "accent": {
+        "a": "#05060a",
+        "b": "#2b36ff",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "widget"
+    },
+    {
+      "id": "webgl-bulge-effect",
+      "href": "./webgl-bulge-effect/",
+      "title": "WebGL Bulge Effect",
+      "dataText": "webgl bulge effect a column of photographs that swell where the pointer crosses them: one ogl shader pushes the pixels out of the plane, and a slow scroll carries the cards past. codrops' tutorial, in two cuts. ogl glsl codrops",
+      "copy": "A column of photographs that swell where the pointer crosses them: one OGL shader pushes the pixels out of the plane, and a slow scroll carries the cards past. Codrops' tutorial, in two cuts.",
+      "tags": [
+        "OGL",
+        "GLSL",
+        "Codrops"
+      ],
+      "plate": "plate--play",
+      "accent": {
+        "a": "#f2ebe0",
+        "b": "#1a1d22",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "workshop",
+      "kind": "study",
+      "note": "A Codrops shader tutorial in two cuts.",
+      "category": "widget"
+    },
+    {
+      "id": "half-the-sky",
+      "href": "./half-the-sky/",
+      "title": "Half the Sky",
+      "dataText": "half the sky a wall of thirty-two women carved in low relief: walk the hall, open a figure for her portrait and chronology, or talk to the host. one html file python backend",
+      "copy": "Thirty-two women carved in low relief, in a hall you can walk: open a figure for her portrait and chronology, or talk to the host at the end of the wall. One HTML file, with an optional Python backend for the conversation.",
+      "tags": [
+        "One HTML file",
+        "32 reliefs",
+        "conversation"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#efe6d3",
+        "b": "#2a2622",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "scene"
+    },
+    {
+      "id": "building-configurator-threejs",
+      "href": "./building-configurator-threejs/",
+      "title": "VolumeCraft — Parametric Building Configurator",
+      "dataText": "volumecraft parametric building configurator a split-view cad studio: drag an exposed face to extrude, carve, split or setback, while a full pbr building with hollow interiors, fresnel glazing, terraces, pilotis and hdri light rebuilds live beside the view. three.js webgpu tsl react 19 typescript vite",
+      "copy": "A split-view parametric building studio: drag an exposed face to extrude, carve, split or setback, and a full-PBR building with hollow interiors, Fresnel glazing, terraces, pilotis and HDRI light rebuilds live beside the CAD view.",
+      "tags": [
+        "Three.js WebGPU",
+        "React 19",
+        "TypeScript",
+        "Procedural"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#d9c6a5",
+        "b": "#6b5540",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "object"
+    },
+    {
+      "id": "vessel-threejs-showcase",
+      "href": "./vessel-threejs-showcase/",
+      "title": "The Vessel — Procedural Showcase",
+      "dataText": "the vessel procedural showcase a procedural honeycomb staircase for hudson yards: 88 landings, 160 flights and 2,240 steps rebuilt from 32 live parameters, with five cameras, four lighting moods and glb export. three.js react 19 typescript procedural",
+      "copy": "A procedural honeycomb staircase for Hudson Yards: 88 landings, 160 flights and 2,240 steps rebuilt from 32 live parameters, with five cameras, four lighting moods and GLB export.",
+      "tags": [
+        "Three.js",
+        "React 19",
+        "Procedural",
+        "116K tris"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#171310",
+        "b": "#c9835b",
+        "m": "rgba(255,255,255,0.5)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "object"
+    },
+    {
+      "id": "westbrook-central",
+      "href": "./westbrook-central/",
+      "title": "Westbrook Central",
+      "category": "scene",
+      "dataText": "westbrook central procedural photoreal train station barrel vault canopy island platform track signal footbridge live train parametric geometry canvas textures rulebook review",
+      "copy": "A procedural photoreal train station: a barrel-vault canopy, island platforms, track and signals, a glazed footbridge and a live train, rebuilt from a measured rulebook and reviewed against reference photography. No downloaded scene assets.",
+      "tags": [
+        "React 19",
+        "Three.js",
+        "Procedural",
+        "Vite"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#121417",
+        "b": "#c98b4f",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": ""
+    },
+    {
+      "id": "seraphina-frostweaver",
+      "href": "./seraphina-frostweaver/",
+      "title": "Seraphina — The Frostweaver",
+      "category": "object",
+      "dataText": "seraphina frostweaver interactive 3d champion character showcase frost armor portrait sky realm three.js real time webgl orbit pose animation",
+      "copy": "An interactive 3D champion showcase: a high-fidelity frost-armored character, a portrait plate and a painted sky realm, rendered in real time with Three.js. Orbit the figure and change its pose and animation.",
+      "tags": [
+        "React 19",
+        "Three.js",
+        "Character",
+        "Vite"
+      ],
+      "plate": "plate--scene",
+      "accent": {
+        "a": "#07131c",
+        "b": "#54e6ff",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": ""
+    },
+    {
+      "id": "espresso-bench",
+      "href": "./espresso-bench/",
+      "title": "Espresso Bench — Bean to Cup",
+      "dataText": "espresso bench — bean to cup an eight-step isometric cutaway of a home espresso bench: grind, wdt, level, tamp, lock in, brew and cup, with a small puck model driving the gauge and the verdict. svg isometric espresso generative",
+      "copy": "A bean-to-cup espresso bench in eight isometric steps: grind, WDT, level, tamp, lock in, brew, cup. The bench and machine are generated geometry, and a small puck model drives the gauge and the verdict.",
+      "tags": [
+        "SVG",
+        "isometric",
+        "espresso",
+        "generative"
+      ],
+      "plate": "plate--interface",
+      "accent": {
+        "a": "#f4f0e8",
+        "b": "#b4663b",
+        "m": "rgba(20,20,22,0.38)"
+      },
+      "tier": "shelf",
+      "kind": "finished",
+      "note": "",
+      "category": "page"
+    },
+    {
+      "id": "starry-bam",
+      "href": "./starry-bam/",
+      "title": "Starry Bam — Counting Stars at Night",
+      "dataText": "starry bam — counting stars at night a webgl paper-star game: choose a coloured strip, write a note, fold it into a star and send it into a shared night sky. one page, no build; the star api is missing. webgl paper stars night sky",
+      "copy": "A WebGL paper-star game: choose a coloured strip, write a note, fold it into a star and send it into a shared night sky. One page, no build; the shared star store and translation service are missing.",
+      "tags": [
+        "WebGL",
+        "paper stars",
+        "night sky",
+        "one page"
+      ],
+      "plate": "plate--play",
+      "accent": {
+        "a": "#070b12",
+        "b": "#f2d7a4",
+        "m": "rgba(255,255,255,0.55)"
+      },
+      "tier": "workshop",
+      "kind": "server-cut",
+      "note": "The WebGL night sky and paper-folding desk are here; the shared star store and translation service are not.",
+      "category": "play"
+    }
+  ],
+  "categories": {
+    "data": "Data — 数据 / 财务 / 表格",
+    "widget": "Widget — 小组件 / 工具 / 登录原型",
+    "page": "Page — 产品 / 内容网页",
+    "object": "Object — 3D 物件 / 空间交互",
+    "scene": "Scene — 3D 场景 / 动画",
+    "play": "Play — 游戏"
+  }
+}

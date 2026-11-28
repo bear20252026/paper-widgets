@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rain Waltz — Eight Scenes of Love in the Rain</title>
+<style>
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:Georgia,'Times New Roman',serif;color:#fff}
+  #c{position:fixed;inset:0;width:100%;height:100%;display:block}
+  .bar{position:fixed;left:0;right:0;height:7vh;background:#000;z-index:2;pointer-events:none}
+  .bar.t{top:0}.bar.b{bottom:0}
+  #title{position:fixed;top:calc(7vh + 18px);left:28px;z-index:3;letter-spacing:.45em;font-size:12px;opacity:.7;text-transform:uppercase}
+  #cap{position:fixed;left:28px;bottom:calc(7vh + 26px);z-index:3;max-width:min(560px,80vw);text-shadow:0 2px 18px rgba(0,0,0,.8)}
+  #cap .n{font-size:13px;letter-spacing:.5em;opacity:.75}
+  #cap .h{font-size:clamp(26px,4.2vw,46px);font-style:italic;margin:4px 0 6px;font-weight:400}
+  #cap .l{font-size:clamp(13px,1.5vw,16px);opacity:.85;line-height:1.6}
+  #cap.in>*{animation:rise 1.6s cubic-bezier(.2,.7,.2,1) both}
+  #cap.in .h{animation-delay:.15s}#cap.in .l{animation-delay:.35s}
+  @keyframes rise{from{opacity:0;transform:translateY(16px);filter:blur(6px)}to{transform:none;filter:none}}
+  #dots{position:fixed;right:28px;bottom:calc(7vh + 30px);z-index:3;display:flex;gap:10px}
+  #dots i{width:9px;height:9px;border-radius:50%;border:1px solid rgba(255,255,255,.7);cursor:pointer;transition:.4s}
+  #dots i.on{background:#fff;box-shadow:0 0 12px #fff;transform:scale(1.25)}
+  #hint{position:fixed;right:28px;top:calc(7vh + 18px);z-index:3;font-size:11px;letter-spacing:.2em;opacity:.5}
+  #start{position:fixed;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(5,8,20,.35),rgba(0,0,0,.85));cursor:pointer;transition:opacity 1.2s;text-align:center}
+  #start h1{font-weight:400;font-style:italic;font-size:clamp(40px,8vw,96px);margin:0;letter-spacing:.04em;text-shadow:0 0 40px rgba(140,180,255,.6)}
+  #start p{letter-spacing:.4em;font-size:12px;opacity:.8;margin:14px 0 34px;text-transform:uppercase}
+  #start b{font-weight:400;border:1px solid rgba(255,255,255,.6);padding:14px 34px;letter-spacing:.35em;font-size:13px;border-radius:40px;animation:pulse 1.2s ease-in-out infinite}
+  @keyframes pulse{50%{box-shadow:0 0 30px rgba(255,255,255,.5);background:rgba(255,255,255,.08)}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="bar t"></div><div class="bar b"></div>
+<div id="title">Rain Waltz · 雨中圆舞</div>
+<div id="hint">← → SCENES · M MUTE</div>
+<div id="cap"><div class="n"></div><div class="h"></div><div class="l"></div></div>
+<div id="dots"></div>
+<div id="start"><h1>Rain Waltz</h1><p>a romance in eight scenes of rain</p><b>ENTER THE RAIN ♪</b></div>
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { Reflector } from 'three/addons/objects/Reflector.js';
+
+const $=q=>document.querySelector(q);
+const {sin,cos,PI,abs,max,min,floor,exp}=Math, rnd=Math.random;
+const sstep=(a,b,x)=>{x=min(1,max(0,(x-a)/(b-a)));return x*x*(3-2*x)};
+const C=c=>new THREE.Color(c);
+const BPM=100,BEAT=60/BPM,STEP=BEAT/2,NS=8,TOT=NS*32;
+
+/* ---------- renderer ---------- */
+const renderer=new THREE.WebGLRenderer({canvas:$('#c'),antialias:false,powerPreference:'high-performance'});
+const DPR=min(devicePixelRatio||1,1.5);
+renderer.setPixelRatio(DPR);renderer.setSize(innerWidth,innerHeight);
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
+const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0,.03);
+const cam=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,.1,600);
+const G={rim:{value:C('#88aaff')},time:{value:0},h:{value:innerHeight*DPR*1.4}};
+
+const composer=new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene,cam));
+const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.9,.75,.8);composer.addPass(bloom);
+const fx=new ShaderPass({uniforms:{tDiffuse:{value:null},uTime:{value:0},uFade:{value:1},uPulse:{value:0},uTint:{value:C('#ffffff')}},
+vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+fragmentShader:`uniform sampler2D tDiffuse;uniform float uTime,uFade,uPulse;uniform vec3 uTint;varying vec2 vUv;
+float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
+void main(){vec2 uv=vUv;vec2 c=uv-.5;float w=uFade;
+uv+=vec2(sin(uv.y*38.+uTime*5.),cos(uv.x*31.-uTime*4.))*.012*w;uv.y+=w*w*.05*sin(uv.x*9.+uTime);
+float ca=(.0012+uPulse*.002+w*.012)*length(c)*2.;
+vec3 col=vec3(texture2D(tDiffuse,uv+c*ca).r,texture2D(tDiffuse,uv).g,texture2D(tDiffuse,uv-c*ca).b);
+col*=1.-dot(c,c)*1.1;col+=uTint*uPulse*.02;
+float m=smoothstep(0.,1.,w*1.8-.8*h(vec2(floor(uv.x*140.),3.)));
+col=mix(col,uTint,m);
+col+=(h(uv*vec2(1920.,1080.)+uTime)-.5)*.035;
+gl_FragColor=vec4(max(col,0.),1.);}`});
+composer.addPass(fx);composer.addPass(new OutputPass());
+
+/* ---------- sky ---------- */
+const skyU={uTop:{value:C(0)},uBot:{value:C(0)},uGlow:{value:C(0)},uMoonCol:{value:C(0)},uMoonDir:{value:new THREE.Vector3(0,1,0)},uMoon:{value:2},uStars:{value:0},uTime:G.time,uFlash:{value:0}};
+const sky=new THREE.Mesh(new THREE.SphereGeometry(400,32,16),new THREE.ShaderMaterial({uniforms:skyU,side:THREE.BackSide,depthWrite:false,
+vertexShader:`varying vec3 vD;void main(){vD=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+fragmentShader:`uniform vec3 uTop,uBot,uGlow,uMoonCol,uMoonDir;uniform float uMoon,uStars,uTime,uFlash;varying vec3 vD;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+void main(){vec3 d=normalize(vD);float y=d.y;
+vec3 c=mix(uBot,uTop,smoothstep(-.05,.6,y));c+=uGlow*exp(-abs(y)*7.)*.35;
+vec2 sp=d.xz/(abs(y)+.25)*30.;vec2 ip=floor(sp);float st=step(.975,h(ip))*smoothstep(.05,.35,y);
+c+=uStars*st*smoothstep(.45,0.,length(fract(sp)-.5))*(.6+.4*sin(uTime*3.+h(ip+2.)*30.))*1.5;
+float m=dot(d,normalize(uMoonDir));float disk=smoothstep(uMoon,uMoon+.0012,m);
+c=mix(c,uMoonCol,disk);c+=uMoonCol*pow(max(m,0.),90.)*.12*step(uMoon,1.5);
+c+=uFlash*vec3(.6,.7,1.)*(.4+.6*smoothstep(-.2,.8,y));
+gl_FragColor=vec4(c,1.);}`}));
+sky.renderOrder=-10;sky.frustumCulled=false;scene.add(sky);
+
+/* ---------- lights ---------- */
+const hemi=new THREE.HemisphereLight(0xffffff,0x111111,.6);scene.add(hemi);
+const key=new THREE.DirectionalLight(0xffffff,1.5);scene.add(key);
+const rimL=new THREE.DirectionalLight(0xffffff,2);rimL.position.set(-3,4,-7);scene.add(rimL);
+const aura=new THREE.PointLight(0xffffff,6,7,2);scene.add(aura);
+
+/* ---------- wet reflective ground ---------- */
+const ground=new Reflector(new THREE.CircleGeometry(220,48),{clipBias:.003,textureWidth:floor(innerWidth*DPR*.6),textureHeight:floor(innerHeight*DPR*.6),color:0x888888,shader:{name:'Wet',
+uniforms:{color:{value:null},tDiffuse:{value:null},textureMatrix:{value:null},uTime:{value:0},uCol:{value:C(0)},uFog:{value:C(0)},uDen:{value:.03},uRefl:{value:.8},uRing:{value:new THREE.Vector4()},uRingCol:{value:C(0)},uTile:{value:0},uCam:{value:new THREE.Vector3()}},
+vertexShader:`uniform mat4 textureMatrix;varying vec4 vUv;varying vec3 vW;void main(){vUv=textureMatrix*vec4(position,1.);vW=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+fragmentShader:`uniform vec3 uCol,uFog,uRingCol,uCam;uniform sampler2D tDiffuse;uniform float uTime,uDen,uRefl,uTile;uniform vec4 uRing;varying vec4 vUv;varying vec3 vW;
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float rip(vec2 uv,float t){float s=0.;for(int i=0;i<3;i++){float fi=float(i);vec2 g=uv*(1.1+fi*.6)+fi*13.7;vec2 c=floor(g);vec2 f=fract(g)-.5;float h=hash(c+fi);float tt=fract(t*(.7+h*.5)+h*7.);vec2 o=(vec2(hash(c+3.1),hash(c+7.7))-.5)*.6;float d=length(f-o);float r=tt*.42;s+=sin((d-r)*50.)*smoothstep(.07,0.,abs(d-r))*(1.-tt);}return s;}
+void main(){vec2 p=vW.xz;float e=.03;float r0=rip(p,uTime);
+vec2 n=vec2(rip(p+vec2(e,0.),uTime)-r0,rip(p+vec2(0.,e),uTime)-r0)/e*.012;
+n+=vec2(sin(p.y*3.+uTime*.8),cos(p.x*2.7-uTime*.6))*.004;
+vec4 uv=vUv;uv.xy+=n*uv.w*1.5;vec3 refl=texture2DProj(tDiffuse,uv).rgb;
+vec3 V=normalize(uCam-vW);float fr=pow(1.-max(V.y,0.),3.)*.8+.2;
+float on=step(.01,uTile);vec2 tp=p*uTile;vec2 tf=abs(fract(tp)-.5);float line=smoothstep(.45,.5,max(tf.x,tf.y))*on;
+vec3 c=uCol*mix(1.,hash(floor(tp))*.7+.6,on)*(1.-line*.6)+refl*uRefl*fr*(1.-line*.5);
+c+=uRingCol*max(r0,0.)*.22*fr;
+float rd=length(p-uRing.xy);c+=uRingCol*uRing.w*smoothstep(.22,0.,abs(rd-uRing.z))*1.4/(1.+uRing.z*.6);
+float dist=length(uCam-vW);c=mix(c,uFog,1.-exp(-uDen*uDen*dist*dist));
+gl_FragColor=vec4(c,1.);}`}});
+ground.rotation.x=-PI/2;scene.add(ground);const gU=ground.material.uniforms;
+
+/* ---------- rain ---------- */
+const NR=22000,rg=new THREE.BufferGeometry(),sd=new Float32Array(NR*8),tp=new Float32Array(NR*2);
+for(let i=0;i<NR;i++){const a=[rnd(),rnd(),rnd(),rnd()];sd.set(a,i*8);sd.set(a,i*8+4);tp[i*2+1]=1}
+rg.setAttribute('seed',new THREE.BufferAttribute(sd,4));rg.setAttribute('tip',new THREE.BufferAttribute(tp,1));rg.setAttribute('position',new THREE.BufferAttribute(new Float32Array(NR*6),3));
+const rainU={uTime:{value:0},uLen:{value:.4},uSwirl:{value:0},uBeat:{value:0},uAlpha:{value:.5},uWind:{value:new THREE.Vector2()},uC:{value:new THREE.Vector3()},uUmb:{value:new THREE.Vector3()},uUmb2:{value:new THREE.Vector3(0,-99,0)},uCol:{value:C('#9fc4ff')}};
+const rain=new THREE.LineSegments(rg,new THREE.ShaderMaterial({uniforms:rainU,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+vertexShader:`attribute vec4 seed;attribute float tip;uniform float uTime,uLen,uSwirl,uAlpha;uniform vec2 uWind;uniform vec3 uC,uUmb,uUmb2;varying float vA;
+const vec3 B=vec3(38.,16.,38.);
+vec3 at(float y){vec3 p;p.y=y;p.xz=(seed.xz-.5)*B.xz+uWind*(B.y-y);vec2 q=p.xz-uC.xz;float r=length(q);float a=uSwirl*exp(-r*.22)*(.5+.5*sin(y*.8+seed.w*6.));float c=cos(a),s=sin(a);p.xz=uC.xz+mat2(c,-s,s,c)*q;return p;}
+void main(){float k=.7+seed.w*.6;float y=mod(seed.y*B.y-uTime*k,B.y);vec3 p=at(y+tip*uLen*k);
+vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;float dz=-mv.z;
+float hid=step(length(p.xz-uUmb.xz),.66)*step(p.y,uUmb.y)+step(length(p.xz-uUmb2.xz),.66)*step(p.y,uUmb2.y);
+vA=(.25+.75*seed.w)*uAlpha*smoothstep(.3,2.,dz)*(1.-smoothstep(20.,34.,dz))*(1.-tip*.9)*(1.-min(hid,1.));}`,
+fragmentShader:`uniform vec3 uCol;uniform float uBeat;varying float vA;void main(){gl_FragColor=vec4(uCol*(1.+uBeat*1.4),vA);}`}));
+rain.frustumCulled=false;scene.add(rain);
+
+/* ---------- material helper with rim glow ---------- */
+function rim(m,k,keyName,vert){
+  m.onBeforeCompile=s=>{s.uniforms.uRim=G.rim;
+    s.fragmentShader='uniform vec3 uRim;\n'+s.fragmentShader.replace('#include <emissivemap_fragment>',`#include <emissivemap_fragment>
+    totalEmissiveRadiance+=uRim*${k.toFixed(2)}*pow(1.-clamp(abs(dot(normalize(vViewPosition),normal)),0.,1.),2.5);`);
+    if(vert)vert(s)};
+  m.customProgramCacheKey=()=>'rim'+k+keyName;return m}
+
+/* ---------- figure ---------- */
+function makeFigure(o){
+  const f={flare:{value:0},tw:{value:0},swZ:0,pyaw:0,fl:0,hair:[]},root=f.root=new THREE.Group();
+  const M=(c,r=.5)=>rim(new THREE.MeshStandardMaterial({color:c,roughness:r}),.55,'b');
+  const skin=M(o.skin,.6),dress=f.dress=M(o.dress,.4),hairM=M(o.hair,.3),legM=o.legs?M(o.legs):skin,armM=o.sleeve?dress:skin,shoe=M(o.shoe,.3);
+  const cap=(r,l,m,p)=>{const g=new THREE.CapsuleGeometry(r,l,4,10);g.translate(0,-l/2,0);const x=new THREE.Mesh(g,m);p.add(x);return x};
+  const grp=(p,x,y,z)=>{const g=new THREE.Group();g.position.set(x,y,z);p.add(g);return g};
+  const sph=(r,m,p,x,y,z,sx=1,sy=1,sz=1)=>{const s=new THREE.Mesh(new THREE.SphereGeometry(r,16,12),m);s.position.set(x,y,z);s.scale.set(sx,sy,sz);p.add(s);return s};
+  const hips=f.hips=grp(root,0,.9,0);sph(.115,o.legs?legM:dress,hips,0,0,0,1.15,.8,.9);
+  f.legs=[-1,1].map(s=>{const up=grp(hips,s*.075,-.03,0);cap(.06,.4,legM,up);const lo=grp(up,0,-.42,0);cap(.046,.38,legM,lo);sph(.05,shoe,lo,0,-.42,.045,.85,.6,1.9);return{up,lo}});
+  const spine=f.spine=grp(hips,0,.05,0);
+  const tor=new THREE.Mesh(new THREE.LatheGeometry([[0,0],[.1,0],[.088,.09],[.105,.2],[.118,.3],[.085,.365],[.035,.4],[0,.4]].map(a=>new THREE.Vector2(a[0],a[1])),20),dress);
+  tor.scale.set(o.broad?1.18:1,1,.72);spine.add(tor);
+  cap(.036,.07,skin,grp(spine,0,.47,0));
+  const head=f.head=grp(spine,0,.5,0);sph(.1,skin,head,0,.03,0,.93,1.08,1);
+  const eyeM=new THREE.MeshBasicMaterial({color:'#2a1820'});[-1,1].forEach(s=>sph(.014,eyeM,head,s*.036,.035,.091,1.3,.35,.4));
+  const hc=new THREE.Mesh(new THREE.SphereGeometry(.108,18,12,0,PI*2,0,PI*.56),hairM);hc.position.set(0,.035,-.008);hc.rotation.x=-.42;hc.scale.set(.96,1.08,1.03);head.add(hc);
+  if(o.long){let p=grp(head,0,0,-.075);for(let i=0;i<7;i++){const m=cap(.075-i*.008,.09,hairM,p);m.scale.z=.7;f.hair.push(p);p=grp(p,0,-.1,0)}
+    [-1,1].forEach(s=>cap(.028,.16,hairM,grp(head,s*.088,.05,.03)))}
+  f.arms=[-1,1].map(s=>{const up=grp(spine,s*.135,.345,0);cap(.036,.22,armM,up);const lo=grp(up,0,-.26,0);cap(.03,.21,armM,lo);const hand=sph(.036,skin,lo,0,-.26,0,.9,1.2,.7);return{up,lo,hand,s}});
+  if(o.skirt){const pts=[];for(let i=0;i<=14;i++){const t=i/14;pts.push(new THREE.Vector2(.1+.27*Math.pow(t,.85),-.52*t))}
+    f.skirt=rim(new THREE.MeshStandardMaterial({color:o.dress,roughness:.4,side:THREE.DoubleSide}),.55,'skirt',s=>{
+      s.uniforms.uFlare=f.flare;s.uniforms.uT=G.time;s.uniforms.uTw=f.tw;
+      s.vertexShader='uniform float uFlare,uT,uTw;\n'+s.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>
+      float hh=clamp(-position.y/.52,0.,1.);float an=atan(position.z,position.x);
+      transformed.xz*=1.+uFlare*hh*hh*1.2;transformed.y+=uFlare*hh*hh*.2;
+      transformed.xz*=1.+(sin(an*5.+uT*3.)*.04+sin(an*9.-uT*4.3)*.02*hh)*hh*(1.+uFlare);
+      float tw=uTw*hh;float cs=cos(tw),sn=sin(tw);transformed.xz=mat2(cs,-sn,sn,cs)*transformed.xz;`)});
+    const sk=new THREE.Mesh(new THREE.LatheGeometry(pts,56),f.skirt);sk.position.y=.07;hips.add(sk)}
+  if(o.scale)root.scale.setScalar(o.scale);
+  scene.add(root);return f}
+
+const _d=new THREE.Vector3(),_n=new THREE.Vector3(),_u=new THREE.Vector3(),_w=new THREE.Vector3(),_q=new THREE.Quaternion(),_q2=new THREE.Quaternion(),DOWN=new THREE.Vector3(0,-1,0);
+function ik(arm,tx,ty,tz){const L=.26;
+  _d.set(tx,ty,tz).sub(arm.up.position);let D=_d.length();if(D<.08){_d.set(0,-.08,.01);D=_d.length()}
+  const mx=L*1.99;if(D>mx){_d.multiplyScalar(mx/D);D=mx}
+  const a=Math.acos(min(1,max(-1,D/(2*L))));
+  _u.copy(_d).normalize();_n.set(arm.s*.6,-1,-.5);_n.crossVectors(_u,_n).normalize();
+  _q.setFromUnitVectors(DOWN,_u);_q2.setFromAxisAngle(_n,a);_q.premultiply(_q2);arm.up.quaternion.copy(_q);
+  _w.copy(DOWN).applyQuaternion(_q).multiplyScalar(L);_w.subVectors(_d,_w).normalize().applyQuaternion(_q2.copy(_q).invert());
+  arm.lo.quaternion.setFromUnitVectors(DOWN,_w)}
+
+const KEYS='x z y yaw pitch lean sx twist sz hx hy hz ll lk ls rl rk rs ax ay az ux uy uz utx utz uspin free'.split(' ');
+const DEF={ax:.24,ay:.02,az:.1,ux:-.2,uy:.3,uz:.22};
+const reset=p=>{KEYS.forEach(k=>p[k]=DEF[k]||0);return p};
+function blend(a,b,t,o){KEYS.forEach(k=>{if(k==='yaw'){let d=(b.yaw-a.yaw)%(2*PI);if(d>PI)d-=2*PI;if(d<-PI)d+=2*PI;o.yaw=a.yaw+d*t}else o[k]=a[k]+(b[k]-a[k])*t})}
+
+function applyPose(f,p,dt,t){
+  f.root.position.set(p.x,0,p.z);f.root.rotation.y=p.yaw;
+  const dl=i=>{const a=(i?p.ll:p.rl)-p.pitch,k=i?p.lk:p.rk;return .42*cos(a)+.45*cos(a-k)};
+  f.hips.position.y=max(dl(0),dl(1))+.03+p.y;f.hips.rotation.set(p.pitch,0,p.lean);
+  f.spine.rotation.set(p.sx,p.twist,p.sz);f.head.rotation.set(p.hx,p.hy,p.hz);
+  const L=f.legs;L[0].up.rotation.set(-p.rl,0,-p.rs);L[0].lo.rotation.x=p.rk;L[1].up.rotation.set(-p.ll,0,p.ls);L[1].lo.rotation.x=p.lk;
+  ik(f.arms[0],p.ux,p.uy,p.uz);ik(f.arms[1],p.ax,p.ay,p.az);
+  let yv=(p.yaw-f.pyaw)/max(dt,.001);if(abs(yv)>20)yv=0;f.pyaw=p.yaw;
+  const k=min(1,dt*5);f.swZ+=(min(.4,max(-.4,-yv*.05))-f.swZ)*k;
+  f.fl+=(min(1,abs(yv)*.16+max(p.ll,p.rl,0)*.5+abs(min(p.ll,p.rl,0))*.5+max(0,p.y)*1.5)-f.fl)*k;
+  f.flare.value=f.fl;f.tw.value=-f.swZ*2;
+  f.hair.forEach((h,i)=>h.rotation.set(.1+sin(t*2.1-i*.5)*.04+f.fl*.12+(i===0?-p.hx*.6-p.pitch*.7:0),0,f.swZ*.5+sin(t*1.6-i*.6)*.05))}
+
+/* ---------- umbrella ---------- */
+function makeUmbrella(col){
+  const g=new THREE.Group(),spin=new THREE.Group();g.add(spin);
+  const R=.72,pm=1.05,N=8,SU=48,SV=10,pos=[],idx=[],y0=cos(pm),H=.72;
+  for(let j=0;j<=SV;j++){const v=j/SV,ph=v*pm;for(let i=0;i<=SU;i++){const u=i/SU*PI*2,f=Math.pow(abs(sin(u*N/2)),1.5)*v*v,r=R*sin(ph)*(1-.07*f);pos.push(cos(u)*r,R*(cos(ph)-y0)+.035*f+H,sin(u)*r)}}
+  for(let j=0;j<SV;j++)for(let i=0;i<SU;i++){const a=j*(SU+1)+i,b=a+1,c=a+SU+1,d=c+1;idx.push(a,c,b,b,c,d)}
+  const cg=new THREE.BufferGeometry();cg.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));cg.setIndex(idx);cg.computeVertexNormals();
+  const mat=rim(new THREE.MeshStandardMaterial({color:col,side:THREE.DoubleSide,roughness:.35,transparent:true,opacity:.93,emissive:col,emissiveIntensity:.28}),.8,'u');
+  spin.add(new THREE.Mesh(cg,mat));
+  const rp=[];for(let k=0;k<N;k++){const u=k/N*PI*2;for(let j=0;j<SV;j++)for(const jj of [j,j+1]){const ph=jj/SV*pm,r=R*sin(ph);rp.push(cos(u)*r,R*(cos(ph)-y0)+H-.006,sin(u)*r)}}
+  const rgeo=new THREE.BufferGeometry();rgeo.setAttribute('position',new THREE.Float32BufferAttribute(rp,3));
+  spin.add(new THREE.LineSegments(rgeo,new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.45})));
+  const sm=new THREE.MeshStandardMaterial({color:'#d8d8e0',roughness:.3,metalness:.6});
+  const top=H+R*(1-y0);
+  const sh=new THREE.Mesh(new THREE.CylinderGeometry(.011,.011,top+.12,8),sm);sh.position.y=(top-.12)/2;spin.add(sh);
+  const tip=new THREE.Mesh(new THREE.ConeGeometry(.02,.1,8),sm);tip.position.y=top+.05;spin.add(tip);
+  const hk=new THREE.Mesh(new THREE.TorusGeometry(.05,.015,8,16,PI),new THREE.MeshStandardMaterial({color:'#5a3520',roughness:.5}));hk.position.set(.05,-.12,0);hk.rotation.z=PI;spin.add(hk);
+  scene.add(g);return{g,spin,mat,H}}
+
+const girl=makeFigure({skin:'#ffe6d8',hair:'#1c1018',dress:'#ffffff',shoe:'#d0283a',long:true,skirt:true});
+const boy=makeFigure({skin:'#f1d2bd',hair:'#1a1420',dress:'#2b3a55',legs:'#15161c',shoe:'#0a0a0a',sleeve:true,scale:1.08,broad:true});
+const U1=makeUmbrella('#e8413a'),U2=makeUmbrella('#27407a');
+const v1=new THREE.Vector3(),v2=new THREE.Vector3();
+function updUmb(U,fig,p,st,dt,t,k){
+  fig.root.updateMatrixWorld(true);fig.arms[0].hand.getWorldPosition(v1);
+  st.free+=(p.free-st.free)*min(1,dt*2.5);
+  v2.set(p.x+sin(t*.7+k*3)*.6,2.15+sin(t*1.3+k)*.35+k*.3,p.z+cos(t*.6+k*3)*.6);
+  U.g.position.lerpVectors(v1,v2,st.free);U.g.rotation.set(p.utx,p.yaw,p.utz,'YXZ');U.spin.rotation.y=p.uspin;U.g.updateMatrixWorld(true)}
+
+/* ---------- dance moves ---------- */
+const MOVES={
+ sway(b,p){const w=b*PI/2;p.x=sin(w)*.5;p.z=sin(w*2)*.12;p.yaw=sin(w)*.55;p.lean=-sin(w)*.08;p.sz=sin(w)*.12;p.hz=sin(w)*.14;p.hy=sin(w)*.3;p.ll=sin(w)*.28;p.rl=-sin(w)*.28;p.lk=max(0,-cos(w))*.4;p.rk=max(0,cos(w))*.4;p.ax=.4+sin(w)*.1;p.ay=.16+sin(w*2)*.14;p.az=.12+cos(w)*.14;p.utz=sin(w)*.2;p.utx=.06;p.uspin=b*.8},
+ twirl(b,p){const k=(b%4)/4,e=k-sin(k*2*PI)/(2*PI);p.yaw=2*PI*(floor(b/4)+e);p.y=sin(b*PI/2)**2*.05;p.x=sin(b*PI/4)*.3;p.z=cos(b*PI/4)*.3;p.ll=.5;p.lk=1.3;p.ls=.25;p.ax=.5;p.ay=.36+sin(b*PI/2)*.08;p.az=.02;p.ux=-.34;p.uy=.46;p.uz=.1;p.utz=.55;p.utx=.1;p.uspin=b*3;p.hx=-.16;p.sx=-.08},
+ stroll(b,p){const w=b*PI,a=b*PI/8;p.x=sin(a)*.9;p.z=cos(a)*.9;p.yaw=a+PI/2;p.y=abs(sin(w))*.05;p.ll=sin(w)*.5;p.rl=-sin(w)*.5;p.lk=max(0,cos(w))*.9;p.rk=max(0,-cos(w))*.9;p.sz=sin(w)*.05;p.twist=sin(w)*.15;p.ay=.04;p.az=.08-sin(w)*.2;p.ux=-.17;p.uy=.3;p.uz=.1;p.utx=-.4;p.uspin=b*2.5;p.hz=sin(w/2)*.12;p.hx=-.08},
+ arab(b,p){const e=.5-.5*cos(b*PI/2);p.yaw=sin(b*PI/8)*.9+.5;p.pitch=e*.6;p.sx=-e*.35;p.hx=-e*.3;p.rl=e*.6;p.ll=-e*.85;p.lk=.05;p.ax=.16;p.ay=.36+e*.12;p.az=.2+e*.2;p.ux=-.28;p.uy=.44;p.uz=.16;p.uspin=b*1.2;p.utz=.15*e},
+ leap(b,p){const k=b%2,j=k<1.3?sin(k/1.3*PI):0;p.y=j*.4;p.x=sin(b*PI/4)*.6;p.z=sin(b*PI/2)*.2;p.yaw=sin(b*PI/4)*.9;p.ll=j*.9;p.lk=j;p.rl=-j*.55;p.rk=j*.35;p.ux=-.22;p.uy=.48+j*.1;p.uz=.14;p.ax=.44;p.ay=.26+j*.26;p.az=.02;p.utz=sin(b*PI/4)*.15;p.uspin=b*1.5+j;p.hx=-j*.2;p.sx=-j*.1},
+ reach(b,p){const w=b*PI/4;p.yaw=sin(w)*.4;p.x=sin(w)*.15;p.hx=-.38;p.hz=sin(w)*.1;p.sx=-.12;p.lean=sin(w)*.05;p.ax=.3+sin(w)*.05;p.ay=.42+sin(w*2)*.04;p.az=.3;p.ux=-.42;p.uy=.2;p.uz=.06;p.utz=.9;p.utx=-.15;p.uspin=b*.6;p.ll=.12;p.rl=-.12;p.rk=.3},
+ toss(b,p){p.yaw=b*PI/2;p.y=abs(sin(b*PI/2))*.04;p.x=sin(b*PI/4)*.35;p.z=cos(b*PI/4)*.35;p.ax=.48;p.ay=.5;p.az=.05;p.ux=-.48;p.uy=.5;p.uz=.05;p.hx=-.32;p.sx=-.12;p.ll=sin(b*PI)*.2;p.rl=-sin(b*PI)*.2;p.lk=.25;p.free=1;p.uspin=b*2.2;p.utx=sin(b*.9)*.25;p.utz=cos(b*.7)*.25},
+ waltz(b,p,ph=0){const a=b*PI/4+ph,w=b*PI;p.x=sin(a)*.44;p.z=cos(a)*.44;p.yaw=a+PI;p.y=abs(sin(w/2))*.03;p.ll=sin(w)*.3;p.rl=-sin(w)*.3;p.lk=max(0,cos(w))*.45;p.rk=max(0,-cos(w))*.45;p.lean=sin(w/2)*.06;p.ax=.17;p.ay=.3;p.az=.36;p.ux=-.17;p.uy=.3;p.uz=.36;p.free=1;p.hx=-.12;p.uspin=b*1.6;p.utx=sin(b*.8+ph)*.2;p.utz=cos(b*.6+ph)*.2},
+ wait(b,p){const w=b*PI/4;p.sz=sin(w)*.04;p.hy=sin(w)*.2;p.uspin=b*.3;p.utz=sin(w)*.06}
+};
+
+/* ---------- environment helpers ---------- */
+const add=(p,geo,mat,x=0,y=0,z=0)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);p.add(m);return m};
+const B=(w,h,d)=>new THREE.BoxGeometry(w,h,d);
+const glow=(c,k=2)=>new THREE.MeshBasicMaterial({color:C(c).multiplyScalar(k)});
+const dark=(c='#0a0c12')=>new THREE.MeshStandardMaterial({color:c,roughness:.85});
+const pl=(p,c,i,x,y,z)=>{const l=new THREE.PointLight(c,i,18,2);l.position.set(x,y,z);p.add(l);return l};
+const haloTex=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d'),gr=g.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.25,'rgba(255,255,255,.35)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,128,128);return new THREE.CanvasTexture(c)})();
+const halo=(p,c,s,x,y,z,k=1)=>{const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:haloTex,color:C(c).multiplyScalar(k),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true}));sp.scale.setScalar(s);sp.position.set(x,y,z);p.add(sp);return sp};
+function winTex(cols,rows,lit,cs){const c=document.createElement('canvas');c.width=cols*16;c.height=rows*16;const g=c.getContext('2d');g.fillStyle='#000';g.fillRect(0,0,c.width,c.height);
+  for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)if(rnd()<lit){g.fillStyle=cs[floor(rnd()*cs.length)];g.globalAlpha=.35+rnd()*.65;g.fillRect(x*16+3,y*16+3,10,10)}
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t}
+function textTex(tx,col){const c=document.createElement('canvas');c.width=256;c.height=128;const g=c.getContext('2d');g.font='bold 80px Georgia,serif';g.textAlign='center';g.textBaseline='middle';g.shadowColor=col;g.shadowBlur=22;g.fillStyle=col;g.fillText(tx,128,66);g.shadowBlur=6;g.fillStyle='#fff';g.globalAlpha=.6;g.fillText(tx,128,66);g.globalAlpha=1;g.strokeStyle=col;g.lineWidth=4;g.strokeRect(8,8,240,112);
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t}
+const bmat=(tex,k)=>new THREE.MeshStandardMaterial({color:'#07080d',roughness:.9,emissive:'#ffffff',emissiveMap:tex,emissiveIntensity:k});
+function motes(p,n,col,size,fall,box,sway,y0=0){const g=new THREE.BufferGeometry(),a=new Float32Array(n*4);for(let i=0;i<n*4;i++)a[i]=rnd();
+  g.setAttribute('seed',new THREE.BufferAttribute(a,4));g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(n*3),3));
+  const pts=new THREE.Points(g,new THREE.ShaderMaterial({uniforms:{uTime:G.time,uH:G.h,uCol:{value:C(col)},uSize:{value:size},uFall:{value:fall},uBox:{value:new THREE.Vector3(...box)},uSway:{value:sway}},transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+  vertexShader:`attribute vec4 seed;uniform float uTime,uSize,uFall,uSway,uH;uniform vec3 uBox;varying float vA;
+  void main(){vec3 p=(seed.xyz-.5)*uBox;p.y=mod(seed.y*uBox.y-uTime*uFall*(.6+seed.w*.8),uBox.y);
+  p.x+=sin(uTime*(.5+seed.w)+seed.x*30.)*uSway;p.z+=cos(uTime*(.4+seed.w*.7)+seed.z*30.)*uSway;
+  vec4 mv=modelViewMatrix*vec4(p,1.);gl_Position=projectionMatrix*mv;gl_PointSize=uSize*(.5+seed.w)*uH/max(.1,-mv.z);vA=.5+.5*sin(uTime*2.+seed.w*40.);}`,
+  fragmentShader:`uniform vec3 uCol;varying float vA;void main(){float d=length(gl_PointCoord-.5);gl_FragColor=vec4(uCol*(.5+vA*.8),smoothstep(.5,.1,d)*.8);}`}));
+  pts.frustumCulled=false;pts.position.y=y0;p.add(pts);return pts}
+function ridge(p,col,z,h,seed){const s=new THREE.Shape();s.moveTo(-200,-1);for(let x=-200;x<=200;x+=4)s.lineTo(x,h*(.45+.3*sin(x*.031+seed)+.18*sin(x*.083+seed*2.3)+.08*sin(x*.21+seed)));s.lineTo(200,-1);
+  return add(p,new THREE.ShapeGeometry(s),new THREE.MeshBasicMaterial({color:col}),0,0,z)}
+const lamp=(g,pm,x,z,s,hs)=>{add(g,new THREE.CylinderGeometry(.05,.08,3.8,8),pm,x,1.9,z);add(g,B(.7,.06,.06),pm,x-s*.3,3.8,z);add(g,new THREE.SphereGeometry(.16,12,8),glow('#ffc070',4),x-s*.6,3.68,z);hs.push(halo(g,'#ffa040',2.6,x-s*.6,3.68,z,.9))};
+
+/* ---------- eight environments ---------- */
+const BUILD=[
+()=>{const g=new THREE.Group(),bm=bmat(winTex(6,12,.2,['#ffb65c','#ffd9a0','#8fb8ff']),1.8),pm=dark('#11141c'),hs=[];
+  for(let i=0;i<16;i++){const s=i%2?1:-1,h=7+rnd()*10;add(g,B(5,h,4.5+rnd()*2.5),bm,s*(9+rnd()*1.5),h/2,-34+floor(i/2)*5.4)}
+  for(let i=0;i<7;i++){const s=i%2?1:-1;lamp(g,pm,s*3.6,3-i*5,s,hs)}
+  pl(g,'#ffb060',45,-3,3.6,3);pl(g,'#ffb060',45,3,3.6,-2);
+  return{g,upd(t,pu){hs.forEach((h,i)=>h.scale.setScalar(2.6+pu*.5+sin(t*9+i)*.05))}}},
+()=>{const g=new THREE.Group(),bm=bmat(winTex(8,18,.3,['#ff4fd8','#35e0ff','#ffe14d','#9d6bff']),1.6),signs=[];
+  for(let i=0;i<14;i++){const s=i%2?1:-1,h=12+rnd()*14;add(g,B(5,h,5.2),bm,s*(8.2+rnd()),h/2,-32+floor(i/2)*5.6)}
+  const Cc=['#ff3fa0','#35e0ff','#ffe14d','#b06bff'];
+  ['雨','LOVE','夢','BAR','恋','CAFÉ','♡','RAIN'].forEach((w,i)=>{const s=i%2?1:-1,c=Cc[i%4],m=new THREE.Mesh(new THREE.PlaneGeometry(2.4,1.2),new THREE.MeshBasicMaterial({map:textTex(w,c),transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+    m.position.set(s*5.4,2.6+rnd()*3.5,2-i*3.2);m.rotation.y=-s*1.1;g.add(m);signs.push(m);add(g,B(.07,3+rnd()*4,.07),glow(c,3),s*5.6,4+rnd()*3,.5-i*3.2)});
+  pl(g,'#ff3fa0',50,-3.5,3,-1.5);pl(g,'#35e0ff',50,3.5,3,1.5);
+  return{g,upd(t,pu){signs.forEach((m,i)=>m.material.color.setScalar((1.6+pu*1.6)*(sin(t*31+i*7)>-.93?1:.25)))}}},
+()=>{const g=new THREE.Group(),tm=dark('#1a0f14'),N=220,bl=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,1),new THREE.MeshStandardMaterial({color:'#ffb3cf',emissive:'#ff5f9a',emissiveIntensity:.35,roughness:.9}),N),d=new THREE.Object3D();let n=0;
+  [[-4,-3],[4.5,-4],[-7,-9],[7.5,-10],[0,-13],[-10,1],[10,2],[-3,-18],[4,-20]].forEach(([x,z])=>{const h=3+rnd()*1.5,tr=add(g,new THREE.CylinderGeometry(.12,.28,h,7),tm,x,h/2,z);tr.rotation.z=(rnd()-.5)*.2;
+    for(let i=0;i<3;i++){const b=add(g,new THREE.CylinderGeometry(.05,.11,2.4,5),tm,x,h+.4,z);b.rotation.set((rnd()-.5)*1.6,rnd()*6,(rnd()-.5)*1.6)}
+    for(let i=0;i<24&&n<N;i++){d.position.set(x+(rnd()-.5)*4.5,h+.4+rnd()*2.2,z+(rnd()-.5)*4.5);d.scale.setScalar(.6+rnd()*.9);d.rotation.set(rnd()*6,rnd()*6,0);d.updateMatrix();bl.setMatrixAt(n++,d.matrix)}});
+  bl.count=n;bl.frustumCulled=false;g.add(bl);motes(g,1400,'#ffc4dc',.09,.9,[30,10,30],.8);
+  pl(g,'#ffc0d8',30,-3,4,-2);pl(g,'#ffe0c0',30,3,4,1);return{g,upd(){}}},
+()=>{const g=new THREE.Group(),wm=dark('#2a0d0d'),rm=new THREE.MeshStandardMaterial({color:'#7a1418',roughness:.6,emissive:'#3a0508'}),lm=glow('#ff9a3a',3.2),hs=[];
+  for(let i=-14;i<=14;i++){const x=i*.8,y=2.4*cos(i/14*PI/2)+.3,dk=add(g,B(.84,.22,2.4),wm,x,y,-7);dk.rotation.z=Math.atan(-2.4*sin(i/14*PI/2)*PI/2/11.2);add(g,B(.1,.8,.1),rm,x,y+.5,-5.85);
+    if(i%4===0){add(g,new THREE.SphereGeometry(.2,10,8),lm,x,y+1.15,-5.85);hs.push(halo(g,'#ff8030',2,x,y+1.15,-5.85,.8))}
+    if(abs(i)===7)add(g,B(.5,3,2),wm,x,1,-7)}
+  const N=110,im=new THREE.InstancedMesh(B(.34,.44,.34),lm,N),d=new THREE.Object3D(),sdd=[];for(let i=0;i<N;i++)sdd.push([(rnd()-.5)*70,rnd()*30,-8-rnd()*50,.3+rnd()*.5,rnd()*6]);im.frustumCulled=false;g.add(im);
+  motes(g,500,'#ffb060',.07,-.4,[40,12,40],.7);pl(g,'#ff9040',45,-3,2.6,-3);pl(g,'#ff9040',45,3.5,2.6,-3);
+  return{g,upd(t,pu){sdd.forEach((s,i)=>{d.position.set(s[0]+sin(t*.3+s[4])*1.5,(s[1]+t*s[3])%30+1,s[2]);d.rotation.y=t*.2+s[4];d.scale.setScalar(1+pu*.12);d.updateMatrix();im.setMatrixAt(i,d.matrix)});im.instanceMatrix.needsUpdate=true;hs.forEach(h=>h.scale.setScalar(2+pu*.5))}}},
+()=>{const g=new THREE.Group(),sm=dark('#141a22'),wl=glow('#ffe2a8',2.4),train=new THREE.Group();
+  add(g,B(26,.22,5),sm,0,3.7,-4.6);
+  for(let i=-3;i<=3;i++){add(g,B(.22,3.7,.22),sm,i*4,1.85,-3.2);add(g,B(1.4,.06,.22),glow('#dff0ff',3),i*4+2,3.55,-4.2);halo(g,'#bfe0ff',2.2,i*4+2,3.5,-4.2,.5)}
+  add(g,B(60,.02,.16),glow('#ffd23a',.9),0,.015,-6.4);add(g,B(1.8,.5,.5),sm,-3,.3,-4);
+  const ck=add(g,new THREE.CylinderGeometry(.42,.42,.1,24),glow('#fff3d0',1.6),2,3,-3.2);ck.rotation.x=PI/2;
+  const hg=B(.04,.34,.03);hg.translate(0,.15,0);const hand=add(g,hg,new THREE.MeshBasicMaterial({color:'#111'}),2,3,-3.13);
+  for(let c=0;c<7;c++){add(train,B(9.6,3,2.6),sm,c*10,1.9,0);for(let w=0;w<6;w++)add(train,B(1.1,.9,.05),wl,c*10-4+w*1.6,2.3,1.33)}
+  train.position.z=-8.6;g.add(train);
+  add(g,new THREE.SphereGeometry(.14,10,8),glow('#ff3030',5),-9,3.2,-6.6);add(g,B(.1,3.2,.1),sm,-9,1.6,-6.6);halo(g,'#ff2020',1.6,-9,3.2,-6.55,.8);
+  pl(g,'#cfe6ff',40,-2,3.3,-3.5);pl(g,'#ffd9a0',35,3,2.2,-6);
+  return{g,upd(t){train.position.x=((t*16)%220)-150;hand.rotation.z=-t*.1}}},
+()=>{const g=new THREE.Group(),d=new THREE.Object3D();ridge(g,'#0a1430',-90,26,1);ridge(g,'#060c20',-60,14,4);
+  const N=500,rm=new THREE.InstancedMesh(new THREE.ConeGeometry(.035,1,4),dark('#0a1220'),N);
+  for(let i=0;i<N;i++){const a=rnd()*PI*2,r=5.5+rnd()*16,sy=1.2+rnd()*1.6;d.position.set(sin(a)*r,sy/2,cos(a)*r-4);d.scale.set(1,sy,1);d.rotation.set((rnd()-.5)*.3,0,(rnd()-.5)*.3);d.updateMatrix();rm.setMatrixAt(i,d.matrix)}rm.frustumCulled=false;g.add(rm);
+  const lm=new THREE.InstancedMesh(new THREE.CircleGeometry(.28,12),glow('#7fffd9',.8),60);
+  for(let i=0;i<60;i++){const a=rnd()*PI*2,r=2.5+rnd()*14;d.position.set(sin(a)*r,.015,cos(a)*r-3);d.rotation.set(-PI/2,0,0);d.scale.setScalar(.6+rnd());d.updateMatrix();lm.setMatrixAt(i,d.matrix)}lm.frustumCulled=false;g.add(lm);
+  motes(g,400,'#d9ff8a',.1,-.12,[34,5,34],1.2,.2);pl(g,'#8fb0ff',40,0,5,-6);pl(g,'#7fffd0',14,2,1,2);return{g,upd(){}}},
+()=>{const g=new THREE.Group(),bm=bmat(winTex(10,10,.25,['#ffcf8a','#ff9ac0','#9fd0ff']),1.5),pm=dark('#12131a'),zm=glow('#e8e8f0',.55),hs=[];
+  for(let i=0;i<8;i++)add(g,B(3.4,.01,.55),zm,0,.012,1.2-i*1.1);
+  for(let i=0;i<9;i++){const h=8+rnd()*12;add(g,B(7,h,6),bm,-32+i*8,h/2,-19-rnd()*4)}
+  const tl=[-1,1].map(s=>{add(g,B(.1,3.4,.1),pm,s*2.6,1.7,-7.4);add(g,B(.3,.8,.25),pm,s*2.6,3.5,-7.4);return{m:add(g,new THREE.SphereGeometry(.1,10,8),glow('#ff3030',5),s*2.6,3.5,-7.26),h:halo(g,'#ff2020',1.8,s*2.6,3.5,-7.2,.9)}});
+  const cars=[0,1,2].map(i=>{const c=new THREE.Group();[-.6,.6].forEach(z=>{add(c,new THREE.SphereGeometry(.1,8,6),glow('#fff4d0',6),1.8,.6,z);add(c,new THREE.SphereGeometry(.08,8,6),glow('#ff2020',5),-1.8,.65,z)});add(c,B(3.6,1,1.6),pm,0,.7,0);halo(c,'#fff0c0',3,2,.6,0,.5);c.position.z=-10.5-i*1.6;g.add(c);return c});
+  motes(g,260,'#ffb070',1.1,0,[90,16,6],0,2).position.z=-34;motes(g,200,'#ff7fb0',.9,0,[90,16,6],0,2).position.z=-38;
+  lamp(g,pm,3.4,-1,1,hs);pl(g,'#ffc080',45,2.8,3.4,-1);pl(g,'#ff80a0',30,-3,3,-6);
+  return{g,upd(t,pu,sb){const gr=sb>=16;tl.forEach(o=>{o.m.material.color.set(gr?'#30ff80':'#ff3030').multiplyScalar(5);o.h.material.color.set(gr?'#20ff70':'#ff2020')});
+    cars.forEach((c,i)=>{c.visible=!gr;c.position.x=((t*(9+i*3)+i*40)%120)-60})}}},
+()=>{const g=new THREE.Group(),d=new THREE.Object3D();ridge(g,'#c98a7a',-120,22,2);ridge(g,'#8a5a66',-80,12,5);
+  ['#ff5a5a','#ffa64d','#ffe14d','#6fe08a','#5ab4ff','#a07aff'].forEach((c,i)=>add(g,new THREE.TorusGeometry(62-i*1.5,.75,6,90,PI),new THREE.MeshBasicMaterial({color:C(c).multiplyScalar(.5),transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}),0,-4,-110));
+  const N=700,fm=new THREE.InstancedMesh(new THREE.SphereGeometry(.06,6,5),new THREE.MeshBasicMaterial(),N),cc=['#ffffff','#ffd0e0','#fff0a0','#ffb0c8'];
+  for(let i=0;i<N;i++){const a=rnd()*PI*2,r=3+rnd()*22;d.position.set(sin(a)*r,.05,cos(a)*r-4);d.scale.setScalar(.6+rnd());d.updateMatrix();fm.setMatrixAt(i,d.matrix);fm.setColorAt(i,C(cc[i%4]).multiplyScalar(1.3))}fm.frustumCulled=false;g.add(fm);
+  motes(g,900,'#ffe6a0',.09,-.5,[36,12,36],.9);pl(g,'#ffd9a0',40,0,3,-5);pl(g,'#ffb0c0',25,-3,2,2);return{g,upd(){}}}
+];
+
+/* ---------- scene configs ---------- */
+const SHOTS=[
+ {r:7,h:1.5,a:-.25,da:.06,ty:1.25,fov:38,dr:-.15,dh:0},{r:3.6,h:.3,a:.55,da:-.07,ty:1.35,fov:44,dr:0,dh:.03},
+ {r:2.7,h:1.55,a:-.6,da:.1,ty:1.42,fov:30,dr:-.04,dh:0},{r:6,h:4.6,a:.4,da:-.05,ty:.9,fov:36,dr:.12,dh:.15},
+ {r:4.4,h:1.25,a:-.75,da:.3,ty:1.2,fov:40,dr:0,dh:0},{r:2.6,h:.28,a:-.3,da:.12,ty:.55,fov:38,dr:0,dh:0},
+ {r:11,h:2.6,a:.05,da:.02,ty:2.2,fov:32,dr:-.3,dh:-.05},{r:5.2,h:1.4,a:1.2,da:.05,ty:1.25,fov:34,dr:-.08,dh:0},
+ {r:3.2,h:3.8,a:.2,da:.25,ty:1.4,fov:42,dr:0,dh:0},{r:5.5,h:1.2,a:0,da:0,ty:1.3,fov:36,dr:-.5,dh:.03}];
+// rain: [color, windX, windZ, speed, len, swirl, alpha]   gr: [color, reflect, tile]
+const SC=[
+ {name:'The First Drop',line:'She waits beneath the lamplight, and the sky begins to speak.',top:'#050a1c',bot:'#12223f',glow:'#ff9a4d',stars:0,fog:['#0b1326',.035],hemi:['#6f8fd0','#1a1410',.5],key:['#ffb066',1.6,[3,5,2]],rim:['#5d8cff',2.2],rain:['#9fc4ff',.12,.04,11,.4,.5,.5],gr:['#05070c',.9,.9],dress:'#f4f1ea',umb:'#e8413a',bloom:.85,moves:['reach','sway','stroll','twirl'],shots:[6,2,4,1]},
+ {name:'Neon Reverie',line:'The city blurs into colour; she dances so the silence cannot follow.',top:'#0a0320',bot:'#2a0a45',glow:'#ff3fa0',stars:0,fog:['#150828',.04],hemi:['#b060ff','#10203a',.55],key:['#ff4fb0',1.8,[-4,4,2]],rim:['#35e0ff',2.6],rain:['#d9a8ff',-.1,.05,12,.45,.9,.55],gr:['#06040c',1,0],dress:'#e8fbff',umb:'#35e0ff',bloom:1.1,moves:['twirl','leap','stroll','toss'],shots:[1,4,2,8]},
+ {name:'Petal Rain',line:'Spring remembers a promise made beneath the cherry trees.',top:'#2b2350',bot:'#f3a6c0',glow:'#ffd0e0',stars:0,fog:['#c98aa8',.028],hemi:['#ffd6e6','#5a3a55',1.1],key:['#fff0e0',1.8,[2,6,3]],rim:['#ff9ac0',1.6],rain:['#ffe9f2',.06,.02,8,.3,.6,.4],gr:['#3a2233',.6,0],dress:'#ffffff',umb:'#c2185b',bloom:.7,moves:['sway','arab','twirl','reach'],shots:[0,5,3,2]},
+ {name:'Lantern Bridge',line:'A thousand wishes rise where the river once carried his name.',top:'#04101c',bot:'#0f2a3a',glow:'#ff8a3a',stars:.6,fog:['#081a26',.03],hemi:['#3f7fa0','#201008',.5],key:['#ff9a50',1.7,[-2,4,-3]],rim:['#ffb060',2.2],rain:['#ffd9a8',.08,0,10,.4,.7,.5],gr:['#03080c',1,0],dress:'#c8102e',umb:'#ffd27a',bloom:1,moves:['stroll','arab','leap','twirl'],shots:[6,4,1,9]},
+ {name:'The Last Train',line:'The windows pass like years. He was not on it. She dances anyway.',top:'#070b12',bot:'#1a2634',glow:'#6fa8c8',stars:0,fog:['#101a26',.04],hemi:['#8fb0d0','#101010',.6],key:['#dfefff',1.5,[1,5,3]],rim:['#ffd08a',2],rain:['#c8dcf0',.3,.05,13,.5,.5,.6],gr:['#0a0d12',.9,.5],dress:'#7fb2e5',umb:'#f5f5f0',bloom:.85,thunder:1,moves:['sway','reach','arab','twirl'],shots:[9,7,2,3]},
+ {name:'Moon Lake',line:'Even the moon leans closer to listen to the rain.',top:'#02040f',bot:'#0d1d44',glow:'#4f7fff',stars:1,moon:.9895,moonDir:[0,.34,-1],moonCol:['#dfe9ff',2.5],fog:['#081030',.02],hemi:['#7090ff','#081018',.6],key:['#bcd0ff',2,[0,6,-8]],rim:['#9fc0ff',2.5],rain:['#bcd4ff',.04,0,9,.35,1,.45],gr:['#020510',1.1,0],dress:'#e9efff',umb:'#8f7fff',bloom:1,moves:['arab','toss','sway','leap'],shots:[6,5,4,2]},
+ {name:'The Crossing',line:'Across the street, another umbrella stops. The light turns green.',top:'#0b0718',bot:'#3a1f3a',glow:'#ff8f6a',stars:0,fog:['#1a1024',.032],hemi:['#a080c0','#1a1010',.6],key:['#ffc090',1.7,[3,5,3]],rim:['#ff6f9a',2.2],rain:['#ffd0e0',.1,.03,10,.4,.5,.5],gr:['#07060c',.95,0],dress:'#ffd84a',umb:'#e8413a',bloom:.95,moves:['stroll','twirl','sway','reach'],shots:[0,4,2,7],
+  hook(p,sb){const k=sstep(24.5,26.5,sb);p.yaw+=PI*k;p.x*=1-k;p.z=p.z*(1-k)-.2*k},
+  boy(p,sb,bf){MOVES.wait(bf,p);const k=sstep(17,29,sb);p.x=.12;p.z=-6.2+k*5.1;if(k>0&&k<1){const w=bf*PI;p.ll=sin(w)*.4;p.rl=-sin(w)*.4;p.lk=max(0,cos(w))*.5;p.rk=max(0,-cos(w))*.5}if(k>=1){p.ax=.2;p.ay=.25;p.az=.36;p.utx=.3;p.uz=.3}}},
+ {name:'After the Rain',line:'The rain forgets to fall. Two shadows share one sky.',top:'#3d6ac0',bot:'#ffc79a',glow:'#ffe2a8',stars:0,moon:.9975,moonDir:[0,.1,-1],moonCol:['#fff0c0',6],fog:['#f0b890',.016],hemi:['#ffeedd','#806050',1.3],key:['#fff0d0',2.4,[0,3,-8]],rim:['#ffd9a0',2],rain:['#ffe08a',0,0,-.7,.07,1.3,.9],gr:['#4a3a40',.8,0],dress:'#ffffff',umb:'#e8413a',bloom:.8,moves:['waltz','waltz','waltz','waltz'],shots:[9,4,8,6],
+  boy(p,sb,bf){MOVES.waltz(bf,p,PI)}}
+];
+const envs=BUILD.map(b=>{const e=b();e.g.visible=false;scene.add(e.g);return e});
+
+/* ---------- UI ---------- */
+const ROMAN=['I','II','III','IV','V','VI','VII','VIII'],dots=$('#dots'),capEl=$('#cap');
+SC.forEach((s,i)=>{const d=document.createElement('i');d.title=s.name;d.onclick=()=>jump(i);dots.appendChild(d)});
+let t0=performance.now(),cur=-1,S=null;
+const jump=i=>{t0=performance.now()-((i%NS+NS)%NS)*32*BEAT*1000};
+addEventListener('keydown',e=>{if(e.key==='ArrowRight')jump(cur+1);if(e.key==='ArrowLeft')jump(cur-1);if(e.key==='m'||e.key==='M'){muted=!muted;if(master)master.gain.value=muted?0:.8}});
+
+function setScene(i){cur=i;S=SC[i];envs.forEach((e,j)=>e.g.visible=j===i);
+  skyU.uTop.value.set(S.top);skyU.uBot.value.set(S.bot);skyU.uGlow.value.set(S.glow);skyU.uStars.value=S.stars;skyU.uMoon.value=S.moon||2;
+  if(S.moon){skyU.uMoonDir.value.set(...S.moonDir);skyU.uMoonCol.value.set(S.moonCol[0]).multiplyScalar(S.moonCol[1])}
+  scene.fog.color.set(S.fog[0]);scene.fog.density=S.fog[1];
+  hemi.color.set(S.hemi[0]);hemi.groundColor.set(S.hemi[1]);key.color.set(S.key[0]);key.position.set(...S.key[2]);
+  rimL.color.set(S.rim[0]);rimL.intensity=S.rim[1];G.rim.value.set(S.rim[0]);
+  const r=S.rain;rainU.uCol.value.set(r[0]);rainU.uWind.value.set(r[1],r[2]);rainU.uLen.value=r[4];rainU.uAlpha.value=r[6];
+  gU.uCol.value.set(S.gr[0]);gU.uRefl.value=S.gr[1];gU.uTile.value=S.gr[2];gU.uFog.value.set(S.fog[0]);gU.uDen.value=S.fog[1];gU.uRingCol.value.set(S.umb);
+  girl.dress.color.set(S.dress);girl.skirt.color.set(S.dress);U1.mat.color.set(S.umb);U1.mat.emissive.set(S.umb);aura.color.set(S.umb);
+  bloom.strength=S.bloom;fx.uniforms.uTint.value.set(S.glow).lerp(C('#ffffff'),.35);
+  boy.root.visible=U2.g.visible=i>=6;if(i<6)rainU.uUmb2.value.set(0,-99,0);
+  capEl.classList.remove('in');void capEl.offsetWidth;
+  capEl.children[0].textContent='SCENE '+ROMAN[i];capEl.children[1].textContent=S.name;capEl.children[2].textContent=S.line;capEl.classList.add('in');
+  [...dots.children].forEach((d,j)=>d.classList.toggle('on',j===i))}
+
+/* ---------- audio (fully synthesised) ---------- */
+let AC=null,master=null,rev,nb,muted=false,stepN=0;
+const PROG=[[53,60,64,69],[55,59,62,67],[52,59,62,67],[57,60,64,67],[53,60,64,69],[55,59,62,67],[48,55,64,67],[48,55,62,67]];
+const TR=[0,0,3,3,-2,-2,0,2],LV=[0,3,1,2,1,1,2,3],MEL=[3,-1,2,-1,1,-1,2,3];
+const mtof=m=>440*Math.pow(2,(m-69)/12);
+function tone(t,m,type,a,d,vol,wet,cut){const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=mtof(m);
+  g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vol,t+a);g.gain.exponentialRampToValueAtTime(.0001,t+a+d);
+  let n=o;if(cut){const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=cut;o.connect(f);n=f}
+  n.connect(g);g.connect(master);if(wet){const w=AC.createGain();w.gain.value=wet;g.connect(w);w.connect(rev)}o.start(t);o.stop(t+a+d+.05)}
+function noise(t,d,vol,freq,type='highpass',q=1){const s=AC.createBufferSource();s.buffer=nb;const f=AC.createBiquadFilter();f.type=type;f.frequency.value=freq;f.Q.value=q;const g=AC.createGain();
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);s.connect(f);f.connect(g);g.connect(master);s.start(t,rnd());s.stop(t+d+.02)}
+function kick(t,v){const o=AC.createOscillator(),g=AC.createGain();o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(42,t+.14);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.32);o.connect(g);g.connect(master);o.start(t);o.stop(t+.35)}
+function play(n,t){const gs=((n%(NS*64))+NS*64)%(NS*64),sc=floor(gs/64),ss=gs%64,br=floor(ss/8),s8=ss%8,tr=TR[sc],ch=PROG[br],lv=LV[sc];
+  if(s8===0){ch.forEach(m=>{tone(t,m+tr,'sawtooth',.5,BEAT*4.2,.02,.6,700+lv*250);tone(t,m+tr+.08,'triangle',.4,BEAT*4,.028,.5)});tone(t,ch[0]+tr-12,'sine',.02,BEAT*3.5,.2,.1)}
+  if(s8===4&&lv>0)tone(t,ch[0]+tr-12,'triangle',.01,BEAT*1.5,.1,.1,300);
+  tone(t,ch[[0,2,1,3,2,3,1,2][s8]]+tr+12,'triangle',.005,.7,.065,.7);
+  const me=MEL[(s8+br*3)%8];if(me>=0&&(lv>1||s8%2===0))tone(t,ch[me]+tr+24,'sine',.005,1.2,.045,.9);
+  if(lv>=2&&(s8===0||s8===4||(lv>=3&&s8===7)))kick(t,.5);
+  if(lv>=1&&s8%2===1)noise(t,.05,.035,7000);
+  if(lv>=2&&(s8===2||s8===6))noise(t,.16,.07,1800,'bandpass',.8);
+  if(lv>=3&&s8%2===0)noise(t,.03,.02,9000);
+  if(ss===63)noise(t,.9,.1,3000,'bandpass',.5);
+  if(ss===0){tone(t,ch[0]+tr+36,'sine',.005,2.5,.06,1);tone(t,ch[0]+tr+43,'sine',.005,2.5,.04,1)}}
+function sched(){if(!AC||AC.state!=='running')return;const nowS=(performance.now()-t0)/1000;
+  if(abs(stepN*STEP-nowS)>1)stepN=Math.ceil(nowS/STEP);
+  while(stepN*STEP<nowS+.2){play(stepN,AC.currentTime+max(0,stepN*STEP-nowS)+.03);stepN++}}
+function startAudio(){if(AC)return;AC=new (window.AudioContext||window.webkitAudioContext)();AC.resume&&AC.resume();
+  master=AC.createGain();master.gain.value=muted?0:.8;const comp=AC.createDynamicsCompressor();master.connect(comp);comp.connect(AC.destination);
+  rev=AC.createConvolver();const L=floor(AC.sampleRate*2.8),ir=AC.createBuffer(2,L,AC.sampleRate);
+  for(let c=0;c<2;c++){const d=ir.getChannelData(c);for(let i=0;i<L;i++)d[i]=(rnd()*2-1)*Math.pow(1-i/L,2.8)}
+  rev.buffer=ir;const rgn=AC.createGain();rgn.gain.value=.5;rev.connect(rgn);rgn.connect(master);
+  nb=AC.createBuffer(1,AC.sampleRate*2,AC.sampleRate);const nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=rnd()*2-1;
+  const rs=AC.createBufferSource();rs.buffer=nb;rs.loop=true;const bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.value=5200;bp.Q.value=.4;const g=AC.createGain();g.gain.value=.07;rs.connect(bp);bp.connect(g);g.connect(master);rs.start();
+  stepN=Math.ceil(((performance.now()-t0)/1000)/STEP);setInterval(sched,50)}
+$('#start').onclick=()=>{jump(0);try{startAudio()}catch(e){}const s=$('#start');s.style.opacity=0;setTimeout(()=>s.remove(),1300)};
+
+/* ---------- main loop ---------- */
+const pA=reset({}),pB=reset({}),pBoy=reset({}),uS={free:0},uS2={free:0},tg=new THREE.Vector3();
+let last=performance.now(),rainT=0,lastShot=-1;
+function frame(){
+  requestAnimationFrame(frame);
+  const now=performance.now(),dt=min(.05,(now-last)/1000);last=now;
+  const T=(now-t0)/1000,bf=T/BEAT,gb=((bf%TOT)+TOT)%TOT,si=min(NS-1,floor(gb/32)),sb=gb-si*32;
+  if(si!==cur)setScene(si);
+  const ph=((bf%1)+1)%1,pulse=exp(-ph*5),bar=exp(-(((bf%4)+4)%4)*2.2);
+  G.time.value=T;fx.uniforms.uTime.value=T;fx.uniforms.uPulse.value=pulse;
+  fx.uniforms.uFade.value=min(1,sstep(30.8,32,sb)+1-sstep(0,1.2,sb));
+
+  // dance
+  const mi=min(3,floor(sb/8)),ms=sb-mi*8;
+  reset(pA);MOVES[S.moves[mi]](bf,pA,0);
+  if(mi>0&&ms<1.5){reset(pB);MOVES[S.moves[mi-1]](bf,pB,0);blend(pB,pA,sstep(0,1.5,ms),pA)}
+  if(S.hook)S.hook(pA,sb,bf);
+  applyPose(girl,pA,dt,T);updUmb(U1,girl,pA,uS,dt,T,0);
+  U1.g.localToWorld(rainU.uUmb.value.set(0,U1.H+.1,0));
+  if(cur>=6){reset(pBoy);S.boy(pBoy,sb,bf);applyPose(boy,pBoy,dt,T);updUmb(U2,boy,pBoy,uS2,dt,T,1);U2.g.localToWorld(rainU.uUmb2.value.set(0,U2.H+.1,0))}
+
+  // rain dances with the beat
+  rainT+=dt*S.rain[3]*(1-pulse*.45);rainU.uTime.value=rainT;rainU.uBeat.value=pulse;
+  rainU.uSwirl.value=S.rain[5]*(sin(bf*PI/4)*1.0-girl.swZ*2.5);rainU.uC.value.set(pA.x,0,pA.z);
+
+  // lights & ground
+  let fl=0;if(S.thunder){const q=sb%16;if(q>=12&&q<13)fl=exp(-(q-12)*5)*(.5+.5*sin(T*60))}
+  skyU.uFlash.value=fl;hemi.intensity=S.hemi[2]*(1+bar*.2)+fl*4;key.intensity=S.key[1]*(1+bar*.25);
+  aura.position.set(pA.x,1.7,pA.z+.2);aura.intensity=5+pulse*6;
+  gU.uTime.value=T;gU.uRing.value.set(pA.x,pA.z,ph*5,pulse);
+  envs[cur].upd(T,pulse,sb,dt);
+
+  // camera: new shot every two bars, cut on the beat
+  const sh=SHOTS[S.shots[mi]],ts=ms*BEAT,id=si*4+mi,fxp=pA.x*.7,fzp=pA.z*.7;
+  if(id!==lastShot){lastShot=id;tg.set(fxp,0,fzp)}else{const k=min(1,dt*2.5);tg.x+=(fxp-tg.x)*k;tg.z+=(fzp-tg.z)*k}
+  const az=sh.a+sh.da*ts,r=sh.r+sh.dr*ts,hy=max(.22,sh.h+sh.dh*ts);
+  cam.position.set(tg.x+sin(az)*r+sin(T*.7)*.03,hy+sin(T*.9)*.02,tg.z+cos(az)*r);
+  cam.lookAt(tg.x,sh.ty+pA.y*.3,tg.z);cam.fov=sh.fov-pulse*.5;cam.updateProjectionMatrix();
+  sky.position.copy(cam.position);gU.uCam.value.copy(cam.position);
+  composer.render();
+}
+addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();G.h.value=innerHeight*DPR*1.4});
+frame();
+</script>
+</body>
+</html>

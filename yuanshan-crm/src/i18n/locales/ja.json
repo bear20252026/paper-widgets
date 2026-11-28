@@ -1,0 +1,245 @@
+{
+  "meta": {
+    "title": "Yuanshan Consulting · 顧客CRM",
+    "description": "Yuanshan Consultingの社内CRM。今日の概要、営業パイプライン、顧客ごとのコミュニケーション履歴を確認できます。"
+  },
+  "brand": {
+    "name": "Yuanshan Consulting",
+    "wordmark": "Yuanshan",
+    "tagline": "CONSULTING"
+  },
+  "common": {
+    "all": "すべて",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "edit": "編集",
+    "saving": "保存中…",
+    "consultant": "コンサルタント",
+    "contact": "担当者",
+    "defaultProject": "コンサルティング案件",
+    "close": "閉じる"
+  },
+  "units": {
+    "system": "wan",
+    "thousand": "千",
+    "million": "百万",
+    "tenThousand": "万",
+    "money": "¥{value}{unit}"
+  },
+  "time": {
+    "justNow": "たった今",
+    "minutesAgo": "{n}分前",
+    "hoursAgo": "{n}時間前",
+    "yesterday": "昨日",
+    "daysAgo": "{n}日前",
+    "overdue": "{n}日超過",
+    "dueToday": "本日期限",
+    "tomorrow": "明日",
+    "inDays": "{n}日後"
+  },
+  "greeting": {
+    "lateNight": "遅くまでお疲れさまです",
+    "morning": "おはようございます",
+    "noon": "こんにちは",
+    "afternoon": "こんにちは",
+    "evening": "こんばんは",
+    "line": "{greeting}、{name}さん。"
+  },
+  "nav": {
+    "overview": "今日",
+    "pipeline": "パイプライン",
+    "clients": "顧客",
+    "newClient": "新規顧客",
+    "team": "チーム · 進行中の案件",
+    "switchIdentity": "担当者を切り替え"
+  },
+  "stages": {
+    "lead": {
+      "label": "見込み客",
+      "tag": "LEAD"
+    },
+    "contact": {
+      "label": "ヒアリング",
+      "tag": "DISCOVERY"
+    },
+    "proposal": {
+      "label": "提案",
+      "tag": "PROPOSAL"
+    },
+    "negotiation": {
+      "label": "交渉",
+      "tag": "NEGOTIATION"
+    },
+    "won": {
+      "label": "成約",
+      "tag": "WON"
+    }
+  },
+  "activity": {
+    "call": "電話",
+    "meeting": "ミーティング",
+    "email": "メール",
+    "note": "メモ",
+    "stage_change": "ステージ変更",
+    "deal_won": "成約"
+  },
+  "overview": {
+    "subtitleDue": "本日連絡を待つ顧客は{due}件です。今月チームが成約した案件は{won}件です。",
+    "subtitleClear": "本日は期限超過のフォローアップがありません。提案を前に進める好機です。今月の成約は{won}件です。",
+    "heroEyebrow": "今月の成約 · {month}",
+    "heroUnit": "{unit}元",
+    "vsLastMonth": "先月比{delta}%",
+    "noDealsLastMonth": "先月の成約なし",
+    "lastMonth": "先月 {amount}",
+    "signedThisMonth": "今月の成約: {n}件",
+    "avgDeal": "平均案件額 {amount}",
+    "noDealsYet": "今月はまだ成約がありません。パイプラインを開き、案件を成約まで進めましょう。",
+    "funnelTitle": "営業ファネル",
+    "funnelSubtitle": "ステージ別の案件価値 · ステージをクリックしてパイプラインを開く",
+    "openPipeline": "パイプラインを開く",
+    "wonThisMonth": "成約（今月）",
+    "statOpen": "進行中の案件",
+    "statOpenHint": "{n}件が進行中",
+    "statWeighted": "加重予測",
+    "statWeightedHint": "ステージ別の成約率で加重",
+    "statNew": "今月の新規",
+    "statNewHint": "新規顧客",
+    "dueTitle": "本日期限",
+    "mine": "自分の担当",
+    "allCaughtUp": "対応はすべて完了しています。お茶の時間です。",
+    "recentTitle": "最近のアクティビティ",
+    "teamTitle": "今月のチーム",
+    "teamOpen": "進行中 {amount}",
+    "teamWon": "{n} 件成約"
+  },
+  "funnel": {
+    "ariaLabel": "ステージ別の案件価値を示すファネルチャート",
+    "clients": "{n}社",
+    "clientsOne": "{n}社"
+  },
+  "pipeline": {
+    "eyebrow": "Pipeline",
+    "title": "営業パイプライン",
+    "description": "カードをドラッグして案件を前進させます。変更はすべて顧客のタイムラインに記録されます。成約に移して成果を祝いましょう。",
+    "searchPlaceholder": "会社名、担当者、案件を検索",
+    "stageFilter": "ステージ：{stage}",
+    "deals": "{n} 件"
+  },
+  "kanban": {
+    "dropWonHere": "成約した顧客をここへ移動",
+    "empty": "顧客なし",
+    "moveFailed": "カードを移動できませんでした: {error}",
+    "wonToast": "成約しました！ {company}",
+    "wonToastBody": "{project} · {amount}を今月の成約売上に追加しました。",
+    "movedToast": "{company} → {stage}",
+    "movedToastBody": "ステージ変更をタイムラインに記録しました"
+  },
+  "client": {
+    "notFound": "この顧客が見つかりませんでした。",
+    "moveTo": "{stage}へ移動",
+    "opportunity": "案件価値",
+    "signedOn": "{date}に成約",
+    "expectedClose": "成約予定日: {date}",
+    "stage": "営業ステージ",
+    "email": "メール",
+    "phone": "電話",
+    "owner": "担当者",
+    "nextFollowUp": "次回連絡",
+    "fullPage": "全ページ",
+    "wonToastBody": "{amount}を今月の成約売上に追加しました",
+    "movedTo": "{stage}へ移動しました",
+    "deleted": "顧客を削除しました",
+    "historyTitle": "コミュニケーション記録",
+    "entries": "{n}件の記録 · {name}として記録中",
+    "entriesOne": "{n}件の記録 · {name}として記録中",
+    "deleteTitle": "{company}を削除しますか？",
+    "deleteBody": "顧客情報と{n}件のコミュニケーション記録を完全に削除します。この操作は元に戻せません。",
+    "deleteBodyOne": "顧客情報と{n}件のコミュニケーション記録を完全に削除します。この操作は元に戻せません。",
+    "sheetTitle": "顧客詳細",
+    "sheetDescription": "顧客プロフィールとコミュニケーション履歴",
+    "allClients": "すべての顧客",
+    "invalidId": "無効な顧客ID"
+  },
+  "timeline": {
+    "empty": "記録はまだありません",
+    "deleteEntry": "記録を削除",
+    "stageChange": "ステージ: {from} → {to}",
+    "dealWon": "案件が成約しました",
+    "created": "顧客情報を作成しました",
+    "placeholderCall": "例: 電話でCEOに予算を確認する",
+    "placeholderMeeting": "例: 提案レビュー · 対面",
+    "placeholderEmail": "例: 提案書v2と見積書を送る",
+    "placeholderNote": "例: 来週は出張のため、金曜日まで待つ",
+    "contentPlaceholder": "要点、懸念事項、次のステップ…",
+    "nextFollowUp": "次回フォローアップ",
+    "submit": "記録",
+    "saved": "記録を保存しました",
+    "writeSomething": "記録する内容を入力してください",
+    "defaultTitle": "{type}"
+  },
+  "form": {
+    "editTitle": "顧客を編集",
+    "newTitle": "新規顧客",
+    "editHint": "変更はパイプラインと概要にすぐ反映されます。",
+    "newHint": "新規顧客は見込み客ステージで始まり、ロゴが自動生成されます。",
+    "logoPlaceholder": "N",
+    "company": "会社名 *",
+    "companyPlaceholder": "例: Huazhang Culture & Tourism",
+    "industry": "業種 *",
+    "industryPlaceholder": "例: 消費財",
+    "city": "市区町村",
+    "cityPlaceholder": "例: Hangzhou",
+    "project": "案件",
+    "projectPlaceholder": "例: ブランド戦略の刷新",
+    "avatar": "担当者の写真",
+    "chooseAvatar": "写真を選択",
+    "contact": "担当者 *",
+    "title": "役職",
+    "email": "メール",
+    "phone": "電話",
+    "amount": "案件価値（¥10,000単位）",
+    "amountPlaceholder": "例: 48",
+    "owner": "担当者",
+    "ownerPlaceholder": "コンサルタントを選択",
+    "stage": "営業ステージ",
+    "nextFollowUp": "次回フォローアップ",
+    "notes": "メモ",
+    "notesPlaceholder": "主なニーズ、意思決定経路、予算…",
+    "saveChanges": "変更を保存",
+    "addClient": "顧客を追加",
+    "added": "{company}を追加しました",
+    "updated": "顧客を更新しました",
+    "requiredMissing": "会社名、業種、担当者を入力してください",
+    "invalidAmount": "有効な金額を入力してください",
+    "ownerMissing": "担当者を選択してください"
+  },
+  "clients": {
+    "eyebrow": "Clients",
+    "title": "顧客",
+    "subtitle": "{n}社 · 行をクリックしてコミュニケーション記録を確認",
+    "subtitleOne": "{n}社 · 行をクリックしてコミュニケーション記録を確認",
+    "searchPlaceholder": "会社名、担当者、市区町村を検索",
+    "allStages": "すべてのステージ",
+    "sortRecent": "最新のアクティビティ",
+    "sortAmount": "金額",
+    "sortCompany": "会社名",
+    "colCompany": "会社名",
+    "colContact": "顧客担当者",
+    "colStage": "ステージ",
+    "colAmount": "金額",
+    "colOwner": "担当コンサルタント",
+    "colFollowUp": "次回フォローアップ",
+    "colLast": "最終連絡",
+    "empty": "条件に一致する顧客はありません"
+  },
+  "notFound": {
+    "title": "ページが見つかりません",
+    "body": "申し訳ありません。お探しのページは存在しません。",
+    "body2": "移動または削除された可能性があります。",
+    "goHome": "ホームへ戻る"
+  },
+  "errorBoundary": {
+    "title": "予期しないエラーが発生しました。",
+    "reload": "ページを再読み込み"
+  }
+}

@@ -1,0 +1,245 @@
+{
+  "meta": {
+    "title": "远山咨询 · 客户台账",
+    "description": "远山咨询内部 CRM：今日概览、销售看板与客户沟通时间线。"
+  },
+  "brand": {
+    "name": "远山咨询",
+    "wordmark": "远山",
+    "tagline": "YUANSHAN ADVISORY"
+  },
+  "common": {
+    "all": "全部",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "saving": "保存中…",
+    "consultant": "顾问",
+    "contact": "联系人",
+    "defaultProject": "咨询项目",
+    "close": "关闭"
+  },
+  "units": {
+    "system": "wan",
+    "thousand": "千",
+    "million": "百万",
+    "tenThousand": "万",
+    "money": "¥{value} {unit}"
+  },
+  "time": {
+    "justNow": "刚刚",
+    "minutesAgo": "{n} 分钟前",
+    "hoursAgo": "{n} 小时前",
+    "yesterday": "昨天",
+    "daysAgo": "{n} 天前",
+    "overdue": "逾期 {n} 天",
+    "dueToday": "今天跟进",
+    "tomorrow": "明天",
+    "inDays": "{n} 天后"
+  },
+  "greeting": {
+    "lateNight": "夜深了",
+    "morning": "早上好",
+    "noon": "中午好",
+    "afternoon": "下午好",
+    "evening": "晚上好",
+    "line": "{greeting}，{name}。"
+  },
+  "nav": {
+    "overview": "今日概览",
+    "pipeline": "销售看板",
+    "clients": "客户",
+    "newClient": "新建客户",
+    "team": "顾问团队 · 在途金额",
+    "switchIdentity": "切换身份"
+  },
+  "stages": {
+    "lead": {
+      "label": "线索",
+      "tag": "LEAD"
+    },
+    "contact": {
+      "label": "初次沟通",
+      "tag": "DISCOVERY"
+    },
+    "proposal": {
+      "label": "方案",
+      "tag": "PROPOSAL"
+    },
+    "negotiation": {
+      "label": "谈判",
+      "tag": "NEGOTIATION"
+    },
+    "won": {
+      "label": "成交",
+      "tag": "WON"
+    }
+  },
+  "activity": {
+    "call": "电话",
+    "meeting": "会议",
+    "email": "邮件",
+    "note": "备注",
+    "stage_change": "阶段变更",
+    "deal_won": "成交"
+  },
+  "overview": {
+    "subtitleDue": "今天有 {due} 位客户在等你的回音，本月团队已签下 {won} 单。",
+    "subtitleClear": "今天没有逾期的跟进，适合推进一份方案，本月团队已签下 {won} 单。",
+    "heroEyebrow": "本月成交额 · {month}",
+    "heroUnit": "{unit}元",
+    "vsLastMonth": "{delta}% 较上月",
+    "noDealsLastMonth": "上月暂无成交",
+    "lastMonth": "上月 {amount}",
+    "signedThisMonth": "本月已签 {n} 单",
+    "avgDeal": "平均客单 {amount}",
+    "noDealsYet": "本月还没有成交，去看板推进一下吧。",
+    "funnelTitle": "销售漏斗",
+    "funnelSubtitle": "各阶段机会金额 · 点击阶段进入看板",
+    "openPipeline": "打开看板",
+    "wonThisMonth": "成交（本月）",
+    "statOpen": "在途机会",
+    "statOpenHint": "{n} 个进行中",
+    "statWeighted": "加权预测",
+    "statWeightedHint": "按阶段赢率折算",
+    "statNew": "本月新增",
+    "statNewHint": "个新客户",
+    "dueTitle": "今日待跟进",
+    "mine": "我的",
+    "allCaughtUp": "都跟进完了，喝杯茶吧。",
+    "recentTitle": "最近动态",
+    "teamTitle": "顾问本月",
+    "teamOpen": "在途 {amount}",
+    "teamWon": "{n} 单成交"
+  },
+  "funnel": {
+    "ariaLabel": "各阶段金额漏斗图",
+    "clients": "{n} 个客户",
+    "clientsOne": "{n} 个客户"
+  },
+  "pipeline": {
+    "eyebrow": "Pipeline",
+    "title": "销售看板",
+    "description": "拖动卡片推进阶段，每次变更都会写入客户时间线；拖进「成交」，一起庆祝。",
+    "searchPlaceholder": "搜索公司、联系人、项目",
+    "stageFilter": "阶段：{stage}",
+    "deals": "{n} 个客户"
+  },
+  "kanban": {
+    "dropWonHere": "把签约的客户拖到这里",
+    "empty": "暂无客户",
+    "moveFailed": "移动失败：{error}",
+    "wonToast": "签下了！{company}",
+    "wonToastBody": "{project} · {amount}，已记入本月成交额。",
+    "movedToast": "{company} → {stage}",
+    "movedToastBody": "阶段变更已记录到沟通时间线"
+  },
+  "client": {
+    "notFound": "没有找到这个客户。",
+    "moveTo": "移动到「{stage}」",
+    "opportunity": "机会金额",
+    "signedOn": "签约于 {date}",
+    "expectedClose": "预计 {date} 成交",
+    "stage": "销售阶段",
+    "email": "邮箱",
+    "phone": "电话",
+    "owner": "负责顾问",
+    "nextFollowUp": "下次跟进",
+    "fullPage": "完整页面",
+    "wonToastBody": "{amount} 已记入本月成交额",
+    "movedTo": "已移动到「{stage}」",
+    "deleted": "客户已删除",
+    "historyTitle": "沟通记录",
+    "entries": "{n} 条 · 以 {name} 身份记录",
+    "entriesOne": "{n} 条 · 以 {name} 身份记录",
+    "deleteTitle": "删除「{company}」？",
+    "deleteBody": "客户档案与全部 {n} 条沟通记录将被永久删除，无法恢复。",
+    "deleteBodyOne": "客户档案与全部 {n} 条沟通记录将被永久删除，无法恢复。",
+    "sheetTitle": "客户详情",
+    "sheetDescription": "客户资料与沟通记录时间线",
+    "allClients": "全部客户",
+    "invalidId": "无效的客户编号"
+  },
+  "timeline": {
+    "empty": "还没有沟通记录",
+    "deleteEntry": "删除记录",
+    "stageChange": "阶段变更：{from} → {to}",
+    "dealWon": "签约成交",
+    "created": "新建客户档案",
+    "placeholderCall": "例如：与对方 CEO 电话确认预算",
+    "placeholderMeeting": "例如：方案评审会 · 线下",
+    "placeholderEmail": "例如：发送方案 v2 与报价单",
+    "placeholderNote": "例如：对方下周出差，周五前不便联系",
+    "contentPlaceholder": "沟通要点、对方顾虑、下一步……",
+    "nextFollowUp": "下次跟进",
+    "submit": "记录",
+    "saved": "沟通记录已保存",
+    "writeSomething": "写点什么再记录吧",
+    "defaultTitle": "{type}沟通"
+  },
+  "form": {
+    "editTitle": "编辑客户",
+    "newTitle": "新建客户",
+    "editHint": "修改会立即同步到看板与概览。",
+    "newHint": "新客户默认进入「线索」阶段，系统会为其生成 Logo。",
+    "logoPlaceholder": "新",
+    "company": "公司名称 *",
+    "companyPlaceholder": "如：华章文旅集团",
+    "industry": "行业 *",
+    "industryPlaceholder": "如：消费品",
+    "city": "城市",
+    "cityPlaceholder": "如：杭州",
+    "project": "项目名称",
+    "projectPlaceholder": "如：品牌战略升级",
+    "avatar": "联系人头像",
+    "chooseAvatar": "选择头像",
+    "contact": "联系人 *",
+    "title": "职位",
+    "email": "邮箱",
+    "phone": "电话",
+    "amount": "机会金额（万元）",
+    "amountPlaceholder": "如：48",
+    "owner": "负责顾问",
+    "ownerPlaceholder": "选择顾问",
+    "stage": "销售阶段",
+    "nextFollowUp": "下次跟进",
+    "notes": "备注",
+    "notesPlaceholder": "核心诉求、决策链、预算……",
+    "saveChanges": "保存修改",
+    "addClient": "添加客户",
+    "added": "已添加 {company}",
+    "updated": "客户信息已更新",
+    "requiredMissing": "请填写公司名称、行业和联系人",
+    "invalidAmount": "金额格式不正确",
+    "ownerMissing": "请选择负责顾问"
+  },
+  "clients": {
+    "eyebrow": "Clients",
+    "title": "客户",
+    "subtitle": "共 {n} 位客户 · 点击任意一行查看沟通记录",
+    "subtitleOne": "共 {n} 位客户 · 点击任意一行查看沟通记录",
+    "searchPlaceholder": "搜索公司、联系人、城市",
+    "allStages": "全部阶段",
+    "sortRecent": "按最近沟通",
+    "sortAmount": "按金额",
+    "sortCompany": "按公司名",
+    "colCompany": "公司",
+    "colContact": "联系人",
+    "colStage": "阶段",
+    "colAmount": "金额",
+    "colOwner": "负责顾问",
+    "colFollowUp": "下次跟进",
+    "colLast": "最近沟通",
+    "empty": "没有符合条件的客户"
+  },
+  "notFound": {
+    "title": "页面不存在",
+    "body": "抱歉，你访问的页面不存在。",
+    "body2": "它可能已被移动或删除。",
+    "goHome": "返回首页"
+  },
+  "errorBoundary": {
+    "title": "发生了意外错误。",
+    "reload": "重新加载页面"
+  }
+}

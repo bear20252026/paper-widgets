@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <link rel="icon" href="data:," />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Starship Flight Study</title>
+<meta name="description" content="An independent, procedural integrated flight study of the SpaceX Starship: a modelled flight from ignition to booster catch and ship reentry.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<link rel="stylesheet" href="css/sheet.css">
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.js" } }</script>
+</head>
+<body>
+<canvas id="gl" aria-hidden="true"></canvas>
+<div class="sheet" id="sheet">
+  <header class="run run-head">
+    <span>Integrated flight study · Starbase · Vehicle 3xx</span>
+    <span class="run-mid" id="phaseTag">PHASE · SAFE</span>
+    <span class="track" id="track"><i></i><b>NO TRACK</b></span>
+  </header>
+
+  <aside class="clock" aria-label="Mission clock"><span id="clock">T−00:10</span><em id="warpTag"></em></aside>
+
+  <section class="col-left">
+    <p class="kicker">SpaceX · Starbase, Texas</p>
+    <h1 class="lockup">STARSHIP</h1>
+    <p class="deck">Two stages. One vehicle. No throwaway hardware.</p>
+    <p class="lede">Starship is the largest launch system ever flown. A 72 m booster with 33 methane engines pushes a 52 m reusable upper stage through max Q, releases it hot, and then turns around to be caught by the tower it launched from. The whole stack is designed to fly again. This page runs a modelled flight, not a mission.</p>
+
+    <div class="console" id="console">
+      <div class="ctl-row primary">
+        <div class="rs" id="rs" role="radiogroup" aria-label="Range safety switch">
+          <span class="rs-title">RANGE SAFETY</span>
+          <div class="rs-body">
+            <button class="rs-pos" data-pos="safe" role="radio" aria-checked="true">SAFE</button>
+            <button class="rs-pos" data-pos="armed" role="radio" aria-checked="false">ARMED</button>
+            <button class="rs-pos rs-term" data-pos="terminate" role="radio" aria-checked="false">TERMINATE</button>
+            <span class="rs-knob" id="rsKnob"></span>
+            <button class="rs-guard" id="rsGuard" aria-label="Lift guard over TERMINATE" title="Lift the guard to reach TERMINATE"></button>
+          </div>
+        </div>
+        <button class="btn ignite" id="btnIgnite" title="Space">IGNITE<small>SPACE</small></button>
+      </div>
+      <div class="ctl-row">
+        <button class="btn stage" id="btnStage" title="Hot staging, inside the window around MECO (G)">STAGE<small>G</small></button>
+        <button class="btn cut" id="btnCut" title="Cut all engines (X)">CUT<small>X</small></button>
+        <div class="seg" id="segRecovery" aria-label="Booster recovery">
+          <span class="seg-l">S1 RECOVERY</span>
+          <button data-v="catch" class="on">CATCH</button><button data-v="splash">SPLASH</button>
+        </div>
+      </div>
+      <div class="ctl-row small">
+        <div class="seg" id="segSeq"><span class="seg-l">STAGING SEQ</span><button data-v="auto" class="on">AUTO</button><button data-v="manual">MANUAL</button></div>
+        <div class="seg" id="segTiles"><span class="seg-l">TILE WEAR</span><button data-v="0" class="on">NOM</button><button data-v="0.5">WORN</button><button data-v="1">DMG</button></div>
+      </div>
+      <div class="ctl-row views" id="views">
+        <button data-view="painted" class="on"><b>1</b>PAINTED</button>
+        <button data-view="cutaway"><b>2</b>CUTAWAY</button>
+        <button data-view="plume"><b>3</b>PLUME</button>
+        <button data-view="exploded"><b>4</b>EXPLODED</button>
+      </div>
+      <div class="ctl-row util">
+        <button id="btnSlow" title="S">SLOW 1/25<small>S</small></button>
+        <button id="btnSound" aria-pressed="true">SOUND ON</button>
+        <div class="seg mini" id="segCam"><span class="seg-l">CAM</span><button data-v="auto" class="on">AUTO</button><button data-v="booster">S1</button><button data-v="ship">S2</button></div>
+        <button id="btnResetView" title="V">RESET VIEW</button>
+        <button id="btnRecycle" title="R">RECYCLE</button>
+        <button id="btnFigures">FIGURES</button>
+      </div>
+    </div>
+    <ol class="log" id="log" aria-label="Mission log"></ol>
+  </section>
+
+  <section class="stage-view" id="view3d" aria-label="3D vehicle view">
+    <div class="vtag"><span id="viewTag">VIEW 1 · PAINTED</span><span id="stageTag">STAGE 1 + 2 · ON MOUNT</span></div>
+    <div class="callouts" id="callouts"><svg id="calloutSvg"></svg></div>
+    <p class="narration" id="narration">Range is safe. Arm the switch, then ignite.</p>
+  </section>
+
+  <section class="col-right">
+    <figure class="inst"><figcaption><span>Thrust and throttle</span><code>39 RAPTOR · tf</code></figcaption><canvas id="iThrust"></canvas></figure>
+    <figure class="inst"><figcaption><span>Propellant remaining</span><code>LOX · CH₄ · t</code></figcaption><canvas id="iProp"></canvas></figure>
+    <figure class="inst"><figcaption><span>Ascent trajectory</span><code>ALT v DOWNRANGE</code></figcaption><canvas id="iTraj"></canvas></figure>
+    <figure class="inst short"><figcaption><span>Event strip</span><code>T+ · LOG SCALE</code></figcaption><canvas id="iEvents"></canvas></figure>
+  </section>
+
+  <section class="strip">
+    <figure class="dwg" data-dwg="front"><figcaption><span>Front</span><code>WINDWARD · S1 S2</code></figcaption><div class="dwg-win"><canvas class="dwg-ov"></canvas></div></figure>
+    <figure class="dwg" data-dwg="right"><figcaption><span>Right side</span><code>ELEVATION</code></figcaption><div class="dwg-win"><canvas class="dwg-ov"></canvas></div></figure>
+    <figure class="dwg" data-dwg="plan"><figcaption><span>Plan</span><code>FROM ABOVE</code></figcaption><div class="dwg-win"><canvas class="dwg-ov"></canvas></div></figure>
+    <figure class="dwg" data-dwg="section"><figcaption><span>Section A-A</span><code>CENTRELINE</code></figcaption><div class="dwg-win"><canvas class="dwg-ov"></canvas></div></figure>
+    <figure class="readings">
+      <figcaption><span>Readings</span><code class="live">LIVE · MODELLED</code></figcaption>
+      <dl id="readings">
+        <div><dt>Altitude</dt><dd id="rAlt">0.0 <u>km</u></dd></div>
+        <div><dt>Velocity</dt><dd id="rVel">0 <u>m/s</u></dd></div>
+        <div><dt>Thrust</dt><dd id="rThr">0 <u>tf</u></dd></div>
+        <div><dt>Propellant</dt><dd id="rProp">5,250 <u>t</u></dd></div>
+        <div><dt>Dyn. pressure</dt><dd id="rQ">0.0 <u>kPa</u></dd></div>
+        <div><dt>Thermal margin</dt><dd id="rTherm">100 <u>%</u></dd></div>
+      </dl>
+      <p class="fn">Published: 124 m stack<sup>1</sup>, 9 m dia., 72 m / 52 m stages, 3,650 t / 1,600 t propellant, 33 + 6 Raptors, ≈18,000 tiles. All readings above, masses, thrust calibration, trajectory, catch envelope and thermal margin are <b>modelled</b>; transients are not specifications. Independent study, not affiliated with SpaceX. <sup>1</sup>Earlier public descriptions: 121 m.</p>
+    </figure>
+  </section>
+
+  <footer class="run run-foot">
+    <span>Sheet 01 · telemetry live, modelled values flagged</span>
+    <span id="fps"></span>
+    <span>Procedural · no models, textures, images or samples</span>
+  </footer>
+</div>
+
+<dialog id="figures" class="figures">
+  <form method="dialog"><button class="close" aria-label="Close">CLOSE</button></form>
+  <h2>Figures</h2>
+  <div class="fig-cols">
+    <section><h3>Published</h3><table id="tPub"></table></section>
+    <section><h3>Modelled <small>assumptions, calibrated for this study</small></h3><table id="tMod"></table></section>
+  </div>
+</dialog>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

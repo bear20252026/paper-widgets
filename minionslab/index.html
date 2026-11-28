@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Minion Lab</title>
+<meta name="description" content="Small interactive experiments with the Minions. Take the Minion apart, brick by brick.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Minion Lab">
+<meta property="og:title" content="Minion Lab">
+<meta property="og:description" content="Small interactive experiments with the Minions. Take the Minion apart, brick by brick.">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Minion Lab">
+<meta name="twitter:description" content="Small interactive experiments with the Minions. Take the Minion apart, brick by brick.">
+<meta name="theme-color" content="#F2F0EE">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="bosshistory/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="bosshistory/favicon-64.png">
+<link rel="apple-touch-icon" href="bosshistory/apple-touch-icon.png">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; }
+  body { background:#F2F0EE; color:#4a453e; font-family:ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold","Yuanti SC","PingFang SC","Helvetica Neue",sans-serif;
+    overflow:hidden; -webkit-font-smoothing:antialiased; }
+  /* one canvas is the whole board: every brick is drawn into it, so the rain-in is a single layer, not 345 */
+  #board { position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none; user-select:none; -webkit-user-select:none; }
+  #board.grab { cursor:grab; }
+  #board.grabbing { cursor:grabbing; }
+  #reset { position:fixed; right:24px; top:28px; font-size:10px; letter-spacing:2px; color:#948d81; text-transform:uppercase; cursor:pointer; text-decoration:underline; text-underline-offset:3px; z-index:5; }
+  #reset:hover { color:#575146; }
+</style>
+</head>
+<body>
+<script src="ml-chrome.js" data-page="home"></script>
+
+<div id="reset">reset</div>
+<canvas id="board"></canvas>
+
+<script>
+const cv = document.getElementById('board'), g = cv.getContext('2d');
+let DATA = null, S = 24, COLS = 0, ROWS = 0, OX = 0, OY = 0, BX = 0, BY = 0, DPR = 1, bricks = [], occ = null, sprites = new Map(), held = null, raf = 0;
+
+fetch('bricks.json').then(r=>r.json()).then(j=>{ DATA=j; layout(); build(); });
+
+/* ---------- easing: the same curves the CSS version used ---------- */
+function bezier(x1, y1, x2, y2){
+  const cx=3*x1, bx=3*(x2-x1)-cx, ax=1-cx-bx, cy=3*y1, by=3*(y2-y1)-cy, ay=1-cy-by;
+  const X=t=>((ax*t+bx)*t+cx)*t, Y=t=>((ay*t+by)*t+cy)*t, dX=t=>(3*ax*t+2*bx)*t+cx;
+  return p=>{ if (p<=0) return 0; if (p>=1) return 1; let t=p;
+    for (let i=0;i<6;i++){ const e=X(t)-p, d=dX(t); if (Math.abs(e)<1e-5 || Math.abs(d)<1e-6) break; t-=e/d; }
+    t=Math.min(1,Math.max(0,t)); return Y(t); };
+}
+const EASE = { rain:bezier(.4,0,.55,1), drop:bezier(.3,1.2,.5,1), fall:bezier(.4,0,.6,1), back:bezier(.2,.9,.3,1.15) };
+
+/* the grid covers the whole window; the disc sits centred between the header and the tabs */
+function layout(){
+  const vh = innerHeight, vw = innerWidth;
+  const hb = document.querySelector('.mlc-title')?.getBoundingClientRect().bottom ?? 34;      // measured, so it follows the shared frame
+  const tt = document.querySelector('.mlc-tabs')?.getBoundingClientRect().top ?? (vh - 96);
+  const wide = vw <= 520 ? (vw - 44) / DATA.cols : (vw * 0.5) / DATA.cols;     // phones: the disc fills the width inside the 22px edge rhythm, else half the window
+  S = Math.max(4, Math.floor(Math.min((vh * 0.58) / DATA.rows, (tt - hb - 24) / DATA.rows, wide)));   // also fits between header and keys on short windows
+  COLS = Math.max(DATA.cols, Math.floor(vw / S));                    // never narrower than the picture
+  const discTop = Math.max(0, Math.round((hb + tt - DATA.rows*S) / 2)), rowsAbove = Math.floor(discTop / S);   // equal air above and below the face (never above the window: a very short window would leave no rows)
+  ROWS = rowsAbove + DATA.rows;
+  OX = Math.max(0, Math.floor((COLS - DATA.cols) / 2)); OY = rowsAbove;
+  BX = Math.round(vw/2 - (OX + DATA.cols/2)*S); BY = discTop - rowsAbove*S;   // the face's own centre on the window's centre
+  DPR = Math.min(3, devicePixelRatio || 1);
+  cv.width = Math.round(vw*DPR); cv.height = Math.round(vh*DPR);
+  sprites.clear();
+}
+addEventListener('resize', ()=>{ if (DATA){ layout(); build(true); } });
+
+/* ---------- one pre-painted image per colour × length (the old CSS look, painted once) ---------- */
+const PAD = 2;   // css px around each sprite for the hairline shadow
+function sprite(c, w){
+  const key = c+'|'+w; if (sprites.has(key)) return sprites.get(key);
+  const k = DPR, W = w*S, H = S, oc = document.createElement('canvas');
+  oc.width = Math.ceil((W+PAD*2)*k); oc.height = Math.ceil((H+PAD*2)*k);
+  const x = oc.getContext('2d'); x.scale(k,k); x.translate(PAD,PAD);
+  const col = DATA.palette[c], rgb = `rgb(${col.join(',')})`, r = 1.5;
+  const rr = (a,b,ww,hh,rad)=>{ x.beginPath(); x.roundRect ? x.roundRect(a,b,ww,hh,rad) : x.rect(a,b,ww,hh); };
+  // body + 0.5px hairline below
+  x.save(); x.shadowColor='rgba(0,0,0,.08)'; x.shadowOffsetY=.5*k; x.shadowBlur=0; rr(0,0,W,H,r); x.fillStyle=rgb; x.fill(); x.restore();
+  x.save(); rr(0,0,W,H,r); x.clip();
+  const lg = x.createLinearGradient(0,0,0,H); lg.addColorStop(0,'rgba(255,255,255,.16)'); lg.addColorStop(.45,'rgba(255,255,255,0)'); lg.addColorStop(1,'rgba(0,0,0,.06)');
+  x.fillStyle=lg; x.fillRect(0,0,W,H);
+  x.fillStyle='rgba(0,0,0,.12)'; x.fillRect(0,H-1.5,W,1.5);                         // inset bottom edge
+  x.restore();
+  rr(.25,.25,W-.5,H-.5,r); x.lineWidth=.5; x.strokeStyle='rgba(0,0,0,.10)'; x.stroke();   // inset hairline
+  // studs
+  const d = S*.56, rad = d/2;
+  for (let i=0;i<w;i++){
+    const cx = i*S + S/2, cy = S/2;
+    const disc = ()=>{ x.beginPath(); x.arc(cx,cy,rad,0,Math.PI*2); };
+    x.save(); x.shadowColor='rgba(0,0,0,.16)'; x.shadowOffsetY=1.5*k; x.shadowBlur=1*k; disc(); x.fillStyle=rgb; x.fill(); x.restore();
+    const rg = x.createRadialGradient(cx-rad+d*.38, cy-rad+d*.34, 0, cx-rad+d*.38, cy-rad+d*.34, d*.58);
+    rg.addColorStop(0,'rgba(255,255,255,.42)'); rg.addColorStop(1,'rgba(255,255,255,0)');
+    disc(); x.fillStyle='rgba(255,255,255,.05)'; x.fill(); x.fillStyle=rg; x.fill();
+    // inset shadows: a ring around the disc casts into it
+    x.save(); disc(); x.clip();
+    const ring = (oy, blur, color)=>{ x.save(); x.shadowColor=color; x.shadowOffsetY=oy*k; x.shadowBlur=blur*k;
+      x.beginPath(); x.rect(cx-rad*3, cy-rad*3, rad*6, rad*6); x.arc(cx,cy,rad,0,Math.PI*2,true); x.fillStyle='#000'; x.fill('evenodd'); x.restore(); };
+    ring(-1, 1.5, 'rgba(0,0,0,.22)'); ring(1, 0, 'rgba(255,255,255,.28)');
+    x.restore();
+  }
+  sprites.set(key, oc); return oc;
+}
+
+/* ---------- drawing: only while something moves ---------- */
+function kick(){ if (!raf) raf = requestAnimationFrame(frame); }
+function frame(now){
+  raf = 0; let busy = !!held;
+  g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,cv.width,cv.height);
+  g.setTransform(DPR,0,0,DPR,0,0);
+  const snap = v => Math.round(v*DPR)/DPR;
+  for (const b of bricks){
+    if (b === held) continue;
+    if (b.a){ const a=b.a, p=(now-a.t0)/a.dur;
+      if (p < 0){ b.px=a.fx; b.py=a.fy; busy=true; }
+      else if (p < 1){ const e=a.ease(p); b.px=a.fx+(a.tx-a.fx)*e; b.py=a.fy+(a.ty-a.fy)*e; busy=true; }
+      else { b.px=a.tx; b.py=a.ty; b.a=null; } }
+    if (b.py < -S*2 || b.py > ROWS*S + S) continue;
+    g.drawImage(sprite(b.c,b.w), snap(BX+b.px-PAD), snap(BY+b.py-PAD), (b.w*S+PAD*2), (S+PAD*2));
+  }
+  if (held){                                        // the brick in the hand: lifted, a soft shadow, on top
+    const b = held, sp = sprite(b.c,b.w), W=b.w*S, cx=BX+b.px+W/2, cy=BY+b.py+S/2;
+    g.save(); g.translate(cx,cy); g.scale(1.04,1.04);
+    g.save(); g.shadowColor='rgba(60,50,30,.26)'; g.shadowOffsetY=14*DPR; g.shadowBlur=28*DPR; g.fillStyle=`rgb(${DATA.palette[b.c].join(',')})`;
+    g.beginPath(); g.roundRect ? g.roundRect(-W/2,-S/2,W,S,1.5) : g.rect(-W/2,-S/2,W,S); g.fill(); g.restore();
+    g.drawImage(sp, -W/2-PAD, -S/2-PAD, W+PAD*2, S+PAD*2); g.restore();
+  }
+  if (busy) kick();
+}
+function animate(b, tx, ty, dur, ease, delay=0, fx=b.px, fy=b.py){ b.a = { fx, fy, tx, ty, t0:performance.now()+delay, dur, ease }; kick(); }
+
+function build(instant=false){
+  bricks=[]; occ = Array.from({length:ROWS}, ()=>Array(COLS).fill(null)); held = null;
+  for (const d of DATA.bricks){
+    const b = { x:d.x+OX, y:d.y+OY, w:d.w, c:d.c, a:null }; b.px=b.x*S; b.py=b.y*S;
+    bricks.push(b); setOcc(b,b); sprite(b.c,b.w);           // sprites are painted before the first frame, not during the fall
+  }
+  if (!instant) fallIn(); kick();
+}
+
+/* ---------- grid occupancy + gravity ---------- */
+function setOcc(b, v){ for (let k=0;k<b.w;k++) occ[b.y][b.x+k] = v; }
+function free(x, y, w, self){ if (x<0||x+w>COLS||y<0||y>=ROWS) return false; for (let k=0;k<w;k++){ const o=occ[y][x+k]; if (o && o!==self) return false; } return true; }
+/* gravity is local, like a real stack: only a brick that has just lost what it stood on can fall.
+   The round face has overhanging bricks with nothing under them (held by their neighbours); they stay put
+   until something they rest on is taken away. Bricks below a moved brick never move. */
+function bricksOn(b){                                   // the bricks standing directly on top of b
+  const r = b.y-1, out = new Set(); if (r < 0) return out;
+  for (let k=0;k<b.w;k++){ const o = occ[r][b.x+k]; if (o && o!==held) out.add(o); }
+  return out;
+}
+function cascade(seeds){
+  const q = new Set(seeds); let guard = 0;
+  while (q.size && guard++ < 4000){
+    let b = null; for (const c of q) if (!b || c.y > b.y) b = c;   // lowest first, so a stack falls bottom-up
+    q.delete(b); if (b === held || !free(b.x, b.y+1, b.w, b)) continue;   // still standing on something
+    const ups = bricksOn(b);
+    setOcc(b,null); let ny = b.y; while (free(b.x, ny+1, b.w, b)) ny++; b.y = ny; setOcc(b,b);
+    animate(b, b.x*S, b.y*S, 550, EASE.fall);
+    ups.forEach(u => q.add(u));                          // whatever stood on it is now in the air
+  }
+}
+/* the opening: bricks rain in from above the window */
+function fallIn(){
+  for (const b of bricks){
+    const fy = -(DATA.rows - (b.y-OY) + 3 + Math.random()*10)*S;
+    animate(b, b.x*S, b.y*S, (0.6 + (ROWS - b.y)*0.018 + Math.random()*0.15)*1000, EASE.rain, Math.random()*400, b.x*S, fy);
+    b.px = b.x*S; b.py = fy;
+  }
+}
+document.getElementById('reset').addEventListener('click', ()=>build());
+
+/* ---------- dragging ---------- */
+function hit(e){
+  const col = Math.floor((e.clientX - BX)/S), row = Math.floor((e.clientY - BY)/S);
+  if (row<0||row>=ROWS||col<0||col>=COLS) return null;
+  const b = occ[row][col]; return b && !b.a ? b : null;     // a brick still in flight can't be caught
+}
+let sx=0, sy=0, ox=0, oy=0, moved=false;
+cv.addEventListener('pointermove', e=>{ if (!held) cv.className = hit(e) ? 'grab' : ''; });
+cv.addEventListener('pointerdown', e=>{
+  const b = hit(e); if (!b) return;
+  e.preventDefault(); cv.setPointerCapture(e.pointerId);
+  sx=e.clientX; sy=e.clientY; ox=b.x*S; oy=b.y*S; moved=false;
+  held=b; setOcc(b,null); cv.className='grabbing'; kick();
+  const onMove = ev=>{
+    const dx=ev.clientX-sx, dy=ev.clientY-sy;
+    if (!moved && Math.abs(dx)+Math.abs(dy)>3){ moved=true; cascade(bricksOn(b)); }   // pulled out: what stood on it drops now
+    b.px = ox+dx; b.py = oy+dy; kick();
+  };
+  const onUp = ()=>{
+    cv.removeEventListener('pointermove', onMove); cv.removeEventListener('pointerup', onUp); cv.removeEventListener('pointercancel', onUp);
+    held=null; cv.className='grab';
+    if (!moved){ setOcc(b,b); animate(b, b.x*S, b.y*S, 320, EASE.back); return; }
+    let gx = Math.max(0, Math.min(COLS-b.w, Math.round(b.px/S)));
+    let gy = Math.max(0, Math.min(ROWS-1, Math.round(b.py/S)));
+    let tries=0; while (gy>0 && !free(gx, gy, b.w, b) && tries++ < ROWS) gy--;
+    if (!free(gx, gy, b.w, b)){ gy = 0; while (!free(gx, gy, b.w, b) && gy < ROWS-1) gy++; }
+    b.x = gx; b.y = gy; setOcc(b,b);
+    animate(b, b.x*S, b.y*S, 500, EASE.drop);
+    setTimeout(()=>cascade([b]), 60);                     // let go in mid-air: it falls until it lands on something
+  };
+  cv.addEventListener('pointermove', onMove); cv.addEventListener('pointerup', onUp); cv.addEventListener('pointercancel', onUp);
+});
+</script>
+</body>
+</html>

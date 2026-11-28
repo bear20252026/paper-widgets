@@ -1,0 +1,11 @@
+/* The 1080 × 1080 stage. Stage.tsx sets --s = min(window width, window height) / 1080; the page around it is the
+   same paper colour, so on a window that isn't square the stage has no visible edge. */
+.stage {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: var(--stage);
+  height: var(--stage);
+  transform: translate(-50%, -50%) scale(var(--s, 1));
+  background: var(--bg);
+}

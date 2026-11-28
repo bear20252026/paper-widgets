@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Diagonal stripes for inactive bars in "Project deals" chart on Page 1 */
+.hatched-bar {
+  background-color: #ECEBE6;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #E2E0D8,
+    #E2E0D8 2.5px,
+    #F0EFEA 2.5px,
+    #F0EFEA 6px
+  );
+}
+
+/* Subtle grid lines for "Clients by region" map card on Page 1 */
+.region-map-grid {
+  background-color: #F2F1ED;
+  background-image:
+    linear-gradient(to right, #E6E4DD 1px, transparent 1px),
+    linear-gradient(to bottom, #E6E4DD 1px, transparent 1px);
+  background-size: 26px 22px;
+}
+
+/* Soft card shadow matching Orbend UI */
+.orbend-card-shadow {
+  box-shadow: 0 2px 14px -2px rgba(24, 24, 22, 0.04), 0 1px 3px 0 rgba(24, 24, 22, 0.02);
+}
+
+.orbend-page2-card-shadow {
+  box-shadow: 0 10px 30px -6px rgba(24, 24, 22, 0.05), 0 2px 6px -1px rgba(24, 24, 22, 0.025);
+}

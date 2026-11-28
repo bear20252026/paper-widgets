@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>heart lab</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7/dist/hanzi-writer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="hd"><span class="t">heart lab</span></div>
+
+<!-- A filter's region defaults to a PERCENTAGE OF THE BOUNDING BOX, and a
+     perfectly straight stroke has a box of zero height (or width) — 150%
+     of nothing is nothing, so π's bar, η's stem and every ㅏ in 사랑
+     simply vanished under any filtered brush. Every region here is
+     therefore given in user coordinates.
+
+     The brushes themselves are NOT here: their numbers have to be a
+     multiple of the line they are working on, and the two glyphs on
+     screen are scaled very differently. They are written per glyph, into
+     #fdefs, by brushFilter(). -->
+<svg width="0" height="0" style="position:fixed">
+  <defs id="fdefs">
+    <!-- icons: proper shapes, given a pen's waver so they belong on this page -->
+    <filter id="f-hand" filterUnits="userSpaceOnUse" x="-6" y="-6" width="36" height="36">
+      <feTurbulence type="fractalNoise" baseFrequency=".055" numOctaves="2" seed="9" result="h"/>
+      <feDisplacementMap in="SourceGraphic" in2="h" scale=".6"/>
+    </filter>
+  </defs>
+</svg>
+
+<div id="loupe"><span class="line" id="loupeLine"></span></div>
+
+<div id="panel">
+  <div id="tape" title="drag me"></div>
+  <div id="panelBody">
+    <button id="replay">replay<svg class="ico" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
+
+    <div class="sec">
+      <span class="k">the formula</span>
+      <div id="formula">
+        <div class="slot" data-slot="from"><span class="ph">empty</span></div>
+        <span class="arrow"><svg class="ico" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+        <div class="slot armed" data-slot="to"><span class="ph">empty</span></div>
+      </div>
+      <div id="lbox"></div>
+    </div>
+
+    <div class="sec">
+      <span class="k">ink</span>
+      <div class="row" id="secBrush"></div>
+      <span class="sub">colour</span>
+      <div class="sw" id="secCol"><label id="cWrap" title="pick any colour"><input type="color" id="cPick" value="#b73a2b"></label></div>
+    </div>
+
+    <div class="sec">
+      <span class="k">motion</span>
+      <div class="sl"><span class="lb">duration</span><input id="rDur" type="range" min="800" max="4000" step="50" value="2200"><span class="v" id="vDur">2200</span></div>
+      <div class="sl"><span class="lb">line</span><input id="rW" type="range" min="2" max="8" step=".25" value="5"><span class="v" id="vW">5.0</span></div>
+      <div class="sl"><span class="lb">scrub</span><input id="rP" type="range" min="0" max="1000" step="1" value="0"><span class="v"></span></div>
+    </div>
+
+    <div class="sec">
+      <span class="k">export</span>
+      <div class="row">
+        <button id="dlSvg">animated svg<svg class="ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></button>
+        <button id="dlStill">still svg<svg class="ico" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="footer">
+  <div>made with <span id="ftSpot"></span></div>
+</div>
+
+<script src="app.js"></script>
+<script type="module" src="sound.js"></script>
+</body>
+</html>

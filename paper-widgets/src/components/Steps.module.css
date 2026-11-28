@@ -1,0 +1,65 @@
+.count {
+  position: absolute;
+  left: var(--steps-x);
+  top: var(--steps-y);
+  font-size: var(--steps-size);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  line-height: 1;
+}
+
+.goal {
+  position: absolute;
+  left: var(--goal-x);
+  top: var(--goal-y);
+  font-size: var(--small);
+  color: var(--muted);
+}
+
+/* One column per day, every --day-pitch from --day-x */
+.day {
+  position: absolute;
+  left: calc(var(--day-x) + var(--i) * var(--day-pitch));
+  top: 0;
+}
+
+.empty,
+.bar {
+  position: absolute;
+  left: 0;
+  top: var(--day-y);
+  width: var(--day-w);
+  height: var(--day-h);
+  border-radius: var(--day-radius);
+}
+
+.empty {
+  background: var(--wash);
+}
+
+/* Scaled from the bottom per frame to the day's share */
+.bar {
+  background: var(--ink);
+  opacity: var(--day-opacity);
+  transform-origin: bottom;
+}
+
+.today {
+  background: var(--accent);
+  opacity: 1;
+}
+
+.letter {
+  position: absolute;
+  left: 0;
+  top: var(--day-letter-y);
+  width: var(--day-w);
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: var(--tiny);
+  color: var(--muted);
+}
+
+.todayLetter {
+  color: var(--ink);
+}

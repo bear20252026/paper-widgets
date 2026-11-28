@@ -1,0 +1,245 @@
+{
+  "meta": {
+    "title": "Yuanshan Consulting · Client CRM",
+    "description": "Yuanshan Consulting's internal CRM: today's overview, the sales pipeline and a communication timeline for every client."
+  },
+  "brand": {
+    "name": "Yuanshan Consulting",
+    "wordmark": "Yuanshan",
+    "tagline": "CONSULTING"
+  },
+  "common": {
+    "all": "All",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "saving": "Saving…",
+    "consultant": "Consultant",
+    "contact": "Contact",
+    "defaultProject": "Consulting project",
+    "close": "Close"
+  },
+  "units": {
+    "system": "western",
+    "thousand": "K",
+    "million": "M",
+    "tenThousand": "×10K",
+    "money": "¥{value}{unit}"
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{n} min ago",
+    "hoursAgo": "{n} hr ago",
+    "yesterday": "Yesterday",
+    "daysAgo": "{n} days ago",
+    "overdue": "{n}d overdue",
+    "dueToday": "Due today",
+    "tomorrow": "Tomorrow",
+    "inDays": "In {n} days"
+  },
+  "greeting": {
+    "lateNight": "Working late",
+    "morning": "Good morning",
+    "noon": "Good afternoon",
+    "afternoon": "Good afternoon",
+    "evening": "Good evening",
+    "line": "{greeting}, {name}."
+  },
+  "nav": {
+    "overview": "Today",
+    "pipeline": "Pipeline",
+    "clients": "Clients",
+    "newClient": "New client",
+    "team": "Team · Open pipeline",
+    "switchIdentity": "Switch consultant"
+  },
+  "stages": {
+    "lead": {
+      "label": "Lead",
+      "tag": "STAGE 1"
+    },
+    "contact": {
+      "label": "Discovery",
+      "tag": "STAGE 2"
+    },
+    "proposal": {
+      "label": "Proposal",
+      "tag": "STAGE 3"
+    },
+    "negotiation": {
+      "label": "Negotiation",
+      "tag": "STAGE 4"
+    },
+    "won": {
+      "label": "Won",
+      "tag": "STAGE 5"
+    }
+  },
+  "activity": {
+    "call": "Call",
+    "meeting": "Meeting",
+    "email": "Email",
+    "note": "Note",
+    "stage_change": "Stage change",
+    "deal_won": "Won"
+  },
+  "overview": {
+    "subtitleDue": "Clients waiting to hear from you today: {due}. Deals the team has signed this month: {won}.",
+    "subtitleClear": "No overdue follow-ups today, so it is a good day to move a proposal forward. Deals signed this month: {won}.",
+    "heroEyebrow": "Closed this month · {month}",
+    "heroUnit": "{unit}",
+    "vsLastMonth": "{delta}% vs last month",
+    "noDealsLastMonth": "No deals last month",
+    "lastMonth": "Last month {amount}",
+    "signedThisMonth": "Signed this month: {n}",
+    "avgDeal": "Avg. deal {amount}",
+    "noDealsYet": "No deals closed yet this month. Open the pipeline and push one over the line.",
+    "funnelTitle": "Sales funnel",
+    "funnelSubtitle": "Opportunity value by stage · click a stage to open the pipeline",
+    "openPipeline": "Open pipeline",
+    "wonThisMonth": "Won (this month)",
+    "statOpen": "Open pipeline",
+    "statOpenHint": "{n} in progress",
+    "statWeighted": "Weighted forecast",
+    "statWeightedHint": "Weighted by stage win rate",
+    "statNew": "New this month",
+    "statNewHint": "new clients",
+    "dueTitle": "Due today",
+    "mine": "Mine",
+    "allCaughtUp": "All caught up. Time for a cup of tea.",
+    "recentTitle": "Recent activity",
+    "teamTitle": "Team this month",
+    "teamOpen": "Open {amount}",
+    "teamWon": "{n} signed"
+  },
+  "funnel": {
+    "ariaLabel": "Funnel chart of opportunity value by stage",
+    "clients": "{n} clients",
+    "clientsOne": "{n} client"
+  },
+  "pipeline": {
+    "eyebrow": "Pipeline",
+    "title": "Sales pipeline",
+    "description": "Drag cards to move deals forward. Every change is logged to the client timeline. Drop one into Won and celebrate.",
+    "searchPlaceholder": "Search clients or projects",
+    "stageFilter": "Stage: {stage}",
+    "deals": "{n} deals"
+  },
+  "kanban": {
+    "dropWonHere": "Drop signed clients here",
+    "empty": "No clients",
+    "moveFailed": "Couldn't move the card: {error}",
+    "wonToast": "Signed! {company}",
+    "wonToastBody": "{project} · {amount}, added to this month's closed revenue.",
+    "movedToast": "{company} → {stage}",
+    "movedToastBody": "Stage change logged to the timeline"
+  },
+  "client": {
+    "notFound": "We couldn't find this client.",
+    "moveTo": "Move to {stage}",
+    "opportunity": "Opportunity value",
+    "signedOn": "Signed {date}",
+    "expectedClose": "Expected to close {date}",
+    "stage": "Sales stage",
+    "email": "Email",
+    "phone": "Phone",
+    "owner": "Owner",
+    "nextFollowUp": "Follow-up",
+    "fullPage": "Full page",
+    "wonToastBody": "{amount} added to this month's closed revenue",
+    "movedTo": "Moved to {stage}",
+    "deleted": "Client deleted",
+    "historyTitle": "Communication log",
+    "entries": "{n} entries · logging as {name}",
+    "entriesOne": "{n} entry · logging as {name}",
+    "deleteTitle": "Delete {company}?",
+    "deleteBody": "The client record and all {n} communication entries will be permanently deleted. This can't be undone.",
+    "deleteBodyOne": "The client record and its {n} communication entry will be permanently deleted. This can't be undone.",
+    "sheetTitle": "Client details",
+    "sheetDescription": "Client profile and communication timeline",
+    "allClients": "All clients",
+    "invalidId": "Invalid client ID"
+  },
+  "timeline": {
+    "empty": "No entries yet",
+    "deleteEntry": "Delete entry",
+    "stageChange": "Stage: {from} → {to}",
+    "dealWon": "Deal signed",
+    "created": "Client record created",
+    "placeholderCall": "e.g. Confirm the budget with their CEO by phone",
+    "placeholderMeeting": "e.g. Proposal review · in person",
+    "placeholderEmail": "e.g. Send proposal v2 and the quote",
+    "placeholderNote": "e.g. They travel next week, so wait until Friday",
+    "contentPlaceholder": "Key points, concerns, next steps…",
+    "nextFollowUp": "Next follow-up",
+    "submit": "Log",
+    "saved": "Entry saved",
+    "writeSomething": "Write something before you log it",
+    "defaultTitle": "{type}"
+  },
+  "form": {
+    "editTitle": "Edit client",
+    "newTitle": "New client",
+    "editHint": "Changes sync to the pipeline and overview right away.",
+    "newHint": "New clients start in Lead and get a generated logo.",
+    "logoPlaceholder": "N",
+    "company": "Company *",
+    "companyPlaceholder": "e.g. Huazhang Culture & Tourism",
+    "industry": "Industry *",
+    "industryPlaceholder": "e.g. Consumer goods",
+    "city": "City",
+    "cityPlaceholder": "e.g. Hangzhou",
+    "project": "Project",
+    "projectPlaceholder": "e.g. Brand strategy refresh",
+    "avatar": "Contact photo",
+    "chooseAvatar": "Choose photo",
+    "contact": "Contact *",
+    "title": "Title",
+    "email": "Email",
+    "phone": "Phone",
+    "amount": "Opportunity value (in ¥10,000)",
+    "amountPlaceholder": "e.g. 48",
+    "owner": "Owner",
+    "ownerPlaceholder": "Choose a consultant",
+    "stage": "Sales stage",
+    "nextFollowUp": "Next follow-up",
+    "notes": "Notes",
+    "notesPlaceholder": "Core needs, decision chain, budget…",
+    "saveChanges": "Save changes",
+    "addClient": "Add client",
+    "added": "Added {company}",
+    "updated": "Client updated",
+    "requiredMissing": "Fill in the company, industry and contact",
+    "invalidAmount": "Enter a valid amount",
+    "ownerMissing": "Choose an owner"
+  },
+  "clients": {
+    "eyebrow": "Clients",
+    "title": "Clients",
+    "subtitle": "{n} clients · click any row to see the communication log",
+    "subtitleOne": "{n} client · click the row to see the communication log",
+    "searchPlaceholder": "Search clients or cities",
+    "allStages": "All stages",
+    "sortRecent": "Latest activity",
+    "sortAmount": "Amount",
+    "sortCompany": "Company name",
+    "colCompany": "Company",
+    "colContact": "Contact",
+    "colStage": "Stage",
+    "colAmount": "Amount",
+    "colOwner": "Owner",
+    "colFollowUp": "Next follow-up",
+    "colLast": "Last contact",
+    "empty": "No clients match these filters"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "Sorry, the page you are looking for doesn't exist.",
+    "body2": "It may have been moved or deleted.",
+    "goHome": "Go home"
+  },
+  "errorBoundary": {
+    "title": "An unexpected error occurred.",
+    "reload": "Reload page"
+  }
+}

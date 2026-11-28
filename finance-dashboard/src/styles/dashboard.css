@@ -1,0 +1,380 @@
+/* The dashboard's surface. Every number is a pixel of the 1624 × 900 stage (components/Stage.tsx scales the
+   whole composition to fit the window), so nothing here is a viewport unit. Palette and type live in tokens.css. */
+
+  .stage{
+    position:absolute;left:50%;top:50%;
+    width:1624px;height:900px;
+    transform:translate(-50%,-50%) scale(var(--s,1));
+    transform-origin:center center;
+  }
+  .app{
+    position:absolute;left:18px;right:24px;top:0;bottom:22px;
+    background:var(--paper);
+    border-radius:48px;
+    padding:40px 60px 56px;
+  }
+  .grid{
+    display:grid;
+    height:100%;
+    grid-template-columns:repeat(4,1fr);
+    grid-template-rows:248px 250px 248px;
+    gap:18px;
+  }
+  .card{
+    position:relative;
+    background:#fff;
+    border-radius:18px;
+    overflow:hidden;
+  }
+  .hd{
+    position:absolute;left:20px;right:16px;top:14px;height:24px;
+    display:flex;align-items:center;justify-content:space-between;
+    z-index:3;
+  }
+  .hd h2{font-size:13px;font-weight:700;letter-spacing:-.004em;line-height:24px;color:var(--ink)}
+  .icon-btn{
+    display:flex;align-items:center;justify-content:center;
+    border:0;background:var(--soft);color:#5F5C55;
+    border-radius:50%;cursor:pointer;flex:none;
+    transition:transform .18s ease,background .18s ease;
+  }
+  .icon-btn:hover{background:#ECE8E1}
+  .icon-btn:active{transform:scale(.94)}
+  .icon-btn.orange{background:var(--accent);color:#fff}
+  .icon-btn.orange:hover{background:#F1500A}
+  .icon-btn svg{display:block}
+
+  /* ---------- My profile ---------- */
+  .c-profile .menu{width:28px;height:28px;margin-top:-2px}
+  .ring{position:absolute;border:1.4px solid #ECE8E0;border-radius:50%}
+  .ring.outer{left:71px;top:44px;width:194px;height:178px}
+  .ring.inner{left:114px;top:74px;width:124px;height:120px}
+  .avatar{
+    position:absolute;display:flex;align-items:center;justify-content:center;
+    border-radius:50%;color:#fff;font-weight:700;background:var(--blue);letter-spacing:.02em;
+  }
+  .avatar.me{left:146px;top:108px;width:54px;height:54px;font-size:19px}
+  .orb{position:absolute;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;border:0;cursor:pointer}
+  .orb.dark{background:#131211}
+  .orb.orange{background:var(--accent)}
+  .orb.dark:hover{background:#22211D}
+  .orb.orange:hover{background:#F1500A}
+  .orb.bolt{left:58px;top:66px}
+  .orb.send{left:278px;top:99px}
+  .orb.pencil{left:93px;top:175px}
+
+  /* ---------- My sales ---------- */
+  .c-sales .monthly{
+    position:absolute;right:20px;top:14px;height:26px;
+    display:flex;align-items:center;gap:6px;
+    padding:0 11px;border:1px solid var(--line);border-radius:13px;
+    font-size:12.5px;font-weight:500;color:#6F6C64;background:#fff;cursor:pointer;
+  }
+  .monthly:hover{border-color:#D9D4C9}
+  .bar{position:absolute;width:2px;transform:translateX(-1px);background:#DAD7D0}
+  .bar .node{position:absolute;left:50%;top:-7px;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:#141310}
+  .bar.sep{background:linear-gradient(180deg,#B4531F 0%,#E0834F 45%,#F2BB9B 100%)}
+  .bar.sep .node{top:-8px;width:16px;height:16px;border-radius:0;background:var(--accent);clip-path:polygon(50% 0,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%)}
+  .tooltip{
+    position:absolute;left:118px;top:48px;height:20px;
+    display:flex;align-items:center;padding:0 6px;
+    border-radius:11px;background:var(--accent);color:#fff;
+    font-size:10.5px;font-weight:700;letter-spacing:.01em;
+    box-shadow:0 2px 6px rgba(255,91,20,.20);
+  }
+  .month{position:absolute;top:216px;transform:translateX(-50%);font-size:10.5px;color:#A6A39B}
+
+  /* ---------- Quick deal ---------- */
+  .deal{
+    position:absolute;left:20px;width:308px;height:44px;
+    border:1px solid #E8E4DC;border-radius:22px;
+    display:flex;align-items:center;padding:0 12px 0 10px;
+  }
+  .deal .tick-dot{width:36px;height:36px;border-radius:50%;flex:none}
+  .deal .ticker{margin-left:16px;font-size:11px;font-weight:700;letter-spacing:.05em}
+  .deal .price{margin-left:auto;font-size:12.5px;font-weight:700;letter-spacing:.01em}
+
+  /* ---------- My team ---------- */
+  .team-add{
+    position:absolute;left:20px;top:52px;width:40px;height:40px;border-radius:50%;
+    background:var(--soft);display:flex;align-items:center;justify-content:center;
+    color:#6F6C64;border:0;cursor:pointer;
+  }
+  .team-avatar{left:66px;top:52px;width:36px;height:36px;font-size:12px;background:var(--blue)}
+  .team-name{position:absolute;left:116px;top:53px;font-size:11.5px;font-weight:700;letter-spacing:0}
+  .team-role{position:absolute;left:116px;top:72px;font-size:9.5px;color:#9C998F;letter-spacing:.05em}
+  .team-edit{position:absolute;left:300px;top:52px;width:36px;height:36px}
+  .card-strip{
+    position:absolute;left:20px;top:102px;width:302px;height:34px;border-radius:17px;
+    background:var(--soft);display:flex;align-items:center;padding-left:12px;gap:15px;
+  }
+  .card-badge{
+    width:36px;height:18px;border-radius:5px;background:#141310;color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:8px;font-weight:700;letter-spacing:.1em;
+  }
+  .card-num{font-size:12.5px;font-weight:500;letter-spacing:.02em;color:#1B1914}
+  .btn-primary{
+    position:absolute;left:20px;top:186px;width:312px;height:34px;border-radius:17px;
+    background:var(--accent);color:#fff;border:0;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    font-family:inherit;font-size:12.5px;font-weight:700;letter-spacing:.01em;
+    transition:background .18s ease;
+  }
+  .btn-primary:hover{background:#F1500A}
+  .btn-primary:active{transform:translateY(1px)}
+
+  /* ---------- My businesses ---------- */
+  .c-biz .tool{position:absolute;width:32px;height:32px;top:14px}
+  .c-biz .tool.edit{left:270px}
+  .c-biz .tool.bag{left:304px}
+  .profit-label{position:absolute;left:18px;top:80px;font-size:8px;color:#9A968D;font-weight:500;line-height:14px}
+  .profit-amount{position:absolute;left:46px;top:66px;font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:38px}
+  .profit-unit{position:absolute;left:158px;top:60px;font-size:16px;font-weight:700;line-height:26px;letter-spacing:.02em}
+  .chip-mint{
+    position:absolute;left:182px;top:74px;height:22px;display:flex;align-items:center;padding:0 9px;border-radius:11px;
+    background:#E6F2EA;color:#3A7A5C;font-size:10.5px;font-weight:700;
+  }
+  .progress{position:absolute;left:20px;top:110px;width:312px;height:6px;border-radius:5px;background:#EDEAE3;overflow:hidden;display:flex}
+  .progress .seg1{width:61%;background:var(--accent)}
+  .progress .seg2{width:9.5%;background:var(--peach)}
+  .progress .seg3{flex:1;background:#EDEAE3}
+  .biz-brand{position:absolute;left:20px;top:196px;display:flex;align-items:center;gap:10px}
+  .brand-mark{width:30px;height:30px;border-radius:7px;background:#141310}
+  .brand-name{font-size:13px;font-weight:700;letter-spacing:-.005em}
+  .biz-total{position:absolute;right:20px;top:196px;height:30px;display:flex;align-items:center;font-size:13px;font-weight:700;letter-spacing:-.005em}
+  .pager{position:absolute;left:0;right:0;top:228px;display:flex;align-items:center;justify-content:center;gap:5px}
+  .pager .p1{width:18px;height:5px;border-radius:3px;background:var(--accent)}
+  .pager .p2{width:5px;height:5px;border-radius:50%;background:#DBD7CE}
+
+  /* ---------- CTA + report ---------- */
+  .stack{display:grid;grid-template-rows:116px 116px;gap:18px}
+  .cta-orange{
+    position:relative;border-radius:18px;background:var(--accent);overflow:hidden;
+    padding:14px 20px 26px;display:flex;flex-direction:column;justify-content:space-between;
+    cursor:pointer;border:0;text-align:left;font-family:inherit;
+  }
+  .cta-orange:hover{background:#F1500A}
+  .plus-orb{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;color:#fff}
+  .cta-orange .label{font-size:13.5px;font-weight:700;color:#fff;letter-spacing:-.005em}
+  .report{
+    position:relative;border-radius:18px;background:#17150F;padding:14px 20px 26px;
+    display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;border:0;
+    text-align:left;font-family:inherit;
+  }
+  .report:hover{background:#201D16}
+  .dl-orb{width:32px;height:32px;border-radius:50%;background:#34302A;display:flex;align-items:center;justify-content:center;color:#fff}
+  .report .label{font-size:13.5px;font-weight:700;color:#fff;letter-spacing:-.005em}
+
+  /* ---------- Income / expense ---------- */
+  .shuffle-btn{position:absolute;right:16px;top:16px;width:36px;height:36px}
+  .shuffle-btn.soft{background:var(--soft);color:#6E6B63}
+  .amount-row{position:absolute;left:20px;bottom:24px;display:flex;align-items:center;gap:9px}
+  .tri{width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent}
+  .tri.up{border-bottom:9px solid #16774F}
+  .tri.down{border-top:9px solid #F0521B}
+  .amount{font-weight:700;letter-spacing:-.02em;line-height:1}
+  .c-income .amount{font-size:18.5px}
+  .c-expense .amount{font-size:20px}
+  .spark{position:absolute;left:0;top:0;width:352px;height:250px}
+
+  /* ---------- Balance ---------- */
+  .date-pill{
+    position:absolute;left:20px;top:56px;height:22px;padding:0 10px;border-radius:11px;
+    background:#141310;color:#fff;display:flex;align-items:center;
+    font-size:11px;font-weight:700;letter-spacing:.01em;
+  }
+  .refresh{position:absolute;right:16px;top:16px;width:34px;height:34px}
+  .balance-num{position:absolute;left:20px;bottom:24px;font-size:23px;font-weight:700;letter-spacing:-.025em;line-height:1}
+
+  /* ---------- Transactions ---------- */
+  .tx-badge{
+    position:absolute;left:202px;top:12px;width:34px;height:26px;border-radius:13px;
+    background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;
+    font-size:15px;font-weight:700;
+  }
+  .contacts{
+    position:absolute;left:240px;top:12px;width:92px;height:26px;padding:0 11px;
+    border:1px solid var(--line);border-radius:13px;background:#fff;
+    display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#6F6C64;cursor:pointer;
+  }
+  .contacts:hover{border-color:#D9D4C9}
+  .tx-count{position:absolute;left:20px;top:56px;font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:34px}
+  .avatar-row{position:absolute;left:60px;top:60px;display:flex}
+  .mini{
+    width:28px;height:28px;border-radius:50%;margin-left:-6px;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:8px;font-weight:700;letter-spacing:.04em;
+    border:1.5px solid #fff;
+  }
+  .avatar-row .mini:first-child{margin-left:0}
+  .heat{position:absolute;left:20px;top:119px;width:312px;display:grid;grid-template-columns:repeat(8,1fr);row-gap:14px}
+  .heat i{width:26px;height:26px;border-radius:50%;display:block}
+
+  /* ---------- Profit statistics ---------- */
+  .c-profit{grid-column:span 2}
+  .goal{
+    position:absolute;right:20px;top:18px;height:24px;display:flex;align-items:center;gap:5px;
+    padding:0 11px;border-radius:12px;background:#FCE6DA;
+    font-size:10.5px;color:#B6A096;font-weight:600;letter-spacing:.02em;
+  }
+  .goal b{font-size:12px;color:#F1601C;font-weight:700;letter-spacing:0}
+  .stat-labels{position:absolute;left:0;top:56px;width:360px;font-size:10.5px;color:#A9A59C;letter-spacing:.02em}
+  .stat-labels span{position:absolute;top:0}
+  .stat-labels span:nth-child(1){left:18px}
+  .stat-labels span:nth-child(2){left:84px}
+  .stat-labels span:nth-child(3){left:192px}
+  .stat-values{position:absolute;left:0;top:74px;width:360px;font-size:17px;font-weight:700;letter-spacing:-.015em}
+  .stat-values span{position:absolute;top:0}
+  .stat-values span:nth-child(1){left:18px}
+  .stat-values span:nth-child(2){left:84px}
+  .stat-values span:nth-child(3){left:192px}
+  .dots-grid{position:absolute;left:20px;top:118px;display:grid;grid-template-columns:repeat(94,7.05px);row-gap:7px}
+  .dots-grid i{width:3px;height:3px;border-radius:50%;display:block}
+  .net{position:absolute;left:18px;top:198px;display:flex;align-items:center;gap:10px}
+  .net-orb{width:30px;height:30px;border-radius:50%;background:#141310;color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+  .net-label{font-size:17px;color:#A19D94;letter-spacing:0}
+  .net-value{font-size:16px;font-weight:700;letter-spacing:-.01em;margin-left:0}
+  .accountant{position:absolute;right:20px;top:198px;height:32px;display:flex;align-items:center;gap:10px}
+  .acc-avatar{width:26px;height:26px;border-radius:50%;background:#9B7EC4;color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;letter-spacing:.03em}
+  .acc-name{font-size:13.5px;font-weight:700;letter-spacing:-.01em}
+  .acc-role{font-size:10.5px;color:#AFABA2;letter-spacing:.03em;margin-left:2px}
+
+  /* ================= motion & interaction ================= */
+  button{font-family:inherit}
+  .icon-btn,.orb,.team-add,.team-edit,.monthly,.contacts,.btn-primary,.date-pill{
+    transition:transform .22s cubic-bezier(.2,.8,.3,1),box-shadow .22s ease,background-color .22s ease,border-color .22s ease,color .22s ease;
+  }
+  .icon-btn:hover,.orb:hover,.team-add:hover,.team-edit:hover,.monthly:hover,.contacts:hover,.date-pill:hover{
+    transform:translateY(-1.5px) scale(1.05);
+    box-shadow:0 8px 18px rgba(17,16,12,.13);
+  }
+  .icon-btn:active,.orb:active,.team-add:active,.team-edit:active,.monthly:active,.contacts:active,.date-pill:active{transform:scale(.93)}
+  .btn-primary:hover{background:#F4510B;box-shadow:0 10px 20px rgba(255,91,20,.30);transform:translateY(-1.5px)}
+  .btn-primary:active{transform:scale(.97)}
+  .cta-orange,.report{transition:transform .26s cubic-bezier(.2,.8,.3,1),box-shadow .26s ease,background-color .26s ease}
+  .cta-orange:hover{transform:translateY(-3px);box-shadow:0 16px 30px rgba(255,91,20,.30)}
+  .cta-orange:active{transform:translateY(0) scale(.985)}
+  .report:hover{transform:translateY(-3px);box-shadow:0 16px 30px rgba(15,14,12,.22)}
+  .report:active{transform:translateY(0) scale(.985)}
+  .deal{transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease,opacity .3s ease}
+  .deal:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(17,16,12,.08);border-color:#DCD7CC}
+  .card{transition:transform .3s cubic-bezier(.2,.8,.3,1),box-shadow .3s ease}
+  .card:hover{transform:translateY(-2px);box-shadow:0 18px 34px rgba(17,16,12,.09)}
+  .shuffle-btn:hover svg{transform:rotate(90deg);transition:transform .4s cubic-bezier(.2,.8,.3,1)}
+  .shuffle-btn svg{transition:transform .3s ease}
+  .refresh:hover svg{transform:rotate(-40deg);transition:transform .4s cubic-bezier(.2,.8,.3,1)}
+  .refresh svg{transition:transform .3s ease}
+
+  .spark,.heat i,.dots-grid i{pointer-events:none}
+  .hd{pointer-events:none}
+  .hd>*{pointer-events:auto}
+  button:focus-visible, [tabindex]:focus-visible{outline:2px solid #1B1914;outline-offset:2px}
+  .fx{overflow:hidden;isolation:isolate}
+  .fx-rel{position:relative}
+  .fx-ripple{position:absolute;border-radius:50%;pointer-events:none;transform:scale(0);animation:fxRipple .62s cubic-bezier(.2,.7,.3,1) forwards}
+  @keyframes fxRipple{60%{opacity:.35}to{transform:scale(1);opacity:0}}
+  @keyframes fxPop{0%{transform:scale(.35);opacity:0}62%{transform:scale(1.1);opacity:1}100%{transform:scale(1);opacity:1}}
+  @keyframes fxSpin{to{transform:rotate(360deg)}}
+  @keyframes fxShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
+
+  .fx-menu{
+    position:absolute;z-index:12;min-width:110px;padding:5px;
+    background:#fff;border:1px solid #EDE8DE;border-radius:14px;
+    box-shadow:0 16px 34px rgba(17,16,12,.16);
+    opacity:0;transform:translateY(-8px) scale(.97);pointer-events:none;
+    transition:opacity .2s ease,transform .24s cubic-bezier(.2,.8,.3,1);
+  }
+  .fx-menu.open{opacity:1;transform:none;pointer-events:auto}
+  .fx-menu button{
+    display:block;width:100%;text-align:left;border:0;background:transparent;
+    padding:8px 11px;border-radius:9px;cursor:pointer;
+    font-size:12px;color:#3D3A34;font-weight:500;
+    transition:background .16s ease,color .16s ease,transform .16s ease;
+  }
+  .fx-menu button:hover{background:#F7F3EB;color:#141310;transform:translateX(2px)}
+  .fx-menu button.sel{color:#F0521B;font-weight:700}
+
+  .progress .seg1,.progress .seg2{transition:width .55s cubic-bezier(.2,.8,.3,1)}
+  .dots-grid i{transition:transform .25s ease-out}
+  .date-pill,.pager{cursor:pointer;user-select:none}
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.001ms !important;transition-duration:.001ms !important}
+  }
+
+  .deal.is-ignored{opacity:.4;transform:translateY(2px) scale(.985)}
+
+/* ================= phone layout ================= */
+/* The 1624 × 900 sheet is a desktop composition. Below 760px the cards reflow into one
+   readable column instead of shrinking the whole sheet into an unreadable thumbnail. */
+@media (max-width: 760px) {
+  html, body, #root {
+    height: auto;
+    min-height: 100%;
+  }
+  body {
+    overflow-x: hidden;
+    overflow-y: auto;
+    background: var(--paper);
+  }
+  .stage {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: 100%;
+    height: auto;
+    transform: none;
+  }
+  .app {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    min-height: 100vh;
+    padding: 16px 14px 32px;
+    border-radius: 0;
+  }
+  .grid {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    gap: 14px;
+  }
+  .card {
+    width: 100%;
+    flex: none;
+    border-radius: 20px;
+  }
+  .c-profile { height: 226px; }
+  .c-sales { height: 246px; }
+  .c-quick { height: 238px; }
+  .c-team { height: 240px; }
+  .c-biz { height: 246px; }
+  .stack { height: 250px; }
+  .c-income, .c-expense { height: 200px; }
+  .c-balance { height: 220px; }
+  .c-trans { height: 246px; }
+  .c-profit { height: 304px; }
+
+  .c-profile .ring.outer { left: 50%; margin-left: -97px; }
+  .c-profile .ring.inner { left: 50%; margin-left: -62px; }
+  .c-profile .avatar.me { left: 50%; margin-left: -27px; }
+  .c-profile .orb.bolt { left: 24px; }
+  .c-profile .orb.send { right: 20px; left: auto; }
+  .c-profile .orb.pencil { left: 32px; }
+
+  .c-team .team-edit { left: auto; right: 16px; }
+  .c-biz .tool.edit { left: auto; right: 54px; }
+  .c-biz .tool.bag { left: auto; right: 14px; }
+
+  .c-profit .dots-grid {
+    transform: scale(.52);
+    transform-origin: left top;
+  }
+  .c-profit .accountant {
+    left: 18px;
+    right: auto;
+    top: 246px;
+  }
+  .c-profit .net { top: 198px; }
+}

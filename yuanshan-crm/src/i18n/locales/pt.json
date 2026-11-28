@@ -1,0 +1,245 @@
+{
+  "meta": {
+    "title": "Yuanshan Consulting · CRM de clientes",
+    "description": "CRM interno da Yuanshan Consulting: visão geral de hoje, pipeline de vendas e linha do tempo de comunicação de cada cliente."
+  },
+  "brand": {
+    "name": "Yuanshan Consulting",
+    "wordmark": "Yuanshan",
+    "tagline": "CONSULTING"
+  },
+  "common": {
+    "all": "Todos",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "saving": "Salvando…",
+    "consultant": "Consultor",
+    "contact": "Contato",
+    "defaultProject": "Projeto de consultoria",
+    "close": "Fechar"
+  },
+  "units": {
+    "system": "western",
+    "thousand": " mil",
+    "million": " mi",
+    "tenThousand": "×10 mil",
+    "money": "¥{value}{unit}"
+  },
+  "time": {
+    "justNow": "Agora mesmo",
+    "minutesAgo": "Há {n} min",
+    "hoursAgo": "Há {n} h",
+    "yesterday": "Ontem",
+    "daysAgo": "Há {n} dias",
+    "overdue": "{n}d em atraso",
+    "dueToday": "Vence hoje",
+    "tomorrow": "Amanhã",
+    "inDays": "Em {n} dias"
+  },
+  "greeting": {
+    "lateNight": "Trabalhando até tarde",
+    "morning": "Bom dia",
+    "noon": "Boa tarde",
+    "afternoon": "Boa tarde",
+    "evening": "Boa noite",
+    "line": "{greeting}, {name}."
+  },
+  "nav": {
+    "overview": "Hoje",
+    "pipeline": "Pipeline",
+    "clients": "Clientes",
+    "newClient": "Novo cliente",
+    "team": "Equipe · Pipeline aberto",
+    "switchIdentity": "Trocar consultor"
+  },
+  "stages": {
+    "lead": {
+      "label": "Lead",
+      "tag": "ETAPA 1"
+    },
+    "contact": {
+      "label": "Descoberta",
+      "tag": "ETAPA 2"
+    },
+    "proposal": {
+      "label": "Proposta",
+      "tag": "ETAPA 3"
+    },
+    "negotiation": {
+      "label": "Negociação",
+      "tag": "ETAPA 4"
+    },
+    "won": {
+      "label": "Ganho",
+      "tag": "ETAPA 5"
+    }
+  },
+  "activity": {
+    "call": "Ligação",
+    "meeting": "Reunião",
+    "email": "E-mail",
+    "note": "Nota",
+    "stage_change": "Mudança de etapa",
+    "deal_won": "Ganho"
+  },
+  "overview": {
+    "subtitleDue": "Clientes aguardando seu contato hoje: {due}. Negócios fechados pela equipe este mês: {won}.",
+    "subtitleClear": "Nenhum acompanhamento atrasado hoje. É um bom dia para avançar uma proposta. Negócios fechados este mês: {won}.",
+    "heroEyebrow": "Fechado este mês · {month}",
+    "heroUnit": "{unit}",
+    "vsLastMonth": "{delta}% vs. mês passado",
+    "noDealsLastMonth": "Nenhum negócio no mês passado",
+    "lastMonth": "Mês passado {amount}",
+    "signedThisMonth": "Fechados este mês: {n}",
+    "avgDeal": "Negócio médio {amount}",
+    "noDealsYet": "Nenhum negócio fechado este mês. Abra o pipeline e conclua um.",
+    "funnelTitle": "Funil de vendas",
+    "funnelSubtitle": "Valor das oportunidades por etapa · clique em uma etapa para abrir o pipeline",
+    "openPipeline": "Abrir pipeline",
+    "wonThisMonth": "Ganhos (este mês)",
+    "statOpen": "Pipeline aberto",
+    "statOpenHint": "{n} em andamento",
+    "statWeighted": "Previsão ponderada",
+    "statWeightedHint": "Pela taxa de ganho da etapa",
+    "statNew": "Novos este mês",
+    "statNewHint": "novos clientes",
+    "dueTitle": "Vence hoje",
+    "mine": "Meus",
+    "allCaughtUp": "Tudo em dia. Hora de tomar um chá.",
+    "recentTitle": "Atividade recente",
+    "teamTitle": "Equipe este mês",
+    "teamOpen": "Abertos {amount}",
+    "teamWon": "{n} fechados"
+  },
+  "funnel": {
+    "ariaLabel": "Gráfico do funil com valor das oportunidades por etapa",
+    "clients": "{n} clientes",
+    "clientsOne": "{n} cliente"
+  },
+  "pipeline": {
+    "eyebrow": "Pipeline",
+    "title": "Pipeline de vendas",
+    "description": "Arraste os cartões para avançar os negócios. Cada mudança fica registrada na linha do tempo do cliente. Mova um para Ganho e comemore.",
+    "searchPlaceholder": "Buscar clientes ou projetos",
+    "stageFilter": "Etapa: {stage}",
+    "deals": "{n} negócios"
+  },
+  "kanban": {
+    "dropWonHere": "Solte aqui os clientes fechados",
+    "empty": "Nenhum cliente",
+    "moveFailed": "Não foi possível mover o cartão: {error}",
+    "wonToast": "Fechado! {company}",
+    "wonToastBody": "{project} · {amount}, adicionado à receita fechada deste mês.",
+    "movedToast": "{company} → {stage}",
+    "movedToastBody": "Mudança de etapa registrada na linha do tempo"
+  },
+  "client": {
+    "notFound": "Não encontramos este cliente.",
+    "moveTo": "Mover para {stage}",
+    "opportunity": "Valor da oportunidade",
+    "signedOn": "Fechado em {date}",
+    "expectedClose": "Fechamento previsto para {date}",
+    "stage": "Etapa de vendas",
+    "email": "E-mail",
+    "phone": "Telefone",
+    "owner": "Responsável",
+    "nextFollowUp": "Próximo contato",
+    "fullPage": "Página inteira",
+    "wonToastBody": "{amount} adicionado à receita fechada deste mês",
+    "movedTo": "Movido para {stage}",
+    "deleted": "Cliente excluído",
+    "historyTitle": "Registro de comunicação",
+    "entries": "{n} registros · registrando como {name}",
+    "entriesOne": "{n} registro · registrando como {name}",
+    "deleteTitle": "Excluir {company}?",
+    "deleteBody": "O cadastro do cliente e todos os {n} registros de comunicação serão excluídos permanentemente. Não é possível desfazer.",
+    "deleteBodyOne": "O cadastro do cliente e seu {n} registro de comunicação serão excluídos permanentemente. Não é possível desfazer.",
+    "sheetTitle": "Detalhes do cliente",
+    "sheetDescription": "Perfil do cliente e linha do tempo de comunicação",
+    "allClients": "Todos os clientes",
+    "invalidId": "ID de cliente inválido"
+  },
+  "timeline": {
+    "empty": "Nenhum registro ainda",
+    "deleteEntry": "Excluir registro",
+    "stageChange": "Etapa: {from} → {to}",
+    "dealWon": "Negócio fechado",
+    "created": "Cadastro do cliente criado",
+    "placeholderCall": "ex.: Confirmar o orçamento com o CEO por telefone",
+    "placeholderMeeting": "ex.: Revisão da proposta · presencial",
+    "placeholderEmail": "ex.: Enviar proposta v2 e o orçamento",
+    "placeholderNote": "ex.: Viajam na próxima semana, então esperar até sexta",
+    "contentPlaceholder": "Pontos principais, preocupações, próximos passos…",
+    "nextFollowUp": "Próximo acompanhamento",
+    "submit": "Registrar",
+    "saved": "Registro salvo",
+    "writeSomething": "Escreva algo antes de registrar",
+    "defaultTitle": "{type}"
+  },
+  "form": {
+    "editTitle": "Editar cliente",
+    "newTitle": "Novo cliente",
+    "editHint": "As alterações são sincronizadas com o pipeline e a visão geral na hora.",
+    "newHint": "Novos clientes começam em Lead e recebem um logotipo gerado.",
+    "logoPlaceholder": "N",
+    "company": "Empresa *",
+    "companyPlaceholder": "ex.: Huazhang Culture & Tourism",
+    "industry": "Setor *",
+    "industryPlaceholder": "ex.: Bens de consumo",
+    "city": "Cidade",
+    "cityPlaceholder": "ex.: Hangzhou",
+    "project": "Projeto",
+    "projectPlaceholder": "ex.: Renovação da estratégia de marca",
+    "avatar": "Foto do contato",
+    "chooseAvatar": "Escolher foto",
+    "contact": "Contato *",
+    "title": "Cargo",
+    "email": "E-mail",
+    "phone": "Telefone",
+    "amount": "Valor da oportunidade (em ¥10.000)",
+    "amountPlaceholder": "ex.: 48",
+    "owner": "Responsável",
+    "ownerPlaceholder": "Escolha um consultor",
+    "stage": "Etapa de vendas",
+    "nextFollowUp": "Próximo acompanhamento",
+    "notes": "Notas",
+    "notesPlaceholder": "Necessidades principais, decisores, orçamento…",
+    "saveChanges": "Salvar alterações",
+    "addClient": "Adicionar cliente",
+    "added": "{company} adicionado",
+    "updated": "Cliente atualizado",
+    "requiredMissing": "Preencha a empresa, o setor e o contato",
+    "invalidAmount": "Insira um valor válido",
+    "ownerMissing": "Escolha um responsável"
+  },
+  "clients": {
+    "eyebrow": "Clientes",
+    "title": "Clientes",
+    "subtitle": "{n} clientes · clique em qualquer linha para ver o registro de comunicação",
+    "subtitleOne": "{n} cliente · clique na linha para ver o registro de comunicação",
+    "searchPlaceholder": "Buscar clientes ou cidades",
+    "allStages": "Todas as etapas",
+    "sortRecent": "Atividade mais recente",
+    "sortAmount": "Valor",
+    "sortCompany": "Nome da empresa",
+    "colCompany": "Empresa",
+    "colContact": "Contato",
+    "colStage": "Etapa",
+    "colAmount": "Valor",
+    "colOwner": "Responsável",
+    "colFollowUp": "Próximo acompanhamento",
+    "colLast": "Último contato",
+    "empty": "Nenhum cliente corresponde a estes filtros"
+  },
+  "notFound": {
+    "title": "Página não encontrada",
+    "body": "Desculpe, a página que você procura não existe.",
+    "body2": "Ela pode ter sido movida ou excluída.",
+    "goHome": "Ir para o início"
+  },
+  "errorBoundary": {
+    "title": "Ocorreu um erro inesperado.",
+    "reload": "Recarregar página"
+  }
+}

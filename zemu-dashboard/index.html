@@ -1,0 +1,1172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>zemü — My dashboard</title>
+<meta name="description" content="zemü personal finance dashboard" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23faf9f4'/%3E%3Cg fill='%23141316'%3E%3Crect x='9' y='10' width='14' height='3' rx='1.5'/%3E%3Crect x='9' y='15' width='11' height='3' rx='1.5'/%3E%3Crect x='9' y='20' width='7' height='3' rx='1.5'/%3E%3C/g%3E%3C/svg%3E" />
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Geist:wght@400;500;600;700;800&display=swap" />
+<style>
+/* ============ tokens ============ */
+:root{
+  --bg:#08080b;
+  --panel:#141419;
+  --panel-2:#17171d;
+  --line:rgba(255,255,255,.055);
+  --text:#f4f3f8;
+  --muted:#8b8996;
+  --muted-2:#63626e;
+  --lime:#cbeb6e;
+  --lav:#a895fc;
+  --radius:22px;
+  --gap:18px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:"Geist","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  font-size:14px;line-height:1.35;letter-spacing:-.011em;
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select{font:inherit;letter-spacing:inherit;color:inherit}
+a{color:inherit;text-decoration:none}
+ul{list-style:none;margin:0;padding:0}
+::selection{background:rgba(168,149,252,.3)}
+sup{line-height:0}
+
+.app{max-width:1400px;margin:0 auto;padding:0 34px 8px}
+
+/* ============ top bar ============ */
+.topbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;height:80px}
+.brand{display:flex;align-items:center;gap:10px;justify-self:start}
+.logo{width:30px;height:30px;border-radius:9px;background:#fcfcf7;display:grid;place-items:center;box-shadow:0 8px 18px -10px rgba(255,255,255,.45)}
+.logo svg{width:17px;height:17px;color:#131318;display:block}
+.word{font-size:16px;font-weight:700;letter-spacing:-.025em}
+.nav{justify-self:center;display:flex;align-items:center;gap:2px;padding:4px;background:#0e0e13;border:1px solid rgba(255,255,255,.045);border-radius:17px}
+.nav a{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:13px;font-size:12.5px;font-weight:500;color:#8a8894;white-space:nowrap;transition:background .18s,color .18s}
+.nav a:hover{color:#dcdbe3;background:#191920}
+.nav a.on{background:#26252c;color:#fbfbfd}
+.nav a .dot{width:5px;height:5px;border-radius:50%;background:var(--lime);display:none;box-shadow:0 0 7px rgba(203,235,110,.8)}
+.nav a.on .dot{display:block}
+.tools{justify-self:end;display:flex;align-items:center;gap:9px}
+.icon-btn{position:relative;width:38px;height:38px;border-radius:50%;border:0;background:#131318;color:#8e8c99;display:grid;place-items:center;cursor:pointer;transition:.18s}
+.icon-btn:hover{background:#1a1a21;color:#f2f1f6;border-color:rgba(255,255,255,.09)}
+.icon-btn svg{width:16px;height:16px;display:block}
+.ping{position:absolute;top:7px;right:8px;width:5px;height:5px;border-radius:50%;background:var(--lime)}
+.avatar{width:38px;height:38px;border-radius:50%;border:0;cursor:pointer;background:linear-gradient(140deg,#ee8cb0,#d25e84);color:#fff;font-size:11.5px;font-weight:700;letter-spacing:.06em;box-shadow:0 10px 20px -12px rgba(238,140,176,.8)}
+
+#pageTitle{font-size:clamp(28px,2.72vw,39px);font-weight:700;letter-spacing:-.03em;line-height:1.04;margin:4px 0 13px}
+
+/* ============ panel base ============ */
+.panel{
+  background:#141419;
+  background-image:linear-gradient(180deg,rgba(255,255,255,.028),rgba(255,255,255,0) 34%);
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:var(--radius);
+  padding:20px 22px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025),0 24px 50px -40px #000;
+}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.panel-head h2{font-size:18px;font-weight:600;letter-spacing:-.024em;margin:0;display:flex;align-items:baseline;gap:6px;color:#f6f5fa}
+.cnt{font-size:10px;font-weight:500;color:#6c6b78;position:relative;top:-5px;letter-spacing:0}
+.link-btn{background:none;border:0;padding:0;color:#77757f;font-size:11.5px;display:inline-flex;align-items:center;gap:5px;cursor:pointer;transition:color .16s}
+.link-btn:hover{color:#e9e8ee}
+.link-btn svg{width:13px;height:13px}
+
+/* ============ balance ============ */
+.balance{
+  position:relative;overflow:hidden;
+  background:linear-gradient(104deg,#77cf9f 0%,#8ed286 25%,#b8dd74 55%,#cde160 82%,#d9e052 100%);
+  border:0;color:#08170f;
+  padding:22px 28px 24px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  min-height:206px;
+}
+.balance::after{
+  content:"";position:absolute;right:-22%;top:-55%;width:44%;height:170%;
+  background:radial-gradient(closest-side,rgba(255,255,255,.14),rgba(255,255,255,0) 68%);
+  pointer-events:none;
+}
+.balance-top{position:relative;z-index:1}
+.kicker{font-size:13px;font-weight:600;letter-spacing:-.012em;color:rgba(8,28,17,.56)}
+.amount{display:flex;align-items:flex-start;gap:2px;font-size:46px;font-weight:800;letter-spacing:-.045em;line-height:1.08;margin:4px 0 3px;color:#07160e;font-variant-numeric:tabular-nums}
+.amount sup{font-size:15px;font-weight:700;margin-top:5px;letter-spacing:0}
+.balance-sub{margin:0;font-size:12px;color:rgba(8,28,17,.52);letter-spacing:-.008em}
+.balance-actions{position:relative;z-index:1;display:flex;gap:10px;margin-top:18px}
+.btn-dark,.btn-white{height:42px;border-radius:999px;border:0;padding:0 23px;font-size:12.5px;font-weight:600;letter-spacing:-.01em;cursor:pointer;display:inline-flex;align-items:center;gap:9px;transition:transform .16s,background .16s}
+.btn-dark{background:#111d0a;color:#eaf2de}
+.btn-dark:hover{background:#17260f;transform:translateY(-1px)}
+.btn-white{background:#fbfbf4;color:#12200e}
+.btn-white:hover{background:#fff;transform:translateY(-1px)}
+.bolt{width:19px;height:19px;border-radius:50%;background:#15200f;color:#fbfbf4;display:grid;place-items:center}
+.bolt svg{width:9px;height:9px;display:block}
+
+/* ============ stat cards ============ */
+.stats{display:flex;flex-direction:column;gap:12px}
+.stats .stat{flex:1}
+.stat{padding:13px 18px 14px;border-radius:18px;background:#141419;border:1px solid rgba(255,255,255,.05);display:flex;flex-direction:column;justify-content:center;gap:2px;box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
+.stat .lbl{font-size:12.5px;color:#8b8996}
+.stat .mid{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.stat .val{display:flex;align-items:flex-start;gap:1px;font-size:25px;font-weight:700;letter-spacing:-.032em;line-height:1.15;font-variant-numeric:tabular-nums}
+.stat .val sup{font-size:10.5px;font-weight:600;margin-top:4px;color:#a9a7b3}
+.stat .sub{font-size:10.5px;color:#6a6975}
+.pill{font-size:11.5px;font-weight:600;padding:5px 9px;border-radius:999px;white-space:nowrap;letter-spacing:-.006em}
+.pill.pos{background:#dcf2e7;color:#0e7a49}
+.pill.neg{background:#fbdcdb;color:#d2544c}
+
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+/* ============ my cards ============ */
+.cards-panel{padding:22px}
+.add-pill{display:inline-flex;align-items:center;gap:8px;background:#fbfbf6;color:#15140f;border:0;border-radius:999px;padding:3px 3px 3px 12px;font-size:11.5px;font-weight:600;cursor:pointer;transition:transform .16s}
+.add-pill:hover{transform:translateY(-1px)}
+.add-pill .plus{width:19px;height:19px;border-radius:50%;background:#111;color:#fff;display:grid;place-items:center}
+.add-pill .plus svg{width:10px;height:10px}
+.cardstack{position:relative;margin:6px 0 0}
+.mini{position:absolute;border-radius:15px;padding:8px 13px;font-size:9.5px;font-weight:500;letter-spacing:.05em;color:rgba(255,255,255,.82);box-shadow:0 10px 22px -14px rgba(0,0,0,.85);transition:top .28s,height .28s}
+.masked{white-space:nowrap}
+.bigcard{
+  margin-top:16px;border-radius:18px;padding:15px 19px;min-height:90px;
+  background:linear-gradient(140deg,#9180f0 0%,#7866e5 60%,#6857d9 100%);
+  display:flex;flex-direction:column;justify-content:space-between;gap:14px;
+  border:0;width:100%;text-align:left;cursor:pointer;color:#fff;
+  box-shadow:0 22px 40px -26px rgba(120,102,229,.9);
+  transition:transform .2s,box-shadow .2s;
+}
+.bigcard:hover{transform:translateY(-2px);box-shadow:0 26px 46px -24px rgba(120,102,229,1)}
+.bigcard .num{font-size:14.5px;font-weight:600;letter-spacing:.085em;white-space:nowrap}
+.bigcard .bot{display:flex;justify-content:space-between;align-items:flex-end;font-size:10.5px;color:rgba(255,255,255,.7);letter-spacing:.01em}
+
+/* ============ revenue flow ============ */
+.flow{display:flex;flex-direction:column;position:relative}
+.flow .panel-head{margin-bottom:2px}
+.head-tools{display:flex;align-items:center;gap:7px}
+.select{display:inline-flex;align-items:center;gap:8px;background:#1b1b21;border:1px solid rgba(255,255,255,.05);border-radius:10px;padding:7px 11px;font-size:12px;color:#cfced6;cursor:pointer;transition:background .16s,color .16s}
+.select:hover{background:#22222a;color:#fff}
+.select svg{width:13px;height:13px;opacity:.7}
+.icon-ghost{width:26px;height:26px;border-radius:8px;background:none;border:0;color:#6c6b77;display:grid;place-items:center;cursor:pointer;transition:.16s}
+.icon-ghost:hover{color:#fff;background:#1b1b21}
+.icon-ghost svg{width:15px;height:15px}
+.flow-total{display:inline-flex;align-items:center;gap:8px;align-self:flex-end;background:#1c1c22;border:1px solid rgba(255,255,255,.045);border-radius:999px;padding:6px 12px;font-size:12.5px;margin:4px 0 2px}
+.flow-total svg{width:12px;height:12px;color:var(--lime)}
+.flow-total b{font-weight:600;letter-spacing:-.01em}
+.flow-total .pct{font-size:11px;color:#a8e77e}
+.chart{position:relative;margin-top:6px;height:166px;display:flex;flex-direction:column}
+.flow.big .chart{height:236px}
+.flow.big .xaxis .amt{font-size:10px}
+.chart-lines{position:absolute;left:0;right:0;top:0;bottom:34px;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
+.chart-lines i{display:block;height:1px;background:rgba(255,255,255,.045)}
+.bars{flex:1;display:flex;align-items:flex-end;gap:11px;padding-top:6px}
+.bar-col{flex:1;height:100%;display:flex;align-items:flex-end}
+.bar{position:relative;width:100%;border-radius:12px;background:linear-gradient(180deg,#4b4377 0%,#322d54 100%);transition:height .5s cubic-bezier(.2,.75,.3,1),background .2s;cursor:default}
+.bar:hover{background:linear-gradient(180deg,#5b5192 0%,#3b3465 100%)}
+.bar.on{background:linear-gradient(180deg,#bfaeff 0%,#9a86fa 100%)}
+.bar.on:hover{background:linear-gradient(180deg,#cbbdff 0%,#a795fc 100%)}
+.bar.on::after{content:"";position:absolute;top:-4px;left:50%;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.13)}
+.xaxis{height:34px;display:flex;gap:11px;padding-top:8px}
+.xaxis > div{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.xaxis .amt{font-size:11.5px;font-weight:600;color:#efedf5;font-variant-numeric:tabular-nums}
+.xaxis .mon{font-size:10px;color:#7e7c88}
+
+/* ============ expense split ============ */
+.split{display:flex;flex-direction:column}
+.split-body{display:flex;align-items:center;gap:20px;padding:4px 0 2px;flex:1}
+.split.big .donut{width:206px;height:206px}
+.donut{position:relative;flex:0 0 auto;width:172px;height:172px}
+.donut svg{width:100%;height:100%;display:block}
+.seg{transition:stroke-width .18s}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;pointer-events:none;text-align:center}
+.donut-center span{font-size:10.5px;color:#767480;letter-spacing:.01em}
+.donut-center strong{display:flex;align-items:flex-start;gap:1px;font-size:21px;font-weight:700;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
+.donut-center em{font-style:normal;font-size:10px;margin-top:2px;color:#c9c8d2}
+.legend{flex:1;display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0}
+.legend li{display:grid;grid-template-columns:10px minmax(0,1fr) auto;align-items:center;gap:10px;padding:5px 0;font-size:12px;color:#a9a7b2}
+.legend .dot{width:9px;height:9px;border-radius:2.5px}
+.legend .pct{font-size:11.5px;font-weight:600;color:#efeef4;font-variant-numeric:tabular-nums}
+
+/* ============ subscriptions ============ */
+.subs{display:flex;flex-direction:column}
+.swatches{display:flex;gap:8px;margin:2px 0 14px}
+.sw{width:26px;height:26px;border-radius:50%}
+.sub-list{display:flex;flex-direction:column;flex:1}
+.sub-row{display:grid;grid-template-columns:28px minmax(0,1fr) auto 18px;align-items:center;gap:12px;padding:8px 0;flex:1;min-height:46px}
+.sub-row .dot{width:27px;height:27px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
+.sub-row .name{font-size:13px;font-weight:600;letter-spacing:-.012em;line-height:1.2;color:#f2f1f6}
+.sub-row .meta{font-size:11px;color:#75737f;margin-top:3px}
+.sub-row .price{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.sub-row .more{width:18px;height:24px;display:grid;place-items:center;background:none;border:0;color:#5e5d69;cursor:pointer;padding:0}
+.sub-row .more:hover{color:#c9c8d2}
+.sub-row.off{opacity:.42}
+.sub-row.off .price{text-decoration:line-through}
+
+/* ============ transactions ============ */
+.txn-list{display:flex;flex-direction:column}
+.txn{display:grid;grid-template-columns:34px minmax(0,1fr) auto 78px 80px 16px;align-items:center;gap:14px;padding:8px 0}
+.txn .avatar-dot{width:34px;height:34px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
+.txn .who{font-size:13.5px;font-weight:600;letter-spacing:-.012em;line-height:1.2;color:#f2f1f6}
+.txn .when{font-size:10px;color:#75737f;margin-top:3px;font-variant-numeric:tabular-nums}
+.status{background:#fbfbf5;color:#0e8b55;font-size:10.5px;font-weight:600;padding:5px 12px;border-radius:999px;white-space:nowrap}
+.status.wait{background:#1e1e26;color:#9c9aa6}
+.acct{font-size:10.5px;color:#5e5d69;text-align:right;font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.amt{font-size:12.5px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.amt.in{color:#a8e77e}
+.txn .more{width:16px;height:24px;display:grid;place-items:center;background:none;border:0;color:#565561;cursor:pointer;padding:0}
+.txn .more:hover{color:#c9c8d2}
+.chips{display:flex;gap:7px;margin:-2px 0 10px}
+.chips button{background:#1a1a21;border:1px solid rgba(255,255,255,.05);border-radius:999px;padding:5px 11px;font-size:11px;color:#a9a7b2;cursor:pointer;transition:.16s}
+.chips button.on{background:#26252c;color:#fff;border-color:rgba(255,255,255,.1)}
+.chips button:hover{color:#fff}
+
+/* ============ layout ============ */
+.view{animation:rise .32s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.dash{display:grid;grid-template-columns:minmax(0,2.02fr) minmax(0,1fr);gap:var(--gap);align-items:stretch}
+.dash-left{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:var(--gap);align-items:stretch}
+.dash-left > .balance{grid-column:span 5}
+.dash-left > .stats{grid-column:span 3}
+.dash-left > .flow{grid-column:span 4}
+.dash-left > .split{grid-column:span 4}
+.dash-left > .txns{grid-column:span 8}
+.dash-right{display:flex;flex-direction:column;gap:var(--gap);height:100%}
+.dash-right .cards-panel{flex:0 0 auto}
+.dash-right .subs{flex:1}
+
+.grid12{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--gap);align-items:start}
+.c3{grid-column:span 3}
+.c4{grid-column:span 4}
+.c6{grid-column:span 6}
+.c8{grid-column:span 8}
+.c12{grid-column:span 12}
+
+/* ============ modal / popover / toast ============ */
+.backdrop{position:fixed;inset:0;z-index:60;background:rgba(5,5,8,.72);backdrop-filter:blur(8px);display:grid;place-items:center;padding:24px;animation:fade .18s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal{width:100%;max-width:430px;max-height:86vh;overflow:auto;background:#15151c;border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:24px;box-shadow:0 50px 90px -40px #000;animation:pop .22s cubic-bezier(.2,.8,.3,1)}
+@keyframes pop{from{opacity:0;transform:translateY(9px) scale(.985)}to{opacity:1;transform:none}}
+.modal h3{margin:0 0 5px;font-size:19px;font-weight:700;letter-spacing:-.028em}
+.modal .hint{margin:0 0 16px;font-size:11.5px;color:#8b8996;line-height:1.45}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;color:#7e7c88;margin-bottom:6px;letter-spacing:.01em}
+.amount-field{display:flex;align-items:center;gap:8px;background:#0f0f14;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px 15px;transition:border-color .16s}
+.amount-field:focus-within{border-color:rgba(203,235,110,.45)}
+.amount-field .cur{font-size:16px;color:#8b8996}
+.amount-field input{flex:1;min-width:0;background:none;border:0;outline:none;font-size:24px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.amount-field input::placeholder{color:#4d4c57}
+.amount-field.sm input{font-size:15px;letter-spacing:.08em}
+select{appearance:none;-webkit-appearance:none;width:100%;background:#0f0f14 url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238b8996' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 40px 12px 14px;font-size:12.5px;color:#edecf2;outline:none}
+.quick{display:flex;gap:7px;margin:-2px 0 6px}
+.fine{font-size:11px;color:#6f6d7a;margin:6px 0 0;line-height:1.5}
+.fine b{color:#c9c8d2;font-weight:600}
+.btn-primary{width:100%;background:var(--lime);color:#0b1405;border:0;border-radius:14px;padding:14px;font-weight:600;font-size:13.5px;cursor:pointer;transition:filter .16s}
+.btn-primary:hover{filter:brightness(1.06)}
+.btn-ghost{width:100%;background:#20202a;color:#dedde5;border:0;border-radius:14px;padding:13px;font-weight:600;font-size:12.5px;cursor:pointer;margin-top:8px}
+.colors{display:flex;gap:9px}
+.color{width:30px;height:30px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0}
+.color.on{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.08)}
+.sub-manage{display:grid;grid-template-columns:26px 1fr auto;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.045)}
+.sub-manage:last-child{border-bottom:0}
+.sub-manage .dot{width:26px;height:26px;border-radius:50%}
+.sub-manage .name{font-size:12.5px;font-weight:600}
+.sub-manage .meta{font-size:10.5px;color:#75737f;margin-top:2px}
+.switch{width:36px;height:20px;border-radius:999px;background:#2a2a33;border:0;position:relative;cursor:pointer;padding:0;transition:background .2s}
+.switch i{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#8a8894;transition:left .2s,background .2s}
+.switch.on{background:rgba(203,235,110,.28)}
+.switch.on i{left:18px;background:var(--lime)}
+.mini-list{display:flex;flex-direction:column;gap:2px;max-height:340px;overflow:auto;margin:10px 0 0}
+.mini-row{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:9px 0}
+.mini-row .dot{width:26px;height:26px;border-radius:50%}
+.mini-row .name{font-size:12px;font-weight:600}
+.mini-row .meta{font-size:10px;color:#75737f;margin-top:2px}
+.mini-row .amt{font-size:12px}
+
+.pop{position:fixed;z-index:70;background:#17171e;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:6px;box-shadow:0 30px 60px -25px #000;animation:pop .16s ease}
+.pop button{display:flex;width:100%;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;background:none;border:0;color:#dedde5;font-size:12.5px;text-align:left;cursor:pointer}
+.pop button:hover{background:#22222c}
+.pop .head{padding:7px 12px 9px;font-size:10px;color:#6e6c79;letter-spacing:.09em;text-transform:uppercase}
+.pop .mark{width:14px;color:var(--lime);display:grid;place-items:center}
+.pop .mark svg{width:13px;height:13px}
+.notif{display:grid;grid-template-columns:8px 1fr;gap:11px;padding:10px 12px;border-radius:9px}
+.notif:hover{background:#1f1f28}
+.notif .un{width:6px;height:6px;border-radius:50%;background:var(--lime);margin-top:5px}
+.notif .t{font-size:12px;font-weight:600;color:#f1f0f5}
+.notif .m{font-size:10.5px;color:#787683;margin-top:3px;line-height:1.4}
+
+.toast{position:fixed;left:50%;bottom:30px;transform:translate(-50%,14px);opacity:0;pointer-events:none;background:#1c1c24;border:1px solid rgba(255,255,255,.09);color:#f1f0f5;padding:11px 17px;border-radius:12px;font-size:12.5px;z-index:90;transition:.28s;box-shadow:0 24px 44px -22px #000;max-width:min(92vw,460px);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ============ responsive ============ */
+@media (max-width:1180px){
+  .app{padding:0 28px 32px}
+  .dash{grid-template-columns:minmax(0,1fr)}
+  .dash-right{display:grid;grid-template-columns:1fr 1fr;align-items:start}
+  .grid12{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .c3,.c4{grid-column:span 3}
+  .c6,.c8,.c12{grid-column:span 6}
+}
+@media (max-width:860px){
+  .app{padding:0 18px 26px}
+  .topbar{grid-template-columns:auto 1fr auto;height:70px;gap:12px}
+  .nav{overflow-x:auto;scrollbar-width:none;max-width:100%;justify-self:start}
+  .nav::-webkit-scrollbar{display:none}
+  .dash-left{grid-template-columns:minmax(0,1fr)}
+  .dash-left > *{grid-column:1 / -1 !important}
+  .dash-right{grid-template-columns:minmax(0,1fr)}
+  .grid12{grid-template-columns:minmax(0,1fr)}
+  .grid12 > *{grid-column:1 / -1 !important}
+  .split-body{flex-direction:column;align-items:stretch;gap:12px}
+  .donut{align-self:center}
+  .txn{grid-template-columns:30px minmax(0,1fr) auto;gap:10px}
+  .txn .acct{display:none}
+  .txn .amt{text-align:left}
+  .txn .more{display:none}
+  .status{grid-column:3}
+  .amount{font-size:38px}
+  .balance{padding:22px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001s !important;transition-duration:.001s !important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <a class="brand" href="#dashboard" data-route="dashboard" aria-label="zemü home">
+      <span class="logo" aria-hidden="true">
+        <svg viewBox="0 0 16 16" fill="currentColor"><rect x="3.6" y="2.9" width="8.8" height="2.1" rx="1.05"/><rect x="3.6" y="6.95" width="8.8" height="2.1" rx="1.05"/><rect x="3.6" y="11" width="5" height="2.1" rx="1.05"/></svg>
+      </span>
+      <span class="word">zemü</span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="#dashboard" data-route="dashboard" class="on"><i class="dot"></i>Dashboard</a>
+      <a href="#statistics" data-route="statistics"><i class="dot"></i>Statistics</a>
+      <a href="#transactions" data-route="transactions"><i class="dot"></i>Transactions</a>
+      <a href="#wallet" data-route="wallet"><i class="dot"></i>My wallet</a>
+    </nav>
+    <div class="tools">
+      <button class="icon-btn" data-act="search" aria-label="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.6" cy="10.6" r="6.6"/><path d="M15.6 15.6L20 20"/></svg>
+      </button>
+      <button class="icon-btn" data-act="notify" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6.4 9.2a5.6 5.6 0 0 1 11.2 0c0 5.2 2.1 6.4 2.1 6.4H4.3s2.1-1.2 2.1-6.4Z"/><path d="M9.8 18.6a2.3 2.3 0 0 0 4.4 0"/></svg>
+        <i class="ping"></i>
+      </button>
+      <button class="avatar" data-act="account" aria-label="Account">AK</button>
+    </div>
+  </header>
+  <main>
+    <h1 id="pageTitle">My dashboard</h1>
+    <div id="views"></div>
+  </main>
+</div>
+<div id="layer"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ================= data ================= */
+const money = (n, d = 2) => Number(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+
+const state = {
+  route: 'dashboard',
+  balance: 120456.50,
+  period: 'Monthly',
+  splitPeriod: 'Aug',
+  year: 2026,
+  txnFilter: 'all',
+  cards: [
+    { last4: '3200', bg: 0 },
+    { last4: '4362', bg: 1 },
+    { last4: '6932', bg: 2 }
+  ],
+  txns: [
+    { id: 1, name: 'Messenger',   when: '08/27/2026 • 09:43 AM', status: 'Successful', card: '6322', amt: -4.50,  color: '#1497df' },
+    { id: 2, name: 'Design Library', when: '08/27/2026 • 00:12 AM', status: 'Successful', card: '6932', amt: -12.00, color: '#f0708f' },
+    { id: 3, name: 'Cloud drive', when: '08/26/2026 • 11:02 PM', status: 'Successful', card: '3200', amt: -2.99,  color: '#4a4954' },
+    { id: 4, name: 'Chat pro',    when: '08/26/2026 • 07:18 PM', status: 'Successful', card: '6322', amt: -8.00,  color: '#5868cd' },
+    { id: 5, name: 'Payroll',     when: '08/25/2026 • 09:00 AM', status: 'Successful', card: '3200', amt: 2456.00, color: '#28ac6b' },
+    { id: 6, name: 'Figma seats', when: '08/24/2026 • 06:40 PM', status: 'Pending',    card: '6932', amt: -24.00, color: '#e9913f' }
+  ],
+  subs: [
+    { name: 'Cloud drive',    next: '01 July',   price: 2.99,  color: '#4a4954', active: true },
+    { name: 'Chat pro',       next: '19 July',   price: 8.00,  color: '#5868cd', active: true },
+    { name: 'Messenger',      next: '04 August', price: 4.00,  color: '#2097df', active: true },
+    { name: 'Design library', next: '02 August', price: 12.00, color: '#e96b8a', active: true }
+  ]
+};
+
+const CARD_BG = [
+  'linear-gradient(120deg,#e9913f,#dc7a2b)',
+  'linear-gradient(120deg,#5aaa7e,#3d9567)',
+  'linear-gradient(120deg,#9a89f5,#7a67e8)',
+  'linear-gradient(120deg,#5c8feb,#3f6fd6)',
+  'linear-gradient(120deg,#e57fa0,#d0567c)'
+];
+const SWATCH = ['#5868cd', '#3d3c46', '#28ac6b', '#e96b8a', '#2097df'];
+
+const FLOW = {
+  Monthly: { total: '$2,496.00', pct: '+39%', items: [
+    { label: 'Apr', amount: '+$4.9K', h: 47 },
+    { label: 'May', amount: '+$2.2K', h: 36 },
+    { label: 'Jun', amount: '+$3.9K', h: 65 },
+    { label: 'Jul', amount: '+$1.2K', h: 24 },
+    { label: 'Aug', amount: '+$2.4K', h: 100 }
+  ]},
+  Weekly: { total: '$612.40', pct: '+18%', items: [
+    { label: 'Mon', amount: '+$96',  h: 40 },
+    { label: 'Tue', amount: '+$72',  h: 30 },
+    { label: 'Wed', amount: '+$128', h: 58 },
+    { label: 'Thu', amount: '+$64',  h: 26 },
+    { label: 'Fri', amount: '+$188', h: 92 }
+  ]}
+};
+
+const SPLIT = {
+  Aug: { total: 1124, items: [
+    ['Food', 20, '#f8c546'],
+    ['Entertainment', 10, '#8f74f2'],
+    ['Health', 10, '#45b2f6'],
+    ['Transport', 15, '#ff7a18'],
+    ['Bills', 20, '#17ae61'],
+    ['Misc', 15, '#f75b99']
+  ]},
+  Jul: { total: 986, items: [
+    ['Food', 18, '#f8c546'],
+    ['Entertainment', 14, '#8f74f2'],
+    ['Health', 11, '#45b2f6'],
+    ['Transport', 12, '#ff7a18'],
+    ['Bills', 23, '#17ae61'],
+    ['Misc', 12, '#f75b99']
+  ]},
+  Jun: { total: 1042, items: [
+    ['Food', 24, '#f8c546'],
+    ['Entertainment', 9, '#8f74f2'],
+    ['Health', 13, '#45b2f6'],
+    ['Transport', 16, '#ff7a18'],
+    ['Bills', 18, '#17ae61'],
+    ['Misc', 10, '#f75b99']
+  ]}
+};
+
+const YEAR_DATA = {
+  2026: [
+    { m: 'Jan', v: 2.1 }, { m: 'Feb', v: 1.7 }, { m: 'Mar', v: 2.6 }, { m: 'Apr', v: 4.9 },
+    { m: 'May', v: 2.2 }, { m: 'Jun', v: 3.9 }, { m: 'Jul', v: 1.2 }, { m: 'Aug', v: 2.4 },
+    { m: 'Sep', v: 3.1 }, { m: 'Oct', v: 2.8 }, { m: 'Nov', v: 3.6 }, { m: 'Dec', v: 4.2 }
+  ],
+  2025: [
+    { m: 'Jan', v: 1.4 }, { m: 'Feb', v: 2.2 }, { m: 'Mar', v: 1.9 }, { m: 'Apr', v: 2.7 },
+    { m: 'May', v: 3.4 }, { m: 'Jun', v: 2.1 }, { m: 'Jul', v: 3.8 }, { m: 'Aug', v: 2.9 },
+    { m: 'Sep', v: 1.6 }, { m: 'Oct', v: 2.3 }, { m: 'Nov', v: 3.2 }, { m: 'Dec', v: 4.6 }
+  ]
+};
+
+const I = {
+  chev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>',
+  diag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M9 7h8v8"/></svg>',
+  right: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h13M12 6l6 6-6 6"/></svg>',
+  bolt: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.2 2.2 5 13.4h5.4L9 21.8 19.2 10h-5.6z"/></svg>',
+  more: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5.4" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="18.6" r="1.7"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5.5v13M5.5 12h13"/></svg>',
+  up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5.5M6.2 11.4 12 5.6l5.8 5.8"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12.5l4.5 4.5L19 6.5"/></svg>'
+};
+
+/* ================= components ================= */
+function balanceCard() {
+  return `<section class="panel balance">
+    <div class="balance-top">
+      <span class="kicker">Total balance</span>
+      <div class="amount"><span data-bind="balance">${money(state.balance)}</span><sup>$</sup></div>
+      <p class="balance-sub">+$2,456 revenue from last month</p>
+    </div>
+    <div class="balance-actions">
+      <button class="btn-dark" data-act="transfer">Transfer</button>
+      <button class="btn-white" data-act="topup">Top up <span class="bolt">${I.bolt}</span></button>
+    </div>
+  </section>`;
+}
+
+function statCard(o) {
+  const unit = o.unit === undefined ? '<sup>$</sup>' : (o.unit ? `<sup>${o.unit}</sup>` : '');
+  return `<div class="stat">
+    <span class="lbl">${o.label}</span>
+    <div class="mid">
+      <div class="val"><span>${o.value}</span>${unit}</div>
+      <span class="pill ${o.tone}">${o.pill}</span>
+    </div>
+    <span class="sub">${o.sub}</span>
+  </div>`;
+}
+
+function statStack() {
+  return `<div class="stats">
+    ${statCard({ label: 'Income', value: '2,456', pill: '+15.7%', tone: 'pos', sub: 'This week' })}
+    ${statCard({ label: 'Expense', value: '−1,124', pill: '-10.7%', tone: 'neg', sub: 'This week' })}
+  </div>`;
+}
+
+function myCardsPanel() {
+  const n = state.cards.length;
+  const step = n > 3 ? 26 : 33;
+  const stackH = (n - 1) * step + 70;
+  const minis = state.cards.map((c, i) => {
+    const front = i === n - 1;
+    const inset = (n - 1 - i) * 3;
+    return `<div class="mini" style="top:${i * step}px;left:${inset}%;right:${inset}%;height:${front ? 70 : 44}px;background:${CARD_BG[c.bg % CARD_BG.length]}">
+      <span class="masked">•••• ${c.last4}</span>
+    </div>`;
+  }).join('');
+  return `<section class="panel cards-panel">
+    <div class="panel-head">
+      <h2>My cards <sup class="cnt">${n}</sup></h2>
+      <button class="add-pill" data-act="addcard">Add <span class="plus">${I.plus}</span></button>
+    </div>
+    <div class="cardstack" style="height:${stackH}px">${minis}</div>
+    <button class="bigcard" data-act="cardinfo">
+      <div class="num">4158 6727 1439 6902</div>
+      <div class="bot"><span>Micky Lanson</span><span>07/25</span></div>
+    </button>
+  </section>`;
+}
+
+function revenuePanel(big) {
+  const f = FLOW[state.period];
+  const last = f.items.length - 1;
+  return `<section class="panel flow ${big ? 'big' : ''}">
+    <div class="panel-head">
+      <h2>Revenue flow</h2>
+      <div class="head-tools">
+        <button class="select" data-act="period">${state.period} ${I.chev}</button>
+        <button class="icon-ghost" data-act="expand" aria-label="Expand chart">${I.diag}</button>
+      </div>
+    </div>
+    <div class="flow-total">${I.up}<b>${f.total}</b><span class="pct">${f.pct}</span></div>
+    <div class="chart">
+      <div class="chart-lines"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="bars">
+        ${f.items.map((it, i) => `<div class="bar-col"><div class="bar ${i === last ? 'on' : ''}" style="height:${it.h}%" data-h="${it.h}"></div></div>`).join('')}
+      </div>
+      <div class="xaxis">
+        ${f.items.map(it => `<div><span class="amt">${it.amount}</span><span class="mon">${it.label}</span></div>`).join('')}
+      </div>
+    </div>
+  </section>`;
+}
+
+function revenueYear() {
+  const data = YEAR_DATA[state.year];
+  const max = Math.max(...data.map(d => d.v));
+  const total = data.reduce((a, b) => a + b.v, 0);
+  const last = data.length - 1;
+  return `<section class="panel flow big">
+    <div class="panel-head">
+      <h2>Revenue flow</h2>
+      <div class="head-tools">
+        <button class="select" data-act="year">${state.year} ${I.chev}</button>
+        <button class="icon-ghost" data-act="expand" aria-label="Expand chart">${I.diag}</button>
+      </div>
+    </div>
+    <div class="flow-total">${I.up}<b>$${total.toFixed(1)}K</b><span class="pct">+22%</span></div>
+    <div class="chart">
+      <div class="chart-lines"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="bars">
+        ${data.map((d, i) => `<div class="bar-col"><div class="bar ${i === last ? 'on' : ''}" style="height:${Math.round(d.v / max * 100)}%"></div></div>`).join('')}
+      </div>
+      <div class="xaxis">
+        ${data.map(d => `<div><span class="amt">+$${d.v.toFixed(1)}K</span><span class="mon">${d.m}</span></div>`).join('')}
+      </div>
+    </div>
+  </section>`;
+}
+
+function splitPanel(big) {
+  const s = SPLIT[state.splitPeriod];
+  const total = s.items.reduce((a, b) => a + b[1], 0);
+  const R = 78, C = 2 * Math.PI * R;
+  let acc = 0;
+  const arcs = s.items.map(([name, pct, color]) => {
+    const sweep = pct / total * 360;
+    const len = C * sweep / 360;
+    const off = -C * acc / 360;
+    acc += sweep;
+    const val = Math.round(s.total * pct / total);
+    return `<circle class="seg" cx="100" cy="100" r="${R}" fill="none" stroke="${color}" stroke-width="26"
+      stroke-dasharray="${len.toFixed(2)} ${(C - len).toFixed(2)}" stroke-dashoffset="${off.toFixed(2)}"
+      data-name="${name}" data-val="${val}" data-pct="${pct}"/>`;
+  }).join('');
+  return `<section class="panel split ${big ? 'big' : ''}">
+    <div class="panel-head">
+      <h2>Expense split</h2>
+      <button class="select" data-act="splitperiod">${state.splitPeriod} ${I.chev}</button>
+    </div>
+    <div class="split-body">
+      <div class="donut">
+        <svg viewBox="0 0 200 200" role="img" aria-label="Expense split by category">
+          <g transform="rotate(-90 100 100)">${arcs}</g>
+        </svg>
+        <div class="donut-center">
+          <span data-dlabel>Total</span>
+          <strong><span data-dval>${money(s.total, 0)}</span><em>$</em></strong>
+        </div>
+      </div>
+      <ul class="legend">
+        ${s.items.map(([n, p, c]) => `<li><i class="dot" style="background:${c}"></i><span>${n}</span><span class="pct">${p}%</span></li>`).join('')}
+      </ul>
+    </div>
+  </section>`;
+}
+
+function subsPanel() {
+  const active = state.subs.filter(s => s.active).length;
+  return `<section class="panel subs">
+    <div class="panel-head">
+      <h2>Subscriptions <sup class="cnt">${active}</sup></h2>
+      <button class="link-btn" data-act="manage">Manage ${I.right}</button>
+    </div>
+    <div class="swatches">${SWATCH.map(c => `<i class="sw" style="background:${c}"></i>`).join('')}</div>
+    <ul class="sub-list">
+      ${state.subs.map((s, i) => `<li class="sub-row ${s.active ? '' : 'off'}">
+        <i class="dot" style="background:${s.color}"></i>
+        <div><div class="name">${s.name}</div><div class="meta">Next ${s.next}</div></div>
+        <div class="price">$${money(s.price)}</div>
+        <button class="more" data-act="submenu" data-i="${i}" aria-label="Options">${I.more}</button>
+      </li>`).join('')}
+    </ul>
+  </section>`;
+}
+
+function txnRow(t) {
+  const sign = t.amt > 0 ? '+' : '−';
+  return `<li class="txn">
+    <i class="avatar-dot" style="background:${t.color}"></i>
+    <div><div class="who">${t.name}</div><div class="when">${t.when}</div></div>
+    <span class="status ${t.status === 'Pending' ? 'wait' : ''}">${t.status}</span>
+    <span class="acct">••${t.card}</span>
+    <span class="amt ${t.amt > 0 ? 'in' : ''}">${sign}$${money(Math.abs(t.amt))}</span>
+    <button class="more" data-act="txnmenu" data-id="${t.id}" aria-label="Options">${I.more}</button>
+  </li>`;
+}
+
+function txnsPanel(o = {}) {
+  let list = state.txns;
+  if (o.filter && o.filter !== 'all') list = state.txns.filter(t => o.filter === 'in' ? t.amt > 0 : t.amt < 0);
+  if (o.limit) list = list.slice(0, o.limit);
+  return `<section class="panel txns">
+    <div class="panel-head">
+      <h2>${o.title || 'Recent transactions'} <sup class="cnt">254</sup></h2>
+      <button class="link-btn" data-act="alltxns">See all ${I.right}</button>
+    </div>
+    ${o.chips ? `<div class="chips">
+      <button data-act="filter" data-v="all" class="${state.txnFilter === 'all' ? 'on' : ''}">All</button>
+      <button data-act="filter" data-v="out" class="${state.txnFilter === 'out' ? 'on' : ''}">Outgoing</button>
+      <button data-act="filter" data-v="in" class="${state.txnFilter === 'in' ? 'on' : ''}">Incoming</button>
+    </div>` : ''}
+    <ul class="txn-list">${list.map(txnRow).join('')}</ul>
+  </section>`;
+}
+
+/* ================= views ================= */
+const VIEWS = {
+  dashboard: () => `<div class="view">
+    <div class="dash">
+      <div class="dash-left">
+        ${balanceCard()}
+        ${statStack()}
+        ${revenuePanel(false)}
+        ${splitPanel()}
+        ${txnsPanel({ limit: 3 })}
+      </div>
+      <div class="dash-right">
+        ${myCardsPanel()}
+        ${subsPanel()}
+      </div>
+    </div>
+  </div>`,
+  statistics: () => `<div class="view">
+    <div class="grid12">
+      <div class="c4">${statCard({ label: 'Income', value: '2,456', pill: '+15.7%', tone: 'pos', sub: 'This week' })}</div>
+      <div class="c4">${statCard({ label: 'Expense', value: '−1,124', pill: '-10.7%', tone: 'neg', sub: 'This week' })}</div>
+      <div class="c4">${statCard({ label: 'Net savings', value: '1,332', pill: '+4.2%', tone: 'pos', sub: 'This week' })}</div>
+      <div class="c8">${revenueYear()}</div>
+      <div class="c4">${splitPanel(true)}</div>
+      <div class="c8">${txnsPanel({ limit: 5 })}</div>
+      <div class="c4">${subsPanel()}</div>
+    </div>
+  </div>`,
+  transactions: () => `<div class="view">
+    <div class="grid12">
+      <div class="c3">${statCard({ label: 'Income', value: '2,456', pill: '+15.7%', tone: 'pos', sub: 'This week' })}</div>
+      <div class="c3">${statCard({ label: 'Expense', value: '−1,124', pill: '-10.7%', tone: 'neg', sub: 'This week' })}</div>
+      <div class="c3">${statCard({ label: 'Transactions', value: '254', unit: '', pill: '+12', tone: 'pos', sub: 'This month' })}</div>
+      <div class="c3">${statCard({ label: 'Pending', value: '24', unit: '', pill: '-6', tone: 'neg', sub: 'This month' })}</div>
+      <div class="c8">${txnsPanel({ limit: 99, chips: true, title: 'All transactions' })}</div>
+      <div class="c4">${subsPanel()}</div>
+      <div class="c8">${revenueYear()}</div>
+      <div class="c4">${myCardsPanel()}</div>
+    </div>
+  </div>`,
+  wallet: () => `<div class="view">
+    <div class="grid12">
+      <div class="c8">${balanceCard()}</div>
+      <div class="c4">${statStack()}</div>
+      <div class="c4">${myCardsPanel()}</div>
+      <div class="c4">${subsPanel()}</div>
+      <div class="c4">${splitPanel()}</div>
+      <div class="c12">${txnsPanel({ limit: 5 })}</div>
+    </div>
+  </div>`
+};
+const TITLES = { dashboard: 'My dashboard', statistics: 'Statistics', transactions: 'Transactions', wallet: 'My wallet' };
+
+/* ================= render / route ================= */
+function render() {
+  document.getElementById('views').innerHTML = VIEWS[state.route]();
+  document.getElementById('pageTitle').textContent = TITLES[state.route];
+  document.querySelectorAll('.nav a').forEach(a => a.classList.toggle('on', a.dataset.route === state.route));
+}
+function navigate(r) {
+  if (!VIEWS[r]) return;
+  state.route = r;
+  closeLayers();
+  render();
+  try { history.replaceState(null, '', '#' + r); } catch (e) {}
+}
+
+/* ================= toast ================= */
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+/* ================= overlays ================= */
+const layer = document.getElementById('layer');
+let popEl = null, lastAnchor = null;
+
+function closeModal() { layer.innerHTML = ''; }
+function closePop() {
+  if (popEl) { popEl.remove(); popEl = null; }
+  if (lastAnchor) { lastAnchor.removeAttribute('aria-expanded'); lastAnchor = null; }
+}
+function closeLayers() { closeModal(); closePop(); }
+
+function openModal({ title, hint = '', body, footer = '', width = 430 }) {
+  closePop();
+  layer.innerHTML = `<div class="backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="${title}" style="max-width:${width}px">
+      <h3>${title}</h3>
+      ${hint ? `<p class="hint">${hint}</p>` : ''}
+      ${body}
+      ${footer}
+    </div>
+  </div>`;
+  const first = layer.querySelector('input, select');
+  if (first) setTimeout(() => first.focus(), 60);
+}
+
+function openPop(anchor, html, w = 250) {
+  closePop();
+  const el = document.createElement('div');
+  el.className = 'pop';
+  el.innerHTML = html;
+  el.style.width = w + 'px';
+  document.body.appendChild(el);
+  const r = anchor.getBoundingClientRect();
+  const pw = el.offsetWidth, ph = el.offsetHeight;
+  let left = Math.max(12, Math.min(r.right - pw, innerWidth - pw - 12));
+  let top = r.bottom + 9;
+  if (top + ph > innerHeight - 12) top = Math.max(12, r.top - ph - 9);
+  el.style.left = left + 'px';
+  el.style.top = top + 'px';
+  popEl = el;
+  lastAnchor = anchor;
+  anchor.setAttribute('aria-expanded', 'true');
+}
+
+/* ================= modals ================= */
+function openTransfer() {
+  openModal({
+    title: 'Transfer funds',
+    hint: 'Move money between your zemü accounts instantly — no fees.',
+    body: `<div class="field">
+        <label for="m-amount">Amount</label>
+        <div class="amount-field"><span class="cur">$</span><input id="m-amount" type="number" min="0" step="0.01" value="1200.00" inputmode="decimal" /></div>
+      </div>
+      <div class="field">
+        <label for="m-to">To</label>
+        <select id="m-to">
+          <option>Savings ••3200</option>
+          <option>Card ••6932</option>
+          <option>External bank</option>
+        </select>
+      </div>
+      <p class="fine">Available balance <b>$${money(state.balance)}</b> · arrives immediately</p>`,
+    footer: `<button class="btn-primary" data-act="do-transfer" style="margin-top:16px">Transfer now</button>`
+  });
+}
+
+function openTopup() {
+  openModal({
+    title: 'Top up balance',
+    hint: 'Add funds from a linked account. Money lands in your balance right away.',
+    body: `<div class="field">
+        <label for="m-amount">Amount</label>
+        <div class="amount-field"><span class="cur">$</span><input id="m-amount" type="number" min="0" step="0.01" value="500.00" inputmode="decimal" /></div>
+      </div>
+      <div class="quick">
+        ${[100, 500, 1000].map(v => `<button class="chips-btn" data-act="quick" data-v="${v}" style="background:#1a1a21;border:1px solid rgba(255,255,255,.06);border-radius:999px;padding:7px 12px;font-size:11.5px;color:#b8b6c2;cursor:pointer">$${v}</button>`).join('')}
+      </div>
+      <div class="field" style="margin-top:14px">
+        <label for="m-src">From</label>
+        <select id="m-src"><option>Savings ••3200</option><option>External bank ••8821</option></select>
+      </div>`,
+    footer: `<button class="btn-primary" data-act="do-topup" style="margin-top:10px">Top up</button>`
+  });
+}
+
+function openAddCard() {
+  pickedColor = 3;
+  openModal({
+    title: 'Add a card',
+    hint: 'Link a new card to your wallet. Only the last four digits are kept in this demo.',
+    body: `<div class="field">
+        <label for="m-card">Last 4 digits</label>
+        <div class="amount-field sm"><input id="m-card" type="text" inputmode="numeric" maxlength="4" placeholder="0000" /></div>
+      </div>
+      <div class="field">
+        <label>Card colour</label>
+        <div class="colors">
+          ${CARD_BG.slice(0, 5).map((b, i) => `<button class="color ${i === pickedColor ? 'on' : ''}" data-act="pickcolor" data-i="${i}" style="background:${b}" aria-label="Colour ${i + 1}"></button>`).join('')}
+        </div>
+      </div>`,
+    footer: `<button class="btn-primary" data-act="do-addcard" style="margin-top:16px">Add card</button>`
+  });
+}
+
+function openAllTxns() {
+  openModal({
+    title: 'All transactions',
+    hint: `${state.txns.length} records in the last 30 days.`,
+    width: 560,
+    body: `<ul class="mini-list">
+      ${state.txns.map(t => `<li class="mini-row">
+        <i class="dot" style="background:${t.color}"></i>
+        <div><div class="name">${t.name}</div><div class="meta">${t.when}</div></div>
+        <span class="amt ${t.amt > 0 ? 'in' : ''}">${t.amt > 0 ? '+' : '−'}$${money(Math.abs(t.amt))}</span>
+      </li>`).join('')}
+    </ul>`,
+    footer: `<button class="btn-ghost" data-act="close">Done</button>`
+  });
+}
+
+function openManage() {
+  openModal({
+    title: 'Manage subscriptions',
+    hint: 'Pause a plan to keep it in your library without paying this cycle.',
+    body: state.subs.map((s, i) => `<div class="sub-manage">
+      <i class="dot" style="background:${s.color}"></i>
+      <div><div class="name">${s.name}</div><div class="meta">Next ${s.next} · $${money(s.price)}</div></div>
+      <button class="switch ${s.active ? 'on' : ''}" data-act="sub-toggle" data-i="${i}" aria-pressed="${s.active}" aria-label="Toggle ${s.name}"><i></i></button>
+    </div>`).join(''),
+    footer: `<button class="btn-ghost" data-act="close">Done</button>`
+  });
+}
+
+function openSearch() {
+  openModal({
+    title: 'Search',
+    hint: 'Find a transaction, card or subscription.',
+    body: `<div class="amount-field" style="padding:12px 14px">
+        <span class="cur">${'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.6" cy="10.6" r="6.4"/><path d="M15.4 15.4L20 20"/></svg>'}</span>
+        <input id="m-search" type="text" placeholder="Search" style="font-size:14px;letter-spacing:-.01em" />
+      </div>
+      <div id="search-results"><p class="fine">Start typing to search across 6 transactions.</p></div>`,
+    footer: `<button class="btn-ghost" data-act="close">Close</button>`
+  });
+}
+
+function openCardInfo() {
+  openModal({
+    title: 'Card details',
+    hint: 'Virtual debit card · issued 07/2025.',
+    body: `<div class="bigcard" style="margin:0 0 16px;cursor:default">
+        <div class="num">4158 6727 1439 6902</div>
+        <div class="bot"><span>Micky Lanson</span><span>07/25</span></div>
+      </div>
+      <p class="fine">Card number, holder and expiry shown here are placeholder data for the replica.</p>`,
+    footer: `<button class="btn-ghost" data-act="close">Close</button>`
+  });
+}
+
+let pickedColor = 3;
+
+/* ================= actions ================= */
+function parseAmt(v) { return parseFloat(String(v).replace(/[^0-9.\-]/g, '')); }
+
+function stamp() {
+  const d = new Date();
+  const p = n => String(n).padStart(2, '0');
+  let h = d.getHours(), ap = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return `${p(d.getMonth() + 1)}/${p(d.getDate())}/${d.getFullYear()} • ${p(h)}:${p(d.getMinutes())} ${ap}`;
+}
+
+function handle(act, el) {
+  switch (act) {
+    case 'transfer': openTransfer(); break;
+    case 'topup': openTopup(); break;
+    case 'addcard': openAddCard(); break;
+    case 'cardinfo': openCardInfo(); break;
+    case 'alltxns': openAllTxns(); break;
+    case 'manage': openManage(); break;
+    case 'search': openSearch(); break;
+    case 'expand': navigate('statistics'); break;
+    case 'close': closeModal(); break;
+    case 'notify': {
+      if (lastAnchor === el && popEl) return closePop();
+      openPop(el, `<div class="head">Notifications</div>
+        <div class="notif"><i class="un"></i><div><div class="t">Card ••6932 expires soon</div><div class="m">Renew before 07/25 to keep contactless payments.</div></div></div>
+        <div class="notif"><i class="un"></i><div><div class="t">Cloud drive renewed</div><div class="m">$2.99 charged from ••3200 · 2h ago</div></div></div>
+        <div class="notif"><i></i><div><div class="t">New login blocked</div><div class="m">Unrecognised device in Lisbon · yesterday</div></div></div>`, 292);
+      break;
+    }
+    case 'account': {
+      if (lastAnchor === el && popEl) return closePop();
+      openPop(el, `<div class="head">Micky Lanson</div>
+        <button data-act="noop" data-msg="Profile settings are not part of this replica">Profile settings</button>
+        <button data-act="noop" data-msg="Security settings are not part of this replica">Security</button>
+        <button data-act="noop" data-msg="Signed out (demo only)">Sign out</button>`, 214);
+      break;
+    }
+    case 'period':
+    case 'splitperiod': {
+      const isFlow = act === 'period';
+      const opts = isFlow ? ['Monthly', 'Weekly'] : ['Aug', 'Jul', 'Jun'];
+      const cur = isFlow ? state.period : state.splitPeriod;
+      openPop(el, `<div class="head">${isFlow ? 'Interval' : 'Period'}</div>
+        ${opts.map(o => `<button data-act="pick-${isFlow ? 'period' : 'split'}" data-v="${o}">
+          <span class="mark">${o === cur ? I.check : ''}</span>${o}</button>`).join('')}`, 168);
+      break;
+    }
+    case 'year': {
+      openPop(el, `<div class="head">Year</div>
+        ${['2026', '2025'].map(y => `<button data-act="pick-year" data-v="${y}">
+          <span class="mark">${+y === state.year ? I.check : ''}</span>${y}</button>`).join('')}`, 150);
+      break;
+    }
+    case 'pick-year': {
+      state.year = +el.dataset.v;
+      closePop();
+      render();
+      break;
+    }
+    case 'pick-period':
+    case 'pick-split': {
+      const v = el.dataset.v;
+      if (act === 'pick-period') { state.period = v; setBars(); }
+      else { state.splitPeriod = v; setDonut(); }
+      closePop();
+      render();
+      break;
+    }
+    case 'txnmenu': {
+      const t = state.txns.find(x => String(x.id) === el.dataset.id);
+      openPop(el, `<div class="head">${t ? t.name : 'Transaction'}</div>
+        <button data-act="noop" data-msg="Receipt for ${t ? t.name : 'this transaction'} is not available in the demo">View receipt</button>
+        <button data-act="noop" data-msg="Repeat payment is not available in the demo">Repeat payment</button>
+        <button data-act="noop" data-msg="Reported — our team will take a look (demo)">Report an issue</button>`, 220);
+      break;
+    }
+    case 'submenu': {
+      const s = state.subs[+el.dataset.i];
+      openPop(el, `<div class="head">${s.name}</div>
+        <button data-act="noop" data-msg="Plan changes are not available in the demo">Change plan</button>
+        <button data-act="sub-toggle" data-i="${el.dataset.i}">${s.active ? 'Pause payments' : 'Resume payments'}</button>
+        <button data-act="noop" data-msg="Cancelling is disabled in the demo">Cancel subscription</button>`, 224);
+      break;
+    }
+    case 'sub-toggle': {
+      const s = state.subs[+el.dataset.i];
+      s.active = !s.active;
+      closePop(); render();
+      if (layer.querySelector('.modal')) openManage();
+      toast(`${s.name} ${s.active ? 'resumed' : 'paused'}`);
+      break;
+    }
+    case 'filter': {
+      state.txnFilter = el.dataset.v;
+      render();
+      break;
+    }
+    case 'quick': {
+      const inp = document.getElementById('m-amount');
+      if (inp) inp.value = Number(el.dataset.v).toFixed(2);
+      break;
+    }
+    case 'pickcolor': {
+      pickedColor = +el.dataset.i;
+      layer.querySelectorAll('.color').forEach((c, i) => c.classList.toggle('on', i === pickedColor));
+      break;
+    }
+    case 'do-transfer': {
+      const amt = parseAmt(document.getElementById('m-amount').value);
+      const to = document.getElementById('m-to').value;
+      if (!amt || amt <= 0) return toast('Enter an amount greater than 0');
+      if (amt > state.balance) return toast('That is more than your available balance');
+      state.balance -= amt;
+      state.txns.unshift({ id: Date.now(), name: 'Transfer · ' + to.split(' ••')[0], when: stamp(), status: 'Successful', card: '6932', amt: -amt, color: '#5868cd' });
+      closeModal(); render();
+      toast(`$${money(amt)} sent to ${to}`);
+      break;
+    }
+    case 'do-topup': {
+      const amt = parseAmt(document.getElementById('m-amount').value);
+      if (!amt || amt <= 0) return toast('Enter an amount greater than 0');
+      state.balance += amt;
+      state.txns.unshift({ id: Date.now(), name: 'Top up · Savings', when: stamp(), status: 'Successful', card: '3200', amt: amt, color: '#28ac6b' });
+      closeModal(); render();
+      toast(`$${money(amt)} added to your balance`);
+      break;
+    }
+    case 'do-addcard': {
+      const v = (document.getElementById('m-card').value || '').replace(/\D/g, '');
+      if (v.length !== 4) return toast('Enter the last 4 digits of the card');
+      if (state.cards.length >= 5) return toast('You can link up to 5 cards');
+      state.cards.push({ last4: v, bg: pickedColor });
+      closeModal(); render();
+      toast(`Card ••${v} added to your wallet`);
+      break;
+    }
+    case 'noop': toast(el.dataset.msg || 'Not available in this replica'); break;
+  }
+}
+
+/* ================= in-place chart updates ================= */
+function setBars() {
+  const f = FLOW[state.period];
+  document.querySelectorAll('.flow').forEach(panel => {
+    const bars = panel.querySelectorAll('.bar');
+    const xa = panel.querySelectorAll('.xaxis > div');
+    const tot = panel.querySelector('.flow-total b');
+    const pct = panel.querySelector('.flow-total .pct');
+    bars.forEach((b, i) => { if (f.items[i]) { b.style.height = f.items[i].h + '%'; b.classList.toggle('on', i === f.items.length - 1); } });
+    xa.forEach((d, i) => {
+      if (!f.items[i]) return;
+      d.querySelector('.amt').textContent = f.items[i].amount;
+      d.querySelector('.mon').textContent = f.items[i].label;
+    });
+    if (tot) tot.textContent = f.total;
+    if (pct) pct.textContent = f.pct;
+  });
+}
+
+function setDonut() {
+  const s = SPLIT[state.splitPeriod];
+  const total = s.items.reduce((a, b) => a + b[1], 0);
+  const R = 78, C = 2 * Math.PI * R;
+  let acc = 0;
+  document.querySelectorAll('.donut').forEach(d => {
+    const segs = d.querySelectorAll('.seg');
+    segs.forEach((seg, i) => {
+      const [name, pct, color] = s.items[i] || [];
+      if (!name) return;
+      const sweep = pct / total * 360;
+      const len = C * sweep / 360;
+      seg.setAttribute('stroke-dasharray', `${len.toFixed(2)} ${(C - len).toFixed(2)}`);
+      seg.setAttribute('stroke-dashoffset', (-C * acc / 360).toFixed(2));
+      seg.setAttribute('stroke', color);
+      seg.dataset.name = name;
+      seg.dataset.val = Math.round(s.total * pct / total);
+      seg.dataset.pct = pct;
+      acc += sweep;
+    });
+    const dv = d.querySelector('[data-dval]');
+    const dl = d.querySelector('[data-dlabel]');
+    if (dv) dv.textContent = money(s.total, 0);
+    if (dl) dl.textContent = 'Total';
+  });
+  document.querySelectorAll('.split .legend li').forEach((li, i) => {
+    const item = s.items[i];
+    if (!item) return;
+    li.innerHTML = `<i class="dot" style="background:${item[2]}"></i><span>${item[0]}</span><span class="pct">${item[1]}%</span>`;
+  });
+  document.querySelectorAll('.split .select').forEach(b => { if (!b.dataset.act) return; b.childNodes[0].nodeValue = state.splitPeriod + ' '; });
+}
+
+/* ================= events ================= */
+document.addEventListener('click', e => {
+  const routeEl = e.target.closest('[data-route]');
+  if (routeEl) {
+    e.preventDefault();
+    navigate(routeEl.dataset.route);
+    return;
+  }
+  const actEl = e.target.closest('[data-act]');
+  if (actEl) {
+    if (actEl.closest('.pop') === popEl && (actEl.dataset.act === 'noop' || actEl.dataset.act.indexOf('pick-') === 0 || actEl.dataset.act === 'sub-toggle')) {
+      handle(actEl.dataset.act, actEl);
+      return;
+    }
+    handle(actEl.dataset.act, actEl);
+    return;
+  }
+  if (e.target.classList.contains('backdrop')) { closeModal(); return; }
+  if (!e.target.closest('.pop')) closePop();
+});
+
+document.addEventListener('input', e => {
+  if (e.target.id !== 'm-search') return;
+  const q = e.target.value.trim().toLowerCase();
+  const out = document.getElementById('search-results');
+  if (!out) return;
+  if (!q) { out.innerHTML = '<p class="fine">Start typing to search across 6 transactions.</p>'; return; }
+  const hits = state.txns.filter(t => t.name.toLowerCase().includes(q) || t.when.toLowerCase().includes(q));
+  out.innerHTML = hits.length
+    ? `<ul class="mini-list">${hits.map(t => `<li class="mini-row"><i class="dot" style="background:${t.color}"></i><div><div class="name">${t.name}</div><div class="meta">${t.when}</div></div><span class="amt ${t.amt > 0 ? 'in' : ''}">${t.amt > 0 ? '+' : '−'}$${money(Math.abs(t.amt))}</span></li>`).join('')}</ul>`
+    : `<p class="fine">No results for “${e.target.value}”.</p>`;
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closePop(); }
+});
+
+/* donut hover */
+document.addEventListener('mouseover', e => {
+  const seg = e.target.closest('.seg');
+  if (!seg) return;
+  const d = seg.closest('.donut');
+  const lbl = d.querySelector('[data-dlabel]');
+  const val = d.querySelector('[data-dval]');
+  if (lbl) lbl.textContent = seg.dataset.name;
+  if (val) val.textContent = money(+seg.dataset.val, 0);
+  seg.setAttribute('stroke-width', 29);
+});
+document.addEventListener('mouseout', e => {
+  const seg = e.target.closest('.seg');
+  if (!seg) return;
+  const d = seg.closest('.donut');
+  const lbl = d.querySelector('[data-dlabel]');
+  const val = d.querySelector('[data-dval]');
+  if (lbl) lbl.textContent = 'Total';
+  if (val) val.textContent = money(SPLIT[state.splitPeriod].total, 0);
+  seg.setAttribute('stroke-width', 26);
+});
+
+/* boot */
+(function boot() {
+  const h = (location.hash || '').replace('#', '');
+  if (VIEWS[h]) state.route = h;
+  render();
+})();
+</script>
+</body>
+</html>
+
+
+
+

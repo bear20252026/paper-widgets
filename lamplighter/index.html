@@ -1,0 +1,2448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Lamplighter</title>
+<style>
+  html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #040611;
+    user-select: none;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+  }
+  canvas:active {
+    cursor: grabbing;
+  }
+  #fade {
+    position: fixed;
+    inset: 0;
+    background: #03040c;
+    pointer-events: none;
+    transition: opacity 2.0s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  #vignette {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 48%, rgba(0,0,0,0) 48%, rgba(2,4,12,0.52) 100%);
+  }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="vignette"></div>
+<div id="fade"></div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+/* ==========================================================================
+   1. RENDERER, SCENE, CAMERA & PROCEDURAL STUDIO ENVIRONMENT (PBR DEPTH)
+   ========================================================================== */
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.08;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x050816);
+scene.fog = new THREE.FogExp2(0x080d22, 0.0055);
+
+// Procedural HDR-like environment so brass, wrought iron, glass, leather & clay look rich and 3D
+{
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const envScene = new THREE.Scene();
+  envScene.background = new THREE.Color(0x101836);
+
+  const skyDome = new THREE.Mesh(
+    new THREE.SphereGeometry(40, 24, 16),
+    new THREE.MeshBasicMaterial({ color: 0x24356b, side: THREE.BackSide })
+  );
+  envScene.add(skyDome);
+
+  const warmKey = new THREE.Mesh(
+    new THREE.SphereGeometry(8, 16, 12),
+    new THREE.MeshBasicMaterial({ color: 0xffd7a3 })
+  );
+  warmKey.position.set(-18, 16, 14);
+  envScene.add(warmKey);
+
+  const coolRim = new THREE.Mesh(
+    new THREE.SphereGeometry(9, 16, 12),
+    new THREE.MeshBasicMaterial({ color: 0x7ea6ff })
+  );
+  coolRim.position.set(20, 12, -18);
+  envScene.add(coolRim);
+
+  const groundBounce = new THREE.Mesh(
+    new THREE.SphereGeometry(14, 16, 12),
+    new THREE.MeshBasicMaterial({ color: 0x6e4934 })
+  );
+  groundBounce.position.set(0, -24, 0);
+  envScene.add(groundBounce);
+
+  scene.environment = pmrem.fromScene(envScene, 0.045).texture;
+  pmrem.dispose();
+}
+
+const camera = new THREE.PerspectiveCamera(36, window.innerWidth / window.innerHeight, 0.1, 1000);
+const BASE_CAM_AZIMUTH = 0.28; // heroic front 3/4 framing showing lamp switch + character face
+const BASE_CAM_RADIUS = 8.8;
+const BASE_CAM_Y = 6.95;
+camera.position.set(
+  Math.sin(BASE_CAM_AZIMUTH) * BASE_CAM_RADIUS,
+  BASE_CAM_Y,
+  Math.cos(BASE_CAM_AZIMUTH) * BASE_CAM_RADIUS
+);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0.02, 5.72, 0.05);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.minDistance = 4.2;
+controls.maxDistance = 24;
+controls.maxPolarAngle = Math.PI * 0.82;
+controls.enablePan = false;
+
+let userInteracting = false;
+let idleSeconds = 4.0;
+controls.addEventListener('start', () => { userInteracting = true; idleSeconds = 0; });
+controls.addEventListener('end', () => { userInteracting = false; });
+
+/* ==========================================================================
+   2. PROCEDURAL TEXTURES & SURFACE NOISE HELPERS
+   ========================================================================== */
+function makeRadialTexture(stops, size = 256) {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const grad = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  for (const [offset, color] of stops) grad.addColorStop(offset, color);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, size, size);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function makeMicroBumpTexture(size = 256, contrast = 26, streakX = 1, streakY = 1) {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#808080';
+  ctx.fillRect(0, 0, size, size);
+  for (let i = 0; i < 4500; i++) {
+    const x = Math.random() * size;
+    const y = Math.random() * size;
+    const v = 128 + (Math.random() - 0.5) * contrast * 2;
+    ctx.fillStyle = `rgb(${v|0},${v|0},${v|0})`;
+    ctx.fillRect(x, y, 1.5 * streakX, 1.5 * streakY);
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+function makeKnitBumpTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#787878';
+  ctx.fillRect(0, 0, 128, 128);
+  for (let y = 0; y < 128; y += 8) {
+    for (let x = 0; x < 128; x += 8) {
+      ctx.fillStyle = ((x + y) % 16 === 0) ? '#b5b5b5' : '#5c5c5c';
+      ctx.beginPath();
+      ctx.ellipse(x + 4, y + 4, 3.2, 2.2, 0.35, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(6, 3);
+  return tex;
+}
+
+function makeGaugeDialTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  const g = ctx.createRadialGradient(64, 64, 6, 64, 64, 60);
+  g.addColorStop(0, '#fbf3dc');
+  g.addColorStop(0.82, '#e6d4ab');
+  g.addColorStop(1, '#9a8458');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(64, 64, 60, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = '#3b2e1e';
+  ctx.lineWidth = 3;
+  for (let i = 0; i <= 8; i++) {
+    const a = Math.PI * 0.78 + (i / 8) * Math.PI * 1.44;
+    const r1 = i % 2 === 0 ? 38 : 44;
+    ctx.beginPath();
+    ctx.moveTo(64 + Math.cos(a) * r1, 64 + Math.sin(a) * r1);
+    ctx.lineTo(64 + Math.cos(a) * 52, 64 + Math.sin(a) * 52);
+    ctx.stroke();
+  }
+  // Warm amber active zone arc on right side
+  ctx.strokeStyle = '#c95b2b';
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.arc(64, 64, 47, -Math.PI * 0.35, Math.PI * 0.22);
+  ctx.stroke();
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function makeGlassPaneTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  const g = ctx.createRadialGradient(64, 64, 14, 64, 64, 76);
+  g.addColorStop(0, 'rgba(255,248,230,0.18)');
+  g.addColorStop(0.72, 'rgba(255,224,170,0.34)');
+  g.addColorStop(1, 'rgba(255,195,120,0.68)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 128, 128);
+  ctx.strokeStyle = 'rgba(255,236,195,0.55)';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(5, 5, 118, 118);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+const clayBump = makeMicroBumpTexture(256, 30, 1.2, 1.2);
+clayBump.repeat.set(5, 5);
+const ironBump = makeMicroBumpTexture(256, 22, 1.0, 2.2);
+ironBump.repeat.set(3, 6);
+const clothBump = makeMicroBumpTexture(256, 24, 1.5, 1.5);
+clothBump.repeat.set(6, 6);
+const knitBump = makeKnitBumpTexture();
+
+const softGlowTex = makeRadialTexture([
+  [0.0, 'rgba(255,245,215,1.0)'],
+  [0.25, 'rgba(255,196,110,0.72)'],
+  [0.6, 'rgba(255,140,55,0.22)'],
+  [1.0, 'rgba(255,110,30,0.0)']
+]);
+
+// Smooth deterministic 3D terrain noise
+function terrainNoise(ux, uy, uz) {
+  const n1 = Math.sin(ux * 2.3 + uy * 1.4) * 0.42
+           + Math.sin(uy * 2.1 + uz * 2.5) * 0.35
+           + Math.sin(uz * 2.7 - ux * 1.6) * 0.23;
+  const n2 = Math.sin(ux * 6.2 + uz * 5.4) * 0.5
+           + Math.cos(uy * 5.8 - ux * 4.7) * 0.5;
+  // Gentle crater dimples on lower flanks
+  const c1 = Math.max(0, 1 - Math.hypot(ux - 0.68, uy + 0.35, uz - 0.58) / 0.34);
+  const c2 = Math.max(0, 1 - Math.hypot(ux + 0.72, uy + 0.15, uz + 0.52) / 0.28);
+  const crater = -(c1 * c1 * 0.055 + c2 * c2 * 0.045);
+
+  // Smoothly flatten the very top plaza crown so the lamp & character stand solidly and cleanly
+  const topCrown = THREE.MathUtils.smoothstep(uy, 0.74, 0.96);
+  const raw = n1 * 0.085 + n2 * 0.022 + crater;
+  return raw * (1 - topCrown * 0.82);
+}
+
+const PLANET_R = 4.75;
+const PLANET_Y_SCALE = 0.96;
+
+function planetSurfacePoint(dx, dy, dz) {
+  const len = Math.hypot(dx, dy, dz) || 1;
+  const ux = dx / len, uy = dy / len, uz = dz / len;
+  const r = PLANET_R * (1 + terrainNoise(ux, uy, uz));
+  return new THREE.Vector3(ux * r, uy * r * PLANET_Y_SCALE, uz * r);
+}
+
+function crownPoint(x, z) {
+  // Given approximate x,z near top crown, compute exact point on planet surface
+  const yApprox = Math.sqrt(Math.max(0.2, PLANET_R * PLANET_R - x * x - z * z));
+  return planetSurfacePoint(x, yApprox, z);
+}
+
+function crownNormal(x, z) {
+  const eps = 0.04;
+  const pC = crownPoint(x, z);
+  const pX = crownPoint(x + eps, z).sub(pC);
+  const pZ = crownPoint(x, z + eps).sub(pC);
+  return new THREE.Vector3().crossVectors(pZ, pX).normalize();
+}
+
+/* ==========================================================================
+   3. SKY DOME, TWINKLING STARS, RINGED GAS GIANT & ORBITING SUN / MOON
+   ========================================================================== */
+const skyUniforms = {
+  uSunDir: { value: new THREE.Vector3(-0.8, 0.2, -0.5).normalize() },
+  uDayFactor: { value: 0.2 }
+};
+{
+  const skyMat = new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    depthWrite: false,
+    fog: false,
+    uniforms: skyUniforms,
+    vertexShader: `
+      varying vec3 vDir;
+      void main() {
+        vDir = normalize(position);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vDir;
+      uniform vec3 uSunDir;
+      uniform float uDayFactor;
+      void main() {
+        vec3 d = normalize(vDir);
+        float h = clamp(d.y * 0.5 + 0.5, 0.0, 1.0);
+
+        vec3 nightBottom = vec3(0.012, 0.016, 0.048);
+        vec3 nightTop    = vec3(0.032, 0.048, 0.135);
+        vec3 dayBottom   = vec3(0.065, 0.085, 0.195);
+        vec3 dayTop      = vec3(0.115, 0.185, 0.380);
+
+        vec3 baseBottom = mix(nightBottom, dayBottom, uDayFactor);
+        vec3 baseTop    = mix(nightTop, dayTop, uDayFactor);
+        vec3 col = mix(baseBottom, baseTop, pow(h, 1.25));
+
+        // Subtle nebula ribbon across cosmos
+        float neb = exp(-pow((d.y + d.x * 0.42 - 0.12) * 4.2, 2.0));
+        col += vec3(0.045, 0.025, 0.075) * neb * (1.0 - uDayFactor * 0.65);
+
+        // Warm sunset/sunrise scattering toward sun direction
+        float sunAmt = max(dot(d, normalize(uSunDir)), 0.0);
+        float twilight = 1.0 - abs(uDayFactor * 2.0 - 1.0);
+        col += vec3(0.30, 0.13, 0.06) * pow(sunAmt, 5.0) * (0.35 + 0.65 * twilight);
+        col += vec3(0.45, 0.28, 0.12) * pow(sunAmt, 22.0) * (0.3 + 0.7 * uDayFactor);
+
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `
+  });
+  scene.add(new THREE.Mesh(new THREE.SphereGeometry(460, 48, 32), skyMat));
+}
+
+// Smooth round twinkling stars
+const STAR_COUNT = 2600;
+const starUniforms = { uTime: { value: 0 }, uFade: { value: 1.0 } };
+{
+  const starGeo = new THREE.BufferGeometry();
+  const pos = new Float32Array(STAR_COUNT * 3);
+  const sizes = new Float32Array(STAR_COUNT);
+  const phases = new Float32Array(STAR_COUNT);
+  const cols = new Float32Array(STAR_COUNT * 3);
+  const v = new THREE.Vector3();
+
+  for (let i = 0; i < STAR_COUNT; i++) {
+    v.randomDirection().multiplyScalar(190 + Math.random() * 210);
+    pos.set([v.x, v.y, v.z], i * 3);
+    sizes[i] = 0.75 + Math.pow(Math.random(), 3.1) * 3.0;
+    phases[i] = Math.random() * 100;
+    const p = Math.random();
+    const c = p < 0.60 ? [0.95, 0.97, 1.0] : (p < 0.84 ? [1.0, 0.90, 0.76] : [0.74, 0.86, 1.0]);
+    cols.set(c, i * 3);
+  }
+  starGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  starGeo.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
+  starGeo.setAttribute('aPhase', new THREE.BufferAttribute(phases, 1));
+  starGeo.setAttribute('aColor', new THREE.BufferAttribute(cols, 3));
+
+  const starMat = new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    fog: false,
+    uniforms: starUniforms,
+    vertexShader: `
+      attribute float aSize;
+      attribute float aPhase;
+      attribute vec3 aColor;
+      uniform float uTime;
+      varying vec3 vColor;
+      varying float vTwinkle;
+      void main() {
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        float tw = 0.5 + 0.5 * sin(uTime * (0.6 + fract(aPhase * 0.71) * 2.5) + aPhase);
+        vTwinkle = 0.32 + 0.68 * tw * tw;
+        vColor = aColor;
+        gl_PointSize = aSize * (190.0 / -mv.z) * (0.78 + 0.42 * tw);
+        gl_Position = projectionMatrix * mv;
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vColor;
+      varying float vTwinkle;
+      uniform float uFade;
+      void main() {
+        float d = length(gl_PointCoord - 0.5);
+        float alpha = pow(smoothstep(0.5, 0.0, d), 1.85);
+        gl_FragColor = vec4(vColor * (0.55 + vTwinkle * 1.25), alpha * vTwinkle * uFade);
+      }
+    `
+  });
+  const stars = new THREE.Points(starGeo, starMat);
+  stars.frustumCulled = false;
+  scene.add(stars);
+}
+
+// Distant Ringed Pastel Gas Giant in background
+{
+  const gasGroup = new THREE.Group();
+  gasGroup.position.set(-115, 52, -230);
+  gasGroup.rotation.set(0.32, 0.25, -0.38);
+
+  const gasMat = new THREE.ShaderMaterial({
+    fog: false,
+    uniforms: { uSunDir: skyUniforms.uSunDir },
+    vertexShader: `
+      varying vec3 vNormalPos;
+      varying vec3 vWorldNormal;
+      void main() {
+        vNormalPos = normalize(position);
+        vWorldNormal = normalize(mat3(modelMatrix) * normal);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vNormalPos;
+      varying vec3 vWorldNormal;
+      uniform vec3 uSunDir;
+      void main() {
+        float band = vNormalPos.y * 0.5 + 0.5;
+        float stripe = sin(vNormalPos.y * 22.0) * 0.5 + 0.5;
+        vec3 c1 = vec3(0.42, 0.22, 0.38);
+        vec3 c2 = vec3(0.88, 0.52, 0.42);
+        vec3 c3 = vec3(0.98, 0.80, 0.58);
+        vec3 base = mix(c1, c2, smoothstep(0.15, 0.62, band));
+        base = mix(base, c3, smoothstep(0.58, 0.92, band));
+        base = mix(base, base * 0.86 + vec3(0.08, 0.04, 0.05), stripe * 0.35);
+
+        float lit = smoothstep(-0.28, 0.85, dot(vWorldNormal, normalize(uSunDir)));
+        vec3 nightSide = vec3(0.035, 0.04, 0.10);
+        vec3 col = mix(nightSide, base, 0.22 + 0.78 * lit);
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `
+  });
+  gasGroup.add(new THREE.Mesh(new THREE.SphereGeometry(16, 48, 36), gasMat));
+
+  // Translucent planetary rings
+  const ringGeo = new THREE.RingGeometry(21.5, 34.5, 72);
+  const rPos = ringGeo.attributes.position;
+  const rUv = ringGeo.attributes.uv;
+  for (let i = 0; i < rPos.count; i++) {
+    const rad = Math.hypot(rPos.getX(i), rPos.getY(i));
+    rUv.setXY(i, (rad - 21.5) / 13.0, 0.5);
+  }
+  const ringMat = new THREE.ShaderMaterial({
+    transparent: true,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+    fog: false,
+    vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+    fragmentShader: `
+      varying vec2 vUv;
+      void main() {
+        float x = vUv.x;
+        float gap = smoothstep(0.04, 0.14, abs(x - 0.58));
+        float bands = 0.65 + 0.35 * sin(x * 42.0);
+        float edge = smoothstep(0.0, 0.12, x) * smoothstep(1.0, 0.86, x);
+        vec3 col = mix(vec3(0.95, 0.76, 0.58), vec3(0.72, 0.56, 0.68), x);
+        gl_FragColor = vec4(col, edge * gap * bands * 0.44);
+      }
+    `
+  });
+  const rings = new THREE.Mesh(ringGeo, ringMat);
+  rings.rotation.x = Math.PI * 0.5;
+  gasGroup.add(rings);
+
+  const gasHalo = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: softGlowTex,
+    color: 0xffa678,
+    transparent: true,
+    opacity: 0.28,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    fog: false
+  }));
+  gasHalo.scale.setScalar(72);
+  gasGroup.add(gasHalo);
+  scene.add(gasGroup);
+}
+
+// Orbiting Sun & Sculpted Cratered Moon
+const sunOrbVisual = new THREE.Group();
+{
+  const sunCore = new THREE.Mesh(
+    new THREE.SphereGeometry(9.5, 32, 24),
+    new THREE.MeshBasicMaterial({ color: 0xfff3d1, fog: false })
+  );
+  sunOrbVisual.add(sunCore);
+
+  const sunCorona = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: softGlowTex,
+    color: 0xffb36b,
+    transparent: true,
+    opacity: 0.75,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    fog: false
+  }));
+  sunCorona.scale.setScalar(78);
+  sunOrbVisual.add(sunCorona);
+  scene.add(sunOrbVisual);
+}
+
+const moonOrbVisual = new THREE.Group();
+{
+  const moonGeo = new THREE.SphereGeometry(6.2, 32, 24);
+  const mp = moonGeo.attributes.position;
+  for (let i = 0; i < mp.count; i++) {
+    const x = mp.getX(i), y = mp.getY(i), z = mp.getZ(i);
+    const d = Math.hypot(x, y, z);
+    const c = Math.sin(x * 0.9) * Math.cos(y * 1.1) * 0.12;
+    mp.setXYZ(i, (x / d) * (d + c), (y / d) * (d + c), (z / d) * (d + c));
+  }
+  moonGeo.computeVertexNormals();
+  const moonMesh = new THREE.Mesh(
+    moonGeo,
+    new THREE.MeshStandardMaterial({
+      color: 0xdbe6ff,
+      emissive: 0x5872b8,
+      emissiveIntensity: 0.55,
+      roughness: 0.85,
+      fog: false
+    })
+  );
+  moonOrbVisual.add(moonMesh);
+
+  const moonHalo = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: softGlowTex,
+    color: 0x8fb0ff,
+    transparent: true,
+    opacity: 0.42,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    fog: false
+  }));
+  moonHalo.scale.setScalar(42);
+  moonOrbVisual.add(moonHalo);
+  scene.add(moonOrbVisual);
+}
+
+/* ==========================================================================
+   4. SCENE LIGHTING RIG (SUN KEY, MOON RIM, HEMISPHERE & BOUNCE)
+   ========================================================================== */
+const hemiLight = new THREE.HemisphereLight(0x5268b8, 0x704832, 0.55);
+scene.add(hemiLight);
+
+const sunLight = new THREE.DirectionalLight(0xffe9c4, 2.8);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.set(2048, 2048);
+sunLight.shadow.camera.left = -8.5;
+sunLight.shadow.camera.right = 8.5;
+sunLight.shadow.camera.top = 10.5;
+sunLight.shadow.camera.bottom = -6.5;
+sunLight.shadow.camera.near = 4;
+sunLight.shadow.camera.far = 55;
+sunLight.shadow.bias = -0.0005;
+sunLight.shadow.normalBias = 0.022;
+sunLight.shadow.radius = 4;
+sunLight.target.position.set(0, 4.8, 0);
+scene.add(sunLight);
+scene.add(sunLight.target);
+
+const moonRimLight = new THREE.DirectionalLight(0x82a4ff, 0.85);
+moonRimLight.position.set(14, 12, -16);
+scene.add(moonRimLight);
+
+/* ==========================================================================
+   5. THE SCULPTED PLANET, ATMOSPHERIC RIM, COBBLESTONE PATH, BENCH & FLORA
+   ========================================================================== */
+const worldGroup = new THREE.Group();
+scene.add(worldGroup);
+
+// Main planet mesh with smooth multi-tone clay/turf vertex colors & micro-bump
+{
+  const planetGeo = new THREE.SphereGeometry(PLANET_R, 112, 84);
+  const pos = planetGeo.attributes.position;
+  const colors = new Float32Array(pos.count * 3);
+
+  const colDeepClay = new THREE.Color(0x9e5e3f);
+  const colWarmClay = new THREE.Color(0xd18a5f);
+  const colSandClay = new THREE.Color(0xe6b58a);
+  const colMossTurf = new THREE.Color(0x5e7850);
+  const colTopMoss  = new THREE.Color(0x738c59);
+  const tmpC = new THREE.Color();
+
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const len = Math.hypot(x, y, z);
+    const ux = x / len, uy = y / len, uz = z / len;
+    const disp = terrainNoise(ux, uy, uz);
+    const r = PLANET_R * (1 + disp);
+    pos.setXYZ(i, ux * r, uy * r * PLANET_Y_SCALE, uz * r);
+
+    const hNorm = THREE.MathUtils.clamp(disp * 5.5 + 0.5, 0, 1);
+    tmpC.copy(colDeepClay)
+      .lerp(colWarmClay, THREE.MathUtils.smoothstep(hNorm, 0.15, 0.62))
+      .lerp(colSandClay, THREE.MathUtils.smoothstep(hNorm, 0.58, 0.95));
+
+    // Velvety mossy turf patch around top crown outside cobblestone path
+    const distFromPath = Math.abs(uz - 0.08 * Math.sin(ux * 1.8));
+    const mossMask = THREE.MathUtils.smoothstep(uy, 0.55, 0.88)
+                   * THREE.MathUtils.smoothstep(distFromPath, 0.16, 0.42);
+    tmpC.lerp(disp > 0 ? colTopMoss : colMossTurf, mossMask * 0.72);
+
+    colors.set([tmpC.r, tmpC.g, tmpC.b], i * 3);
+  }
+  planetGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  planetGeo.computeVertexNormals();
+
+  const planetMat = new THREE.MeshStandardMaterial({
+    vertexColors: true,
+    roughness: 0.88,
+    metalness: 0.02,
+    bumpMap: clayBump,
+    bumpScale: 0.025
+  });
+  const planetMesh = new THREE.Mesh(planetGeo, planetMat);
+  planetMesh.castShadow = true;
+  planetMesh.receiveShadow = true;
+  worldGroup.add(planetMesh);
+}
+
+// Atmospheric Fresnel Rim Shell around the planet for dreamy 3D depth
+const atmoUniforms = {
+  uSunDir: skyUniforms.uSunDir,
+  uWarmCol: { value: new THREE.Color(0xffa86b) },
+  uCoolCol: { value: new THREE.Color(0x4f74d8) }
+};
+{
+  const atmoMat = new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    side: THREE.BackSide,
+    uniforms: atmoUniforms,
+    vertexShader: `
+      varying vec3 vWorldNormal;
+      varying vec3 vViewDir;
+      void main() {
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vWorldNormal = normalize(mat3(modelMatrix) * normal);
+        vViewDir = normalize(cameraPosition - wp.xyz);
+        gl_Position = projectionMatrix * viewMatrix * wp;
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vWorldNormal;
+      varying vec3 vViewDir;
+      uniform vec3 uSunDir;
+      uniform vec3 uWarmCol;
+      uniform vec3 uCoolCol;
+      void main() {
+        float rim = pow(clamp(1.0 + dot(vViewDir, vWorldNormal), 0.0, 1.0), 3.2);
+        float sunSide = smoothstep(-0.35, 0.65, dot(-vWorldNormal, normalize(uSunDir)));
+        vec3 col = mix(uCoolCol * 0.55, uWarmCol, sunSide);
+        gl_FragColor = vec4(col, rim * 0.42);
+      }
+    `
+  });
+  const atmoMesh = new THREE.Mesh(new THREE.SphereGeometry(PLANET_R * 1.085, 64, 48), atmoMat);
+  atmoMesh.scale.y = PLANET_Y_SCALE;
+  worldGroup.add(atmoMesh);
+}
+
+// Helper to orient any detail prop cleanly onto the curved planet surface
+function alignOnCrown(obj, x, z, yOffset = 0, yaw = 0) {
+  const p = crownPoint(x, z);
+  const n = crownNormal(x, z);
+  obj.position.copy(p).addScaledVector(n, yOffset);
+  obj.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), n);
+  obj.rotateY(yaw);
+}
+
+// Sculpted Curved Cobblestone Path & Plaza Stones
+{
+  const stonePalette = [0xcfc2ae, 0xbab0a2, 0xd8cab4, 0x9e958b, 0xc6b49d];
+  const baseStoneGeo = new THREE.IcosahedronGeometry(1, 2);
+  // Slightly facet/round stone vertices once
+  const sp = baseStoneGeo.attributes.position;
+  for (let i = 0; i < sp.count; i++) {
+    const vx = sp.getX(i), vy = sp.getY(i), vz = sp.getZ(i);
+    const s = 1 + Math.sin(vx * 4.1 + vz * 3.7) * 0.08;
+    sp.setXYZ(i, vx * s, vy * 0.34, vz * s);
+  }
+  baseStoneGeo.computeVertexNormals();
+
+  const stoneMat = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    roughness: 0.82,
+    metalness: 0.04,
+    bumpMap: clayBump,
+    bumpScale: 0.015
+  });
+
+  const placements = [];
+  // Circular cobble ring around the streetlamp base + stepping path past character
+  for (let a = 0; a < Math.PI * 2; a += Math.PI / 6) {
+    placements.push({
+      x: -0.64 + Math.cos(a) * 0.56,
+      z: -0.08 + Math.sin(a) * 0.56,
+      sx: 0.16, sz: 0.13, rot: a
+    });
+  }
+  // Winding cobblestone lane across the top of the little planet
+  for (let i = -11; i <= 11; i++) {
+    const t = i / 11;
+    const cx = t * 2.85;
+    const cz = 0.24 * Math.sin(t * 2.2) + 0.12;
+    for (const side of [-0.22, 0.0, 0.22]) {
+      const jx = cx + (Math.sin(i * 7.3 + side * 13) * 0.07);
+      const jz = cz + side + (Math.cos(i * 5.1 + side * 9) * 0.06);
+      placements.push({
+        x: jx,
+        z: jz,
+        sx: 0.14 + (Math.abs(Math.sin(i * 3.7 + side * 5)) * 0.07),
+        sz: 0.12 + (Math.abs(Math.cos(i * 2.9)) * 0.06),
+        rot: i * 0.7 + side * 2.0
+      });
+    }
+  }
+
+  const instStones = new THREE.InstancedMesh(baseStoneGeo, stoneMat, placements.length);
+  instStones.castShadow = true;
+  instStones.receiveShadow = true;
+  const dummy = new THREE.Object3D();
+  const c = new THREE.Color();
+
+  placements.forEach((st, idx) => {
+    alignOnCrown(dummy, st.x, st.z, 0.012, st.rot);
+    dummy.scale.set(st.sx, 0.12, st.sz);
+    dummy.updateMatrix();
+    instStones.setMatrixAt(idx, dummy.matrix);
+    c.setHex(stonePalette[idx % stonePalette.length]).multiplyScalar(0.92 + (idx % 5) * 0.035);
+    instStones.setColorAt(idx, c);
+  });
+  instStones.instanceMatrix.needsUpdate = true;
+  instStones.instanceColor.needsUpdate = true;
+  worldGroup.add(instStones);
+}
+
+// Shared PBR Metals & Woods
+const darkIronMat = new THREE.MeshStandardMaterial({
+  color: 0x262932,
+  roughness: 0.44,
+  metalness: 0.72,
+  bumpMap: ironBump,
+  bumpScale: 0.012
+});
+const wroughtIronMat = new THREE.MeshStandardMaterial({
+  color: 0x343844,
+  roughness: 0.38,
+  metalness: 0.78,
+  bumpMap: ironBump,
+  bumpScale: 0.01
+});
+const brushedBrassMat = new THREE.MeshStandardMaterial({
+  color: 0xd9a84e,
+  roughness: 0.26,
+  metalness: 0.88
+});
+const copperPipeMat = new THREE.MeshStandardMaterial({
+  color: 0xc97349,
+  roughness: 0.28,
+  metalness: 0.85
+});
+const warmWoodMat = new THREE.MeshStandardMaterial({
+  color: 0x6e4127,
+  roughness: 0.62,
+  metalness: 0.05,
+  bumpMap: ironBump,
+  bumpScale: 0.012
+});
+
+// Miniature Wrought-Iron & Wood Park Bench (adds depth & quiet storytelling)
+{
+  const bench = new THREE.Group();
+  alignOnCrown(bench, 1.65, -0.85, 0.0, -0.78);
+
+  const slatGeo = new THREE.BoxGeometry(0.92, 0.028, 0.075);
+  for (let i = 0; i < 4; i++) {
+    const seatSlat = new THREE.Mesh(slatGeo, warmWoodMat);
+    seatSlat.position.set(0, 0.32, -0.10 + i * 0.082);
+    seatSlat.castShadow = true;
+    seatSlat.receiveShadow = true;
+    bench.add(seatSlat);
+  }
+  for (let i = 0; i < 3; i++) {
+    const backSlat = new THREE.Mesh(slatGeo, warmWoodMat);
+    backSlat.position.set(0, 0.45 + i * 0.095, -0.16 - i * 0.018);
+    backSlat.rotation.x = 0.22;
+    backSlat.castShadow = true;
+    backSlat.receiveShadow = true;
+    bench.add(backSlat);
+  }
+  for (const sx of [-0.38, 0.38]) {
+    const legF = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.024, 0.34, 8), darkIronMat);
+    legF.position.set(sx, 0.17, 0.12);
+    legF.castShadow = true;
+    bench.add(legF);
+
+    const legB = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.024, 0.68, 8), darkIronMat);
+    legB.position.set(sx, 0.33, -0.15);
+    legB.rotation.x = -0.1;
+    legB.castShadow = true;
+    bench.add(legB);
+
+    const arm = new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.018, 8, 16, Math.PI * 1.15), darkIronMat);
+    arm.position.set(sx, 0.36, -0.02);
+    arm.rotation.y = Math.PI * 0.5;
+    arm.castShadow = true;
+    bench.add(arm);
+  }
+  worldGroup.add(bench);
+}
+
+// Swaying Grass Tufts & Night-Glowing Bell Flowers
+const flowerEmissiveMat = new THREE.MeshStandardMaterial({
+  color: 0x9ec5ff,
+  emissive: 0x4f8bff,
+  emissiveIntensity: 0.4,
+  roughness: 0.4
+});
+const grassTufts = [];
+{
+  const grassMat = new THREE.MeshStandardMaterial({ color: 0x62834e, roughness: 0.78 });
+  const spots = [
+    [-1.18, 0.35], [-0.95, -0.58], [-0.25, -0.78], [0.45, -0.88],
+    [1.35, 0.52], [1.85, -0.22], [-1.55, -0.18], [0.95, -0.62], [-0.42, 0.68]
+  ];
+  spots.forEach(([gx, gz], idx) => {
+    const tuft = new THREE.Group();
+    alignOnCrown(tuft, gx, gz, -0.01, idx * 1.1);
+    for (let b = 0; b < 5; b++) {
+      const h = 0.18 + (b % 3) * 0.07;
+      const blade = new THREE.Mesh(new THREE.ConeGeometry(0.026, h, 5), grassMat);
+      blade.position.set((b - 2) * 0.032, h * 0.48, (b % 2 - 0.5) * 0.03);
+      blade.rotation.z = (b - 2) * 0.16;
+      blade.castShadow = true;
+      tuft.add(blade);
+    }
+    if (idx % 2 === 0) {
+      const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.01, 0.24, 6), grassMat);
+      stem.position.set(0.03, 0.12, 0.02);
+      tuft.add(stem);
+      const blossom = new THREE.Mesh(new THREE.SphereGeometry(0.036, 10, 8), flowerEmissiveMat);
+      blossom.scale.set(1, 0.8, 1);
+      blossom.position.set(0.03, 0.25, 0.02);
+      tuft.add(blossom);
+    }
+    worldGroup.add(tuft);
+    grassTufts.push(tuft);
+  });
+}
+
+/* ==========================================================================
+   6. HERO ASSET #1: INTRICATE STREETLAMP + WORKING MECHANICAL SWITCH BOX
+   ========================================================================== */
+const LAMP_POS_XZ = { x: -0.58, z: -0.06 };
+const lampGroup = new THREE.Group();
+// Rotate lamp so the swan-neck lantern arches slightly forward-right and the switch box faces character + viewer
+alignOnCrown(lampGroup, LAMP_POS_XZ.x, LAMP_POS_XZ.z, -0.01, 0.18);
+worldGroup.add(lampGroup);
+
+// 6A. Turned Cast-Iron Plinth & Octagonal Bolted Base
+{
+  const curb = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.46, 0.50, 0.09, 24),
+    new THREE.MeshStandardMaterial({ color: 0x9b9286, roughness: 0.88, bumpMap: clayBump, bumpScale: 0.02 })
+  );
+  curb.position.y = 0.03;
+  curb.receiveShadow = true;
+  curb.castShadow = true;
+  lampGroup.add(curb);
+
+  const octBase = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.38, 0.08, 8), darkIronMat);
+  octBase.position.y = 0.11;
+  octBase.castShadow = true;
+  octBase.receiveShadow = true;
+  lampGroup.add(octBase);
+
+  // 8 Hex mounting bolts around flange
+  const boltGeo = new THREE.CylinderGeometry(0.022, 0.022, 0.035, 6);
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
+    const bolt = new THREE.Mesh(boltGeo, brushedBrassMat);
+    bolt.position.set(Math.cos(a) * 0.31, 0.16, Math.sin(a) * 0.31);
+    bolt.castShadow = true;
+    lampGroup.add(bolt);
+  }
+
+  // Lathe-turned ornate Victorian plinth & column moldings
+  const plinthPts = [
+    new THREE.Vector2(0.30, 0.15),
+    new THREE.Vector2(0.29, 0.24),
+    new THREE.Vector2(0.22, 0.32),
+    new THREE.Vector2(0.24, 0.38),
+    new THREE.Vector2(0.17, 0.52),
+    new THREE.Vector2(0.185, 0.58),
+    new THREE.Vector2(0.135, 0.66),
+    new THREE.Vector2(0.115, 1.15),
+    new THREE.Vector2(0.145, 1.20),
+    new THREE.Vector2(0.115, 1.25),
+    new THREE.Vector2(0.105, 1.72),
+    new THREE.Vector2(0.138, 1.77),
+    new THREE.Vector2(0.102, 1.83),
+    new THREE.Vector2(0.082, 3.18),
+    new THREE.Vector2(0.130, 3.24),
+    new THREE.Vector2(0.145, 3.30),
+    new THREE.Vector2(0.095, 3.36),
+    new THREE.Vector2(0.0,   3.38)
+  ];
+  const postMesh = new THREE.Mesh(new THREE.LatheGeometry(plinthPts, 28), wroughtIronMat);
+  postMesh.castShadow = true;
+  postMesh.receiveShadow = true;
+  lampGroup.add(postMesh);
+
+  // 8 vertical relief flutes along the main shaft for crisp 3D specular highlights
+  const fluteGeo = new THREE.CylinderGeometry(0.013, 0.017, 1.30, 8);
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    const flute = new THREE.Mesh(fluteGeo, darkIronMat);
+    flute.position.set(Math.cos(a) * 0.092, 2.50, Math.sin(a) * 0.092);
+    flute.castShadow = true;
+    lampGroup.add(flute);
+  }
+
+  // Classic horizontal lamplighter ladder/pole rest crossbar near top of post
+  const crossBar = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.58, 10), wroughtIronMat);
+  crossBar.rotation.x = Math.PI * 0.5;
+  crossBar.position.set(0, 3.06, 0);
+  crossBar.castShadow = true;
+  lampGroup.add(crossBar);
+
+  for (const sz of [-0.30, 0.30]) {
+    const ball = new THREE.Mesh(new THREE.SphereGeometry(0.036, 12, 10), brushedBrassMat);
+    ball.position.set(0, 3.06, sz);
+    lampGroup.add(ball);
+  }
+}
+
+// 6B. MECHANICAL SWITCH BOX, PRESSURE GAUGE, PILOT JEWEL & THROW LEVER
+const switchAssembly = new THREE.Group();
+// Positioned at chest height on the post, angled toward character (+X) and camera (+Z)
+switchAssembly.position.set(0, 1.38, 0);
+switchAssembly.rotation.y = -0.32;
+lampGroup.add(switchAssembly);
+
+// Iron mounting collars clamping switch box to post
+for (const dy of [-0.14, 0.14]) {
+  const clamp = new THREE.Mesh(new THREE.TorusGeometry(0.118, 0.018, 10, 22), darkIronMat);
+  clamp.rotation.x = Math.PI * 0.5;
+  clamp.position.y = dy;
+  switchAssembly.add(clamp);
+}
+
+// Cast-iron valve housing + beveled brass faceplate
+{
+  const boxBody = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.28, 0.17), darkIronMat);
+  boxBody.position.set(0.16, 0, 0);
+  boxBody.castShadow = true;
+  boxBody.receiveShadow = true;
+  switchAssembly.add(boxBody);
+
+  const brassPlate = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.23, 0.025), brushedBrassMat);
+  brassPlate.position.set(0.175, 0, 0.09);
+  brassPlate.castShadow = true;
+  switchAssembly.add(brassPlate);
+
+  // Corner brass rivets on faceplate
+  const rivGeo = new THREE.SphereGeometry(0.011, 8, 6);
+  for (const rx of [-0.058, 0.058]) {
+    for (const ry of [-0.095, 0.095]) {
+      const riv = new THREE.Mesh(rivGeo, darkIronMat);
+      riv.position.set(0.175 + rx, ry, 0.103);
+      switchAssembly.add(riv);
+    }
+  }
+}
+
+// Illuminated Brass Pressure Gauge on top of Switch Box
+const gaugeNeedlePivot = new THREE.Group();
+const pilotJewelMat = new THREE.MeshStandardMaterial({
+  color: 0x55180c,
+  emissive: 0xff6b1a,
+  emissiveIntensity: 0.15,
+  roughness: 0.2
+});
+{
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.022, 0.06, 10), brushedBrassMat);
+  stem.position.set(0.17, 0.165, 0.01);
+  switchAssembly.add(stem);
+
+  const bezel = new THREE.Mesh(new THREE.CylinderGeometry(0.072, 0.072, 0.038, 20), brushedBrassMat);
+  bezel.rotation.x = Math.PI * 0.5;
+  bezel.position.set(0.17, 0.235, 0.01);
+  bezel.castShadow = true;
+  switchAssembly.add(bezel);
+
+  const dial = new THREE.Mesh(
+    new THREE.CircleGeometry(0.060, 20),
+    new THREE.MeshStandardMaterial({
+      map: makeGaugeDialTexture(),
+      emissive: 0xffcf87,
+      emissiveIntensity: 0.08,
+      roughness: 0.4
+    })
+  );
+  dial.position.set(0.17, 0.235, 0.031);
+  switchAssembly.add(dial);
+  switchAssembly.userData.dialMat = dial.material;
+
+  gaugeNeedlePivot.position.set(0.17, 0.235, 0.034);
+  gaugeNeedlePivot.rotation.z = 0.85; // OFF = left rest
+  const needle = new THREE.Mesh(
+    new THREE.BoxGeometry(0.009, 0.046, 0.004),
+    new THREE.MeshBasicMaterial({ color: 0xb01e12 })
+  );
+  needle.position.y = 0.018;
+  gaugeNeedlePivot.add(needle);
+  switchAssembly.add(gaugeNeedlePivot);
+
+  // Pilot indicator jewel on front faceplate
+  const jewelRim = new THREE.Mesh(new THREE.TorusGeometry(0.022, 0.006, 8, 16), darkIronMat);
+  jewelRim.position.set(0.145, 0.055, 0.103);
+  switchAssembly.add(jewelRim);
+
+  const jewel = new THREE.Mesh(new THREE.SphereGeometry(0.018, 12, 10), pilotJewelMat);
+  jewel.position.set(0.145, 0.055, 0.102);
+  switchAssembly.add(jewel);
+}
+
+// Rotary Slotted Quadrant & Articulated Brass/Mahogany Switch Lever
+const switchLeverPivot = new THREE.Group();
+const switchHandleGripTarget = new THREE.Object3D(); // Exact 3D IK target for character's right hand!
+const SWITCH_OFF_ANGLE = 0.42;   // Lever UP = OFF
+const SWITCH_ON_ANGLE  = 2.42;   // Lever PULLED DOWN-FORWARD = ON (clear 115-deg throw!)
+{
+  // Slotted brass quadrant guide on right side of switch box matching front vertical arc
+  const quadGeo = new THREE.TorusGeometry(0.095, 0.011, 8, 20, Math.PI * 0.76);
+  quadGeo.rotateZ(-Math.PI * 0.38);
+  quadGeo.rotateY(-Math.PI * 0.5);
+  const quadArc = new THREE.Mesh(quadGeo, brushedBrassMat);
+  quadArc.position.set(0.258, -0.02, 0.02);
+  switchAssembly.add(quadArc);
+
+  // Valve axle boss
+  const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.06, 14), brushedBrassMat);
+  axle.rotation.z = Math.PI * 0.5;
+  axle.position.set(0.26, -0.02, 0.02);
+  switchAssembly.add(axle);
+
+  switchLeverPivot.position.set(0.275, -0.02, 0.02);
+  switchLeverPivot.rotation.z = 0;
+  switchLeverPivot.rotation.x = SWITCH_OFF_ANGLE;
+  switchAssembly.add(switchLeverPivot);
+
+  // Brass lever arm extending outward along +Y of pivot
+  const arm = new THREE.Mesh(new THREE.BoxGeometry(0.022, 0.20, 0.032), brushedBrassMat);
+  arm.position.set(0.01, 0.095, 0);
+  arm.castShadow = true;
+  switchLeverPivot.add(arm);
+
+  // Turned mahogany cross-handle sticking out along +X so hand grasps it cleanly
+  const gripStem = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.04, 10), brushedBrassMat);
+  gripStem.rotation.z = Math.PI * 0.5;
+  gripStem.position.set(0.032, 0.19, 0);
+  switchLeverPivot.add(gripStem);
+
+  const woodGrip = new THREE.Mesh(new THREE.CapsuleGeometry(0.024, 0.075, 8, 14), warmWoodMat);
+  woodGrip.rotation.z = Math.PI * 0.5;
+  woodGrip.position.set(0.085, 0.19, 0);
+  woodGrip.castShadow = true;
+  switchLeverPivot.add(woodGrip);
+
+  const endCap = new THREE.Mesh(new THREE.SphereGeometry(0.022, 10, 8), brushedBrassMat);
+  endCap.position.set(0.132, 0.19, 0);
+  switchLeverPivot.add(endCap);
+
+  // Exact grip target center on the wooden handle
+  switchHandleGripTarget.position.set(0.088, 0.19, 0.0);
+  switchLeverPivot.add(switchHandleGripTarget);
+}
+
+// 6C. Swan-Neck Scroll Bracket + Copper Gas Conduit Pipe from Switch Box to Lantern
+const LANTERN_X = 0.78;
+const LANTERN_BASE_Y = 3.42;
+{
+  // Main graceful wrought-iron swan-neck bracket
+  const swanCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0.0,  3.28, 0),
+    new THREE.Vector3(0.05, 3.68, 0),
+    new THREE.Vector3(0.32, 3.92, 0),
+    new THREE.Vector3(0.64, 3.80, 0),
+    new THREE.Vector3(LANTERN_X, LANTERN_BASE_Y + 0.02, 0)
+  ]);
+  const swanTube = new THREE.Mesh(new THREE.TubeGeometry(swanCurve, 32, 0.036, 12, false), wroughtIronMat);
+  swanTube.castShadow = true;
+  lampGroup.add(swanTube);
+
+  // Ornamental C-scroll strut beneath the swan-neck
+  const scrollCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0.07, 2.86, 0),
+    new THREE.Vector3(0.28, 3.04, 0),
+    new THREE.Vector3(0.38, 3.34, 0),
+    new THREE.Vector3(0.54, 3.52, 0),
+    new THREE.Vector3(0.70, 3.46, 0)
+  ]);
+  const scrollTube = new THREE.Mesh(new THREE.TubeGeometry(scrollCurve, 28, 0.020, 10, false), darkIronMat);
+  scrollTube.castShadow = true;
+  lampGroup.add(scrollTube);
+
+  // Decorative spiral curls
+  for (const [cx, cy, r] of [[0.24, 3.16, 0.065], [0.48, 3.66, 0.058]]) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(r, 0.013, 8, 18), brushedBrassMat);
+    ring.position.set(cx, cy, 0);
+    lampGroup.add(ring);
+  }
+
+  // Visible Copper Gas Pipe running directly out of the Switch Box up the post into the Lantern Burner!
+  const swOut = new THREE.Vector3(0.14, 1.52, -0.04);
+  const copperCurve = new THREE.CatmullRomCurve3([
+    swOut,
+    new THREE.Vector3(0.11, 1.90, -0.02),
+    new THREE.Vector3(0.095, 2.60, -0.01),
+    new THREE.Vector3(0.09, 3.28, 0.0),
+    new THREE.Vector3(0.32, 3.84, 0.0),
+    new THREE.Vector3(0.66, 3.72, 0.0),
+    new THREE.Vector3(LANTERN_X, LANTERN_BASE_Y + 0.06, 0.0)
+  ]);
+  const copperPipe = new THREE.Mesh(new THREE.TubeGeometry(copperCurve, 40, 0.014, 8, false), copperPipeMat);
+  copperPipe.castShadow = true;
+  lampGroup.add(copperPipe);
+
+  // Brass pipe clips along shaft
+  for (const py of [1.95, 2.45, 2.90]) {
+    const clip = new THREE.Mesh(new THREE.TorusGeometry(0.10, 0.011, 6, 16), brushedBrassMat);
+    clip.rotation.x = Math.PI * 0.5;
+    clip.position.y = py;
+    lampGroup.add(clip);
+  }
+}
+
+// 6D. SIX-SIDED BEVELED GLASS VICTORIAN LANTERN, INTERNAL MANTLE & IGNITER PORT
+const lanternGroup = new THREE.Group();
+lanternGroup.position.set(LANTERN_X, LANTERN_BASE_Y, 0);
+lampGroup.add(lanternGroup);
+
+const lanternGlassMat = new THREE.MeshPhysicalMaterial({
+  color: 0xfff0d4,
+  map: makeGlassPaneTexture(),
+  emissive: new THREE.Color(0xff9e32),
+  emissiveIntensity: 0.0,
+  roughness: 0.14,
+  metalness: 0.0,
+  ior: 1.48,
+  transparent: true,
+  opacity: 0.44,
+  side: THREE.DoubleSide,
+  depthWrite: false
+});
+
+const mantleCoreMat = new THREE.MeshStandardMaterial({
+  color: 0xd8cbb8,
+  emissive: new THREE.Color(0xffb84d),
+  emissiveIntensity: 0.0,
+  roughness: 0.35
+});
+const filamentWireMat = new THREE.MeshStandardMaterial({
+  color: 0x5c4738,
+  emissive: new THREE.Color(0xffe19c),
+  emissiveIntensity: 0.0,
+  roughness: 0.3
+});
+const reflectorMat = new THREE.MeshStandardMaterial({
+  color: 0xf4eee2,
+  emissive: new THREE.Color(0xffba5c),
+  emissiveIntensity: 0.0,
+  roughness: 0.25
+});
+
+const lanternIgniteTarget = new THREE.Object3D(); // Exact 3D target where lighter pole touches burner!
+{
+  const R_BOT = 0.20;
+  const R_TOP = 0.31;
+  const H_CAGE = 0.56;
+
+  // Lower brass burner cup & igniter port ring
+  const burnerPts = [
+    new THREE.Vector2(0.0, -0.10),
+    new THREE.Vector2(0.055, -0.07),
+    new THREE.Vector2(0.08, -0.01),
+    new THREE.Vector2(R_BOT, 0.02),
+    new THREE.Vector2(R_BOT + 0.02, 0.06),
+    new THREE.Vector2(0.0, 0.06)
+  ];
+  const burnerBase = new THREE.Mesh(new THREE.LatheGeometry(burnerPts, 18), brushedBrassMat);
+  burnerBase.castShadow = true;
+  lanternGroup.add(burnerBase);
+
+  // Small hinged brass igniter lever/ring under burner where pole touches
+  const igniterRing = new THREE.Mesh(new THREE.TorusGeometry(0.042, 0.009, 8, 16), brushedBrassMat);
+  igniterRing.position.set(-0.04, -0.11, 0.04);
+  lanternGroup.add(igniterRing);
+
+  lanternIgniteTarget.position.set(-0.04, -0.12, 0.04);
+  lanternGroup.add(lanternIgniteTarget);
+
+  // 6 tapered iron corner ribs + 6 beveled trapezoidal glass panes
+  for (let i = 0; i < 6; i++) {
+    const a1 = (i / 6) * Math.PI * 2;
+    const a2 = ((i + 1) / 6) * Math.PI * 2;
+
+    const pBot1 = new THREE.Vector3(Math.cos(a1) * R_BOT, 0.05, Math.sin(a1) * R_BOT);
+    const pTop1 = new THREE.Vector3(Math.cos(a1) * R_TOP, H_CAGE, Math.sin(a1) * R_TOP);
+
+    // Corner rib
+    const ribVec = pTop1.clone().sub(pBot1);
+    const rib = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.014, 0.017, ribVec.length(), 8),
+      darkIronMat
+    );
+    rib.position.copy(pBot1).addScaledVector(ribVec, 0.5);
+    rib.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), ribVec.clone().normalize());
+    rib.castShadow = true;
+    lanternGroup.add(rib);
+
+    // Trapezoidal glass pane between corner i and i+1
+    const pBot2 = new THREE.Vector3(Math.cos(a2) * (R_BOT - 0.008), 0.055, Math.sin(a2) * (R_BOT - 0.008));
+    const pTop2 = new THREE.Vector3(Math.cos(a2) * (R_TOP - 0.008), H_CAGE - 0.005, Math.sin(a2) * (R_TOP - 0.008));
+    const pBot1In = new THREE.Vector3(Math.cos(a1) * (R_BOT - 0.008), 0.055, Math.sin(a1) * (R_BOT - 0.008));
+    const pTop1In = new THREE.Vector3(Math.cos(a1) * (R_TOP - 0.008), H_CAGE - 0.005, Math.sin(a1) * (R_TOP - 0.008));
+
+    const paneGeo = new THREE.BufferGeometry();
+    const verts = new Float32Array([
+      pBot1In.x, pBot1In.y, pBot1In.z,
+      pBot2.x,   pBot2.y,   pBot2.z,
+      pTop2.x,   pTop2.y,   pTop2.z,
+      pBot1In.x, pBot1In.y, pBot1In.z,
+      pTop2.x,   pTop2.y,   pTop2.z,
+      pTop1In.x, pTop1In.y, pTop1In.z
+    ]);
+    const uvs = new Float32Array([0,0, 1,0, 1,1, 0,0, 1,1, 0,1]);
+    paneGeo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+    paneGeo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+    paneGeo.computeVertexNormals();
+    lanternGroup.add(new THREE.Mesh(paneGeo, lanternGlassMat));
+  }
+
+  // Internal Brass Burner Stem, Glowing Woven Gas-Mantle, Helical Filament & Porcelain Reflector
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.032, 0.14, 12), brushedBrassMat);
+  stem.position.y = 0.12;
+  lanternGroup.add(stem);
+
+  const mantle = new THREE.Mesh(new THREE.CapsuleGeometry(0.062, 0.085, 12, 18), mantleCoreMat);
+  mantle.position.y = 0.25;
+  lanternGroup.add(mantle);
+
+  // Delicate double-coil incandescent filament around core
+  const coilPts = [];
+  for (let i = 0; i <= 36; i++) {
+    const t = i / 36;
+    const ang = t * Math.PI * 6;
+    coilPts.push(new THREE.Vector3(Math.cos(ang) * 0.072, 0.19 + t * 0.13, Math.sin(ang) * 0.072));
+  }
+  const coil = new THREE.Mesh(
+    new THREE.TubeGeometry(new THREE.CatmullRomCurve3(coilPts), 48, 0.006, 6, false),
+    filamentWireMat
+  );
+  lanternGroup.add(coil);
+
+  // White porcelain reflector saucer inside upper frame
+  const reflector = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.055, 18), reflectorMat);
+  reflector.position.y = H_CAGE - 0.04;
+  lanternGroup.add(reflector);
+
+  // Stepped Hexagonal Roof Pagoda Hood, Chimney Vent & Brass Finial
+  const cornice = new THREE.Mesh(new THREE.CylinderGeometry(R_TOP + 0.045, R_TOP + 0.02, 0.05, 6), darkIronMat);
+  cornice.position.y = H_CAGE + 0.015;
+  cornice.castShadow = true;
+  lanternGroup.add(cornice);
+
+  const hood = new THREE.Mesh(new THREE.ConeGeometry(R_TOP + 0.05, 0.24, 6), wroughtIronMat);
+  hood.position.y = H_CAGE + 0.16;
+  hood.castShadow = true;
+  lanternGroup.add(hood);
+
+  const vent = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.10, 0.09, 12), copperPipeMat);
+  vent.position.y = H_CAGE + 0.29;
+  vent.castShadow = true;
+  lanternGroup.add(vent);
+
+  const finial = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.16, 12), brushedBrassMat);
+  finial.position.y = H_CAGE + 0.41;
+  lanternGroup.add(finial);
+}
+
+// 6E. PRACTICAL STREELAMP LIGHTS, VOLUMETRIC BEAM CONE, HALO & CURVED GROUND POOL
+const lampPointLight = new THREE.PointLight(0xffae4a, 0, 18, 1.55);
+lampPointLight.position.set(0, 0.26, 0);
+lampPointLight.castShadow = true;
+lampPointLight.shadow.mapSize.set(1024, 1024);
+lampPointLight.shadow.bias = -0.002;
+lampPointLight.shadow.normalBias = 0.02;
+lampPointLight.shadow.radius = 5;
+lanternGroup.add(lampPointLight);
+
+const lampSpotLight = new THREE.SpotLight(0xffb85c, 0, 14, Math.PI * 0.42, 0.78, 1.4);
+lampSpotLight.position.set(0, 0.24, 0);
+lampSpotLight.target.position.set(0.15, -3.5, 0.1);
+lanternGroup.add(lampSpotLight);
+lanternGroup.add(lampSpotLight.target);
+
+const lanternHaloSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: softGlowTex,
+  color: 0xffbe68,
+  transparent: true,
+  opacity: 0,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false
+}));
+lanternHaloSprite.position.set(0, 0.26, 0);
+lanternHaloSprite.scale.setScalar(2.6);
+lanternGroup.add(lanternHaloSprite);
+
+// Dreamy soft volumetric light-cone beneath the lantern
+const beamUniforms = { uIntensity: { value: 0 }, uColor: { value: new THREE.Color(0xffb85e) } };
+{
+  const beamGeo = new THREE.ConeGeometry(2.15, 3.7, 32, 1, true);
+  beamGeo.translate(0, -1.85, 0);
+  const beamMat = new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    side: THREE.DoubleSide,
+    uniforms: beamUniforms,
+    vertexShader: `
+      varying float vY;
+      varying vec3 vN;
+      varying vec3 vV;
+      void main() {
+        vY = clamp(-position.y / 3.7, 0.0, 1.0);
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vN = normalize(mat3(modelMatrix) * normal);
+        vV = normalize(cameraPosition - wp.xyz);
+        gl_Position = projectionMatrix * viewMatrix * wp;
+      }
+    `,
+    fragmentShader: `
+      varying float vY;
+      varying vec3 vN;
+      varying vec3 vV;
+      uniform float uIntensity;
+      uniform vec3 uColor;
+      void main() {
+        float edgeSoft = pow(abs(dot(vN, vV)), 1.7);
+        float falloff = (1.0 - vY) * (1.0 - vY) * smoothstep(0.0, 0.14, vY);
+        gl_FragColor = vec4(uColor, edgeSoft * falloff * uIntensity * 0.15);
+      }
+    `
+  });
+  const beamMesh = new THREE.Mesh(beamGeo, beamMat);
+  beamMesh.position.set(0, 0.16, 0);
+  lanternGroup.add(beamMesh);
+}
+
+// Curved warm light pool hugging the planet surface beneath the lantern
+const groundPoolMat = new THREE.MeshBasicMaterial({
+  map: softGlowTex,
+  color: 0xffb357,
+  transparent: true,
+  opacity: 0,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false
+});
+{
+  const poolGeo = new THREE.CircleGeometry(2.35, 36);
+  const pp = poolGeo.attributes.position;
+  for (let i = 0; i < pp.count; i++) {
+    const x = pp.getX(i), y = pp.getY(i);
+    pp.setZ(i, -(x * x + y * y) / (2 * PLANET_R));
+  }
+  const poolMesh = new THREE.Mesh(poolGeo, groundPoolMat);
+  poolMesh.rotation.x = -Math.PI * 0.5;
+  poolMesh.position.set(LANTERN_X, 0.05, 0);
+  lampGroup.add(poolMesh);
+}
+
+/* ==========================================================================
+   7. HERO ASSET #2: ARTICULATED 3D SCULPTED LAMPLIGHTER + 2-BONE IK ARMS
+   ========================================================================== */
+const CHAR_POS_XZ = { x: 0.42, z: 0.20 };
+const charRoot = new THREE.Group();
+// Oriented cleanly on the planet surface normal; local yaw rotates smoothly in animation
+const BASE_CHAR_YAW = -0.45; // Heroic 3/4 front angle beside the streetlamp
+alignOnCrown(charRoot, CHAR_POS_XZ.x, CHAR_POS_XZ.z, 0.0, BASE_CHAR_YAW);
+worldGroup.add(charRoot);
+
+// Character Materials
+const skinMat = new THREE.MeshStandardMaterial({
+  color: 0xf4c7a1,
+  emissive: 0x3a1408,
+  emissiveIntensity: 0.08,
+  roughness: 0.68,
+  metalness: 0.0
+});
+const cheekBlushMat = new THREE.MeshStandardMaterial({
+  color: 0xe88d88,
+  roughness: 0.75,
+  transparent: true,
+  opacity: 0.65
+});
+const coatMainMat = new THREE.MeshStandardMaterial({
+  color: 0x3b5177,
+  roughness: 0.84,
+  metalness: 0.04,
+  bumpMap: clothBump,
+  bumpScale: 0.018
+});
+const coatTrimMat = new THREE.MeshStandardMaterial({
+  color: 0x293956,
+  roughness: 0.82,
+  metalness: 0.05,
+  bumpMap: clothBump,
+  bumpScale: 0.015
+});
+const waistcoatMat = new THREE.MeshStandardMaterial({
+  color: 0xc89a58,
+  roughness: 0.78
+});
+const trouserMat = new THREE.MeshStandardMaterial({
+  color: 0x2c3140,
+  roughness: 0.85,
+  bumpMap: clothBump,
+  bumpScale: 0.012
+});
+const leatherMat = new THREE.MeshStandardMaterial({
+  color: 0x3b261b,
+  roughness: 0.42,
+  metalness: 0.12
+});
+const scarfMat = new THREE.MeshStandardMaterial({
+  color: 0xb8523b,
+  roughness: 0.88,
+  bumpMap: knitBump,
+  bumpScale: 0.03
+});
+const hairMat = new THREE.MeshStandardMaterial({
+  color: 0x5c3b28,
+  roughness: 0.78
+});
+const eyeIrisMat = new THREE.MeshStandardMaterial({
+  color: 0x161822,
+  roughness: 0.06,
+  metalness: 0.15
+});
+
+// Hierarchical Character Rig
+const charTurnGroup = new THREE.Group(); // Local Y turn without disturbing planet surface normal!
+charRoot.add(charTurnGroup);
+
+// 7A. Legs & Sculpted Cuffed Leather Boots (planted solidly on ground)
+for (const side of [-1, 1]) {
+  const lx = side * 0.135;
+
+  // Boot sole + heel
+  const sole = new THREE.Mesh(new THREE.BoxGeometry(0.135, 0.035, 0.23), darkIronMat);
+  sole.position.set(lx, 0.018, 0.025);
+  sole.rotation.y = side * -0.08;
+  sole.castShadow = true;
+  sole.receiveShadow = true;
+  charTurnGroup.add(sole);
+
+  // Rounded toe & vamp
+  const bootFoot = new THREE.Mesh(new THREE.CapsuleGeometry(0.062, 0.09, 8, 14), leatherMat);
+  bootFoot.rotation.x = Math.PI * 0.5;
+  bootFoot.position.set(lx, 0.072, 0.03);
+  bootFoot.rotation.z = side * 0.08;
+  bootFoot.castShadow = true;
+  charTurnGroup.add(bootFoot);
+
+  // Boot ankle shaft & rolled cuff
+  const bootShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.066, 0.058, 0.18, 14), leatherMat);
+  bootShaft.position.set(lx, 0.16, -0.01);
+  bootShaft.castShadow = true;
+  charTurnGroup.add(bootShaft);
+
+  const bootCuff = new THREE.Mesh(new THREE.TorusGeometry(0.066, 0.016, 8, 16), leatherMat);
+  bootCuff.rotation.x = Math.PI * 0.5;
+  bootCuff.position.set(lx, 0.245, -0.01);
+  charTurnGroup.add(bootCuff);
+
+  // Brass boot eyelets
+  for (let e = 0; e < 3; e++) {
+    const stud = new THREE.Mesh(new THREE.SphereGeometry(0.008, 6, 6), brushedBrassMat);
+    stud.position.set(lx, 0.12 + e * 0.04, 0.052);
+    charTurnGroup.add(stud);
+  }
+
+  // Sculpted wool trouser leg
+  const legMesh = new THREE.Mesh(new THREE.CapsuleGeometry(0.072, 0.30, 8, 14), trouserMat);
+  legMesh.position.set(lx, 0.42, -0.01);
+  legMesh.castShadow = true;
+  legMesh.receiveShadow = true;
+  charTurnGroup.add(legMesh);
+}
+
+// 7B. Hips & Tailored Double-Breasted Lamplighter Overcoat
+const spinePivot = new THREE.Group();
+spinePivot.position.set(0, 0.58, 0);
+charTurnGroup.add(spinePivot);
+
+{
+  // Lathe-sculpted flared coat skirt + tapered waist + structured chest
+  const coatPts = [
+    new THREE.Vector2(0.0,   -0.08),
+    new THREE.Vector2(0.285, -0.08), // flared lower hem
+    new THREE.Vector2(0.255,  0.05),
+    new THREE.Vector2(0.215,  0.18), // cinched belt waist
+    new THREE.Vector2(0.245,  0.34),
+    new THREE.Vector2(0.265,  0.48), // broad cozy chest
+    new THREE.Vector2(0.215,  0.60), // shoulders taper to neck
+    new THREE.Vector2(0.110,  0.64),
+    new THREE.Vector2(0.0,    0.64)
+  ];
+  const coatBody = new THREE.Mesh(new THREE.LatheGeometry(coatPts, 28), coatMainMat);
+  coatBody.scale.set(1.04, 1.0, 0.86);
+  coatBody.castShadow = true;
+  coatBody.receiveShadow = true;
+  spinePivot.add(coatBody);
+
+  // Warm waistcoat V-front insert & tailored coat lapels
+  const vest = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.12, 0.24, 12), waistcoatMat);
+  vest.scale.set(1.0, 1.0, 0.72);
+  vest.position.set(0, 0.49, 0.11);
+  spinePivot.add(vest);
+
+  for (const side of [-1, 1]) {
+    const lapel = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.24, 0.03), coatTrimMat);
+    lapel.position.set(side * 0.085, 0.47, 0.195);
+    lapel.rotation.set(-0.14, side * 0.25, side * -0.24);
+    lapel.castShadow = true;
+    spinePivot.add(lapel);
+  }
+
+  // Double-breasted polished brass buttons
+  const btnGeo = new THREE.CylinderGeometry(0.017, 0.017, 0.012, 12);
+  btnGeo.rotateX(Math.PI * 0.5);
+  for (const side of [-1, 1]) {
+    for (let row = 0; row < 3; row++) {
+      const btn = new THREE.Mesh(btnGeo, brushedBrassMat);
+      btn.position.set(side * 0.068, 0.25 + row * 0.085, 0.212 + row * 0.006);
+      spinePivot.add(btn);
+    }
+  }
+
+  // Cinched Leather Belt, Brass Frame Buckle & Tinder Pouch
+  const belt = new THREE.Mesh(new THREE.CylinderGeometry(0.226, 0.228, 0.055, 24), leatherMat);
+  belt.scale.set(1.05, 1.0, 0.88);
+  belt.position.y = 0.18;
+  belt.castShadow = true;
+  spinePivot.add(belt);
+
+  const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.068, 0.072, 0.022), brushedBrassMat);
+  buckle.position.set(0, 0.18, 0.205);
+  spinePivot.add(buckle);
+
+  const buckleIn = new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.042, 0.026), leatherMat);
+  buckleIn.position.set(0, 0.18, 0.205);
+  spinePivot.add(buckleIn);
+
+  const pouch = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.10, 0.06), leatherMat);
+  pouch.position.set(-0.22, 0.13, 0.08);
+  pouch.rotation.z = 0.12;
+  pouch.castShadow = true;
+  spinePivot.add(pouch);
+}
+
+// 7C. Cozy Knitted Scarf + Fluttering Tails
+const scarfTailF = new THREE.Group();
+{
+  const scarfRing = new THREE.Mesh(new THREE.TorusGeometry(0.155, 0.052, 14, 24), scarfMat);
+  scarfRing.rotation.x = Math.PI * 0.5 + 0.08;
+  scarfRing.scale.set(1.05, 0.96, 1.0);
+  scarfRing.position.set(0, 0.63, 0.01);
+  scarfRing.castShadow = true;
+  spinePivot.add(scarfRing);
+
+  const knot = new THREE.Mesh(new THREE.SphereGeometry(0.058, 12, 10), scarfMat);
+  knot.position.set(0.07, 0.59, 0.155);
+  spinePivot.add(knot);
+
+  scarfTailF.position.set(0.075, 0.57, 0.175);
+  spinePivot.add(scarfTailF);
+
+  const tail1 = new THREE.Mesh(new THREE.CapsuleGeometry(0.038, 0.20, 8, 12), scarfMat);
+  tail1.scale.set(1.1, 1.0, 0.55);
+  tail1.position.set(0.01, -0.12, 0.03);
+  tail1.rotation.z = 0.12;
+  tail1.castShadow = true;
+  scarfTailF.add(tail1);
+
+  const tail2 = new THREE.Mesh(new THREE.CapsuleGeometry(0.034, 0.15, 8, 12), scarfMat);
+  tail2.scale.set(1.0, 1.0, 0.55);
+  tail2.position.set(-0.045, -0.10, 0.02);
+  tail2.rotation.z = -0.14;
+  tail2.castShadow = true;
+  scarfTailF.add(tail2);
+}
+
+// 7D. Sculpted Head, Expressive Face, Blinking Eyes with Catchlights & Peaked Cap
+const headPivot = new THREE.Group();
+headPivot.position.set(0, 0.67, 0.01);
+spinePivot.add(headPivot);
+
+const eyelids = [];
+const eyebrows = [];
+{
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.085, 0.10, 14), skinMat);
+  neck.position.y = 0.04;
+  headPivot.add(neck);
+
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.225, 28, 24), skinMat);
+  head.scale.set(0.97, 1.03, 0.96);
+  head.position.set(0, 0.22, 0);
+  head.castShadow = true;
+  head.receiveShadow = true;
+  headPivot.add(head);
+
+  // Ears
+  for (const side of [-1, 1]) {
+    const ear = new THREE.Mesh(new THREE.SphereGeometry(0.044, 12, 10), skinMat);
+    ear.scale.set(0.55, 0.9, 0.75);
+    ear.position.set(side * 0.215, 0.21, -0.01);
+    headPivot.add(ear);
+  }
+
+  // Sculpted cute nose & rosy cheeks
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.036, 14, 12), skinMat);
+  nose.scale.set(0.88, 0.85, 1.15);
+  nose.position.set(0, 0.20, 0.218);
+  nose.castShadow = true;
+  headPivot.add(nose);
+
+  for (const side of [-1, 1]) {
+    const cheek = new THREE.Mesh(new THREE.SphereGeometry(0.044, 12, 10), cheekBlushMat);
+    cheek.scale.set(1.15, 0.72, 0.45);
+    cheek.position.set(side * 0.125, 0.165, 0.182);
+    cheek.rotation.y = side * 0.42;
+    headPivot.add(cheek);
+  }
+
+  // Glossy 3D Eyes + Specular Catchlights + Blinking Eyelids + Expressive Brows
+  for (const side of [-1, 1]) {
+    const ex = side * 0.078;
+    const ey = 0.232;
+    const ez = 0.196;
+
+    const iris = new THREE.Mesh(new THREE.SphereGeometry(0.030, 14, 12), eyeIrisMat);
+    iris.scale.set(0.95, 1.08, 0.75);
+    iris.position.set(ex, ey, ez);
+    headPivot.add(iris);
+
+    // Bright white catchlight spark
+    const catchLight = new THREE.Mesh(
+      new THREE.SphereGeometry(0.009, 8, 8),
+      new THREE.MeshBasicMaterial({ color: 0xffffff })
+    );
+    catchLight.position.set(ex + 0.010, ey + 0.012, ez + 0.022);
+    headPivot.add(catchLight);
+
+    // Upper blinking eyelid
+    const lid = new THREE.Mesh(
+      new THREE.SphereGeometry(0.033, 12, 10, 0, Math.PI * 2, 0, Math.PI * 0.55),
+      skinMat
+    );
+    lid.position.set(ex, ey, ez);
+    lid.rotation.x = -1.25; // Open state
+    headPivot.add(lid);
+    eyelids.push(lid);
+
+    // Sculpted eyebrow
+    const brow = new THREE.Mesh(new THREE.CapsuleGeometry(0.010, 0.042, 6, 8), hairMat);
+    brow.rotation.z = Math.PI * 0.5 + side * -0.14;
+    brow.position.set(ex, ey + 0.056, ez + 0.008);
+    headPivot.add(brow);
+    eyebrows.push({ mesh: brow, baseY: ey + 0.056, side });
+  }
+
+  // Gentle warm smile arc
+  const smile = new THREE.Mesh(
+    new THREE.TorusGeometry(0.032, 0.0055, 6, 14, Math.PI * 0.65),
+    new THREE.MeshStandardMaterial({ color: 0x9c5948, roughness: 0.7 })
+  );
+  smile.position.set(0, 0.152, 0.205);
+  smile.rotation.z = Math.PI * 1.175;
+  headPivot.add(smile);
+
+  // Soft hair tufts under cap
+  for (const [hx, hy, hz, sx] of [
+    [-0.17, 0.28, 0.08, 0.065], [0.17, 0.28, 0.08, 0.065],
+    [0, 0.26, -0.18, 0.12], [-0.13, 0.26, -0.15, 0.08], [0.13, 0.26, -0.15, 0.08]
+  ]) {
+    const tuft = new THREE.Mesh(new THREE.SphereGeometry(sx, 10, 8), hairMat);
+    tuft.position.set(hx, hy, hz);
+    headPivot.add(tuft);
+  }
+
+  // Classic Lamplighter Peaked Wool Cap + Leather Visor + Brass Emblem
+  const capGroup = new THREE.Group();
+  capGroup.position.set(0, 0.33, -0.01);
+  capGroup.rotation.x = -0.12;
+  headPivot.add(capGroup);
+
+  const capBand = new THREE.Mesh(new THREE.CylinderGeometry(0.218, 0.212, 0.065, 24), coatTrimMat);
+  capBand.castShadow = true;
+  capGroup.add(capBand);
+
+  const capCrown = new THREE.Mesh(new THREE.SphereGeometry(0.245, 24, 18), coatMainMat);
+  capCrown.scale.set(1.02, 0.56, 1.08);
+  capCrown.position.set(0, 0.075, -0.015);
+  capCrown.castShadow = true;
+  capGroup.add(capCrown);
+
+  const capButton = new THREE.Mesh(new THREE.SphereGeometry(0.022, 10, 8), brushedBrassMat);
+  capButton.position.set(0, 0.205, -0.015);
+  capGroup.add(capButton);
+
+  // Curved dark-leather front visor
+  const visor = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.215, 0.225, 0.022, 20, 1, false, -Math.PI * 0.36, Math.PI * 0.72),
+    leatherMat
+  );
+  visor.scale.set(1.0, 1.0, 1.26);
+  visor.position.set(0, -0.022, 0.055);
+  visor.rotation.x = 0.22;
+  visor.castShadow = true;
+  capGroup.add(visor);
+
+  // Brass lantern badge on cap front
+  const badge = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.012, 12), brushedBrassMat);
+  badge.rotation.x = Math.PI * 0.5;
+  badge.position.set(0, 0.015, 0.218);
+  capGroup.add(badge);
+}
+
+// 7E. TWO-BONE IK ARTICULATED ARMS (Shoulder -> Upper Sleeve -> Elbow -> Forearm & Cuff -> Hand)
+const UPPER_ARM_LEN = 0.33;
+const FORE_ARM_LEN  = 0.34;
+
+function createArticulatedArm(side) {
+  // side: +1 = character's left (+X in local space), -1 = character's right (-X in local space)
+  const shoulder = new THREE.Group();
+  shoulder.position.set(side * 0.245, 0.54, 0.01);
+  spinePivot.add(shoulder);
+
+  const shoulderCap = new THREE.Mesh(new THREE.SphereGeometry(0.078, 14, 12), coatMainMat);
+  shoulderCap.castShadow = true;
+  shoulder.add(shoulderCap);
+
+  const upperSleeve = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.068, 0.058, UPPER_ARM_LEN, 14),
+    coatMainMat
+  );
+  upperSleeve.position.y = -UPPER_ARM_LEN * 0.5;
+  upperSleeve.castShadow = true;
+  shoulder.add(upperSleeve);
+
+  const elbow = new THREE.Group();
+  elbow.position.set(0, -UPPER_ARM_LEN, 0);
+  shoulder.add(elbow);
+
+  const elbowJoint = new THREE.Mesh(new THREE.SphereGeometry(0.058, 12, 10), coatMainMat);
+  elbow.add(elbowJoint);
+
+  const foreSleeve = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.056, 0.050, FORE_ARM_LEN * 0.78, 14),
+    coatMainMat
+  );
+  foreSleeve.position.y = -FORE_ARM_LEN * 0.39;
+  foreSleeve.castShadow = true;
+  elbow.add(foreSleeve);
+
+  const cuff = new THREE.Mesh(new THREE.TorusGeometry(0.054, 0.016, 8, 16), coatTrimMat);
+  cuff.rotation.x = Math.PI * 0.5;
+  cuff.position.y = -FORE_ARM_LEN * 0.76;
+  elbow.add(cuff);
+
+  // Sculpted Hand + Thumb at -FORE_ARM_LEN
+  const wrist = new THREE.Group();
+  wrist.position.set(0, -FORE_ARM_LEN, 0);
+  elbow.add(wrist);
+
+  const palm = new THREE.Mesh(new THREE.SphereGeometry(0.052, 14, 12), skinMat);
+  palm.scale.set(0.88, 1.12, 0.78);
+  palm.castShadow = true;
+  wrist.add(palm);
+
+  const thumb = new THREE.Mesh(new THREE.CapsuleGeometry(0.016, 0.028, 6, 8), skinMat);
+  thumb.position.set(-side * 0.042, 0.01, 0.028);
+  thumb.rotation.z = side * 0.55;
+  wrist.add(thumb);
+
+  return { shoulder, elbow, wrist };
+}
+
+// Note: in Three.js character local space facing +Z:
+// -X is the character's RIGHT side (closest to lamp at -X!), +X is the character's LEFT side!
+const rightArm = createArticulatedArm(-1); // Closest to streetlamp -> Operates Switch Lever!
+const leftArm  = createArticulatedArm(+1); // Outer arm -> Carries & Raises Brass Lighter Pole!
+
+// Vintage Brass & Walnut Lamplighter's Igniter Staff (anchored at left palm, world-aimed for rock-steady control)
+const STAFF_TIP_LEN = 1.82;
+const STAFF_BUTT_LEN = 0.82;
+const lighterStaff = new THREE.Group();
+scene.add(lighterStaff);
+const pilotTipMat = new THREE.MeshStandardMaterial({
+  color: 0xffd27d,
+  emissive: 0xff9a2e,
+  emissiveIntensity: 2.4,
+  roughness: 0.2
+});
+{
+  const totalLen = STAFF_TIP_LEN + STAFF_BUTT_LEN;
+  const woodShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.021, totalLen, 12), warmWoodMat);
+  woodShaft.position.y = (STAFF_TIP_LEN - STAFF_BUTT_LEN) * 0.5;
+  woodShaft.castShadow = true;
+  lighterStaff.add(woodShaft);
+
+  // Brass ferrules & shod foot
+  for (const fy of [-STAFF_BUTT_LEN + 0.03, 0.10, 1.15, STAFF_TIP_LEN - 0.16]) {
+    const ring = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.04, 12), brushedBrassMat);
+    ring.position.y = fy;
+    lighterStaff.add(ring);
+  }
+
+  // Brass swan-hook & pierced pilot burner head at top of staff
+  const hook = new THREE.Mesh(
+    new THREE.TorusGeometry(0.058, 0.010, 8, 16, Math.PI * 1.15),
+    brushedBrassMat
+  );
+  hook.position.set(-0.055, STAFF_TIP_LEN - 0.07, 0);
+  lighterStaff.add(hook);
+
+  const pilotBell = new THREE.Mesh(new THREE.CylinderGeometry(0.030, 0.018, 0.09, 12), brushedBrassMat);
+  pilotBell.position.set(0, STAFF_TIP_LEN - 0.06, 0);
+  lighterStaff.add(pilotBell);
+
+  const pilotFlame = new THREE.Mesh(new THREE.SphereGeometry(0.024, 10, 8), pilotTipMat);
+  pilotFlame.scale.set(0.85, 1.4, 0.85);
+  pilotFlame.position.set(0, STAFF_TIP_LEN, 0);
+  lighterStaff.add(pilotFlame);
+
+  const pilotSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: softGlowTex,
+    color: 0xffaa44,
+    transparent: true,
+    opacity: 0.62,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  }));
+  pilotSprite.position.set(0, STAFF_TIP_LEN, 0);
+  pilotSprite.scale.setScalar(0.36);
+  lighterStaff.add(pilotSprite);
+}
+
+// Exact Analytical 2-Bone IK Solver (guarantees connected joints, zero NaN, smooth elbow bend)
+const _ikMat4 = new THREE.Matrix4();
+const _vT = new THREE.Vector3();
+const _vP = new THREE.Vector3();
+const _vDir = new THREE.Vector3();
+const _vBend = new THREE.Vector3();
+const _vElbow = new THREE.Vector3();
+const _uDir = new THREE.Vector3();
+const _fDir = new THREE.Vector3();
+const _xAx = new THREE.Vector3();
+const _yAx = new THREE.Vector3();
+const _zAx = new THREE.Vector3();
+
+function solveTwoBoneIK(arm, targetWorld, poleWorld) {
+  spinePivot.updateWorldMatrix(true, false);
+  _vT.copy(targetWorld);
+  spinePivot.worldToLocal(_vT).sub(arm.shoulder.position);
+
+  _vP.copy(poleWorld);
+  spinePivot.worldToLocal(_vP).sub(arm.shoulder.position);
+
+  const maxReach = (UPPER_ARM_LEN + FORE_ARM_LEN) * 0.992;
+  const dist = THREE.MathUtils.clamp(_vT.length(), 0.08, maxReach);
+  _vDir.copy(_vT).normalize();
+
+  const cosAlpha = THREE.MathUtils.clamp(
+    (UPPER_ARM_LEN * UPPER_ARM_LEN + dist * dist - FORE_ARM_LEN * FORE_ARM_LEN) / (2 * UPPER_ARM_LEN * dist),
+    -1, 1
+  );
+  const alpha = Math.acos(cosAlpha);
+
+  const cosBeta = THREE.MathUtils.clamp(
+    (UPPER_ARM_LEN * UPPER_ARM_LEN + FORE_ARM_LEN * FORE_ARM_LEN - dist * dist) / (2 * UPPER_ARM_LEN * FORE_ARM_LEN),
+    -1, 1
+  );
+  const elbowBend = Math.PI - Math.acos(cosBeta);
+
+  _vBend.copy(_vP).addScaledVector(_vDir, -_vP.dot(_vDir));
+  if (_vBend.lengthSq() < 1e-5) _vBend.set(0, 0, -1).addScaledVector(_vDir, -_vDir.z);
+  _vBend.normalize();
+
+  _vElbow.copy(_vDir).multiplyScalar(Math.cos(alpha) * UPPER_ARM_LEN)
+         .addScaledVector(_vBend, Math.sin(alpha) * UPPER_ARM_LEN);
+
+  _uDir.copy(_vElbow).normalize();
+  _fDir.copy(_vDir).multiplyScalar(dist).sub(_vElbow).normalize();
+
+  _yAx.copy(_uDir).negate();
+  _xAx.crossVectors(_uDir, _fDir);
+  if (_xAx.lengthSq() < 1e-5) _xAx.crossVectors(_uDir, _vBend);
+  _xAx.normalize();
+  _zAx.crossVectors(_xAx, _yAx).normalize();
+
+  _ikMat4.makeBasis(_xAx, _yAx, _zAx);
+  arm.shoulder.quaternion.setFromRotationMatrix(_ikMat4);
+  arm.elbow.rotation.set(-elbowBend, 0, 0);
+}
+
+/* ==========================================================================
+   8. FLOATING SATELLITE PEBBLES, IGNITION SPARKS & NIGHTTIME FIREFLIES
+   ========================================================================== */
+const satelliteRocks = [];
+{
+  const rockCols = [0xb6957b, 0x9c8270, 0xc9a88d, 0x8f796c];
+  for (let i = 0; i < 4; i++) {
+    const rg = new THREE.IcosahedronGeometry(0.22 + i * 0.08, 2);
+    const rp = rg.attributes.position;
+    for (let j = 0; j < rp.count; j++) {
+      const x = rp.getX(j), y = rp.getY(j), z = rp.getZ(j);
+      const s = 1 + Math.sin(x * 5 + i * 2) * 0.16 + Math.cos(y * 4 - z * 5) * 0.12;
+      rp.setXYZ(j, x * s, y * s * 0.78, z * s);
+    }
+    rg.computeVertexNormals();
+    const rm = new THREE.Mesh(
+      rg,
+      new THREE.MeshStandardMaterial({ color: rockCols[i], roughness: 0.9, bumpMap: clayBump, bumpScale: 0.02 })
+    );
+    rm.castShadow = true;
+    scene.add(rm);
+    satelliteRocks.push({ mesh: rm, radius: 7.4 + i * 1.45, yBase: 2.2 + i * 1.3, speed: 0.065 + i * 0.018, phase: i * 1.8 });
+  }
+}
+
+// Golden Ignition Sparks (burst when lamp ignites!)
+const SPARK_COUNT = 22;
+const sparks = [];
+const sparkGeo = new THREE.BufferGeometry();
+const sparkPositions = new Float32Array(SPARK_COUNT * 3);
+sparkGeo.setAttribute('position', new THREE.BufferAttribute(sparkPositions, 3));
+const sparkMat = new THREE.PointsMaterial({
+  map: softGlowTex,
+  color: 0xffe08a,
+  size: 0.18,
+  transparent: true,
+  opacity: 0,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false
+});
+const sparkPoints = new THREE.Points(sparkGeo, sparkMat);
+sparkPoints.frustumCulled = false;
+scene.add(sparkPoints);
+for (let i = 0; i < SPARK_COUNT; i++) {
+  sparks.push({ pos: new THREE.Vector3(), vel: new THREE.Vector3(), life: 0 });
+}
+
+function triggerIgnitionSparks(originWorld) {
+  for (let i = 0; i < SPARK_COUNT; i++) {
+    sparks[i].pos.copy(originWorld);
+    sparks[i].vel.set(
+      (Math.random() - 0.5) * 1.9,
+      0.5 + Math.random() * 1.6,
+      (Math.random() - 0.5) * 1.9
+    );
+    sparks[i].life = 0.45 + Math.random() * 0.45;
+  }
+  sparkMat.opacity = 1.0;
+}
+
+// Warm Golden Fireflies / Moths orbiting the lantern when lit
+const FIREFLY_COUNT = 32;
+const ffGeo = new THREE.BufferGeometry();
+const ffPos = new Float32Array(FIREFLY_COUNT * 3);
+const ffSeeds = [];
+for (let i = 0; i < FIREFLY_COUNT; i++) {
+  ffSeeds.push({
+    ang: Math.random() * Math.PI * 2,
+    rad: 0.38 + Math.random() * 1.35,
+    yOff: -0.7 + Math.random() * 1.35,
+    spd: 0.6 + Math.random() * 1.1,
+    ph: Math.random() * 50
+  });
+}
+ffGeo.setAttribute('position', new THREE.BufferAttribute(ffPos, 3));
+const ffMat = new THREE.PointsMaterial({
+  map: softGlowTex,
+  color: 0xffcf7a,
+  size: 0.22,
+  transparent: true,
+  opacity: 0,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false
+});
+const fireflies = new THREE.Points(ffGeo, ffMat);
+fireflies.frustumCulled = false;
+scene.add(fireflies);
+
+/* ==========================================================================
+   9. POST-PROCESSING (SELECTIVE DREAMY BLOOM + ACES FILMIC OUTPUT)
+   ========================================================================== */
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  0.52, // strength
+  0.68, // radius
+  0.80  // high threshold so character face & ironwork stay crisp and sculptural
+);
+composer.addPass(bloomPass);
+composer.addPass(new OutputPass());
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
+});
+
+/* ==========================================================================
+   10. DAY/NIGHT CYCLE + CHOREOGRAPHED SWITCHING & INTERACTIVE CLICK TOGGLE
+   ========================================================================== */
+const CYCLE_SECONDS = 24.0;
+// Start right before golden sunset dips into twilight so viewer sees the lamp turn ON ~1.8s in!
+let cyclePhase = 0.205; // 0.0 = noon, 0.25 = dusk/sunset, 0.50 = midnight, 0.75 = dawn/sunrise
+let targetCycleOffset = 0;
+
+let lampIsLit = false;       // Logical switch state
+let lampGlow = 0.0;          // Smooth filament brightness 0..1
+let ignitionFlare = 0.0;     // Extra warm burst at moment of ignition
+let leverProgress = 0.0;     // 0 = OFF (up), 1 = ON (pulled down)
+
+// Action state machine for the Lamplighter
+let actionType = 'idle';     // 'idle' | 'turnOn' | 'turnOff'
+let actionTime = 0.0;
+let actionSwitched = false;
+let manualLockTimer = 0.0;
+
+function startSwitchAction(turnOn) {
+  if (actionType !== 'idle') return;
+  actionType = turnOn ? 'turnOn' : 'turnOff';
+  actionTime = 0.0;
+  actionSwitched = false;
+}
+
+// Click-to-toggle on Streetlamp or Character (distinguishing clean clicks from camera drags)
+const raycaster = new THREE.Raycaster();
+const pointerDownPos = new THREE.Vector2();
+renderer.domElement.addEventListener('pointerdown', (e) => {
+  pointerDownPos.set(e.clientX, e.clientY);
+});
+renderer.domElement.addEventListener('pointerup', (e) => {
+  if (Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y) > 6) return;
+  const ndc = new THREE.Vector2(
+    (e.clientX / window.innerWidth) * 2 - 1,
+    -(e.clientY / window.innerHeight) * 2 + 1
+  );
+  raycaster.setFromCamera(ndc, camera);
+  const hits = raycaster.intersectObjects([lampGroup, charRoot], true);
+  if (hits.length > 0 && actionType === 'idle') {
+    const wantOn = !lampIsLit;
+    startSwitchAction(wantOn);
+    manualLockTimer = 9.0;
+    // Smoothly steer celestial sky toward night (if turning on) or golden morning (if turning off)
+    const desiredPhase = wantOn ? 0.36 : 0.86;
+    let delta = desiredPhase - ((cyclePhase + targetCycleOffset) % 1);
+    if (delta > 0.5) delta -= 1;
+    if (delta < -0.5) delta += 1;
+    targetCycleOffset += delta;
+  }
+});
+
+/* ==========================================================================
+   11. MAIN ANIMATION LOOP
+   ========================================================================== */
+const clock = new THREE.Clock();
+const _sunDir = new THREE.Vector3();
+const _handleWorld = new THREE.Vector3();
+const _igniteWorld = new THREE.Vector3();
+const _lanternCenterWorld = new THREE.Vector3();
+const _restRWorld = new THREE.Vector3();
+const _restLWorld = new THREE.Vector3();
+const _liftLWorld = new THREE.Vector3();
+const _poleRWorld = new THREE.Vector3();
+const _poleLWorld = new THREE.Vector3();
+const _handRTarget = new THREE.Vector3();
+const _handLTarget = new THREE.Vector3();
+const _lookTarget = new THREE.Vector3();
+const _upVec = new THREE.Vector3(0, 1, 0);
+const _sunColDay = new THREE.Color(0xfff1d6);
+const _sunColSet = new THREE.Color(0xff8c4a);
+const _fogNight = new THREE.Color(0x070b1e);
+const _fogDay   = new THREE.Color(0x162244);
+
+function smoothBell(t, t0, t1) {
+  if (t <= t0 || t >= t1) return 0;
+  const u = (t - t0) / (t1 - t0);
+  return Math.sin(u * Math.PI);
+}
+function smoothStep01(t, t0, t1) {
+  return THREE.MathUtils.smoothstep(t, t0, t1);
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const elapsed = clock.elapsedTime;
+
+  // 1. Advance Celestial Sun & Moon Cycle
+  cyclePhase = (cyclePhase + dt / CYCLE_SECONDS) % 1.0;
+  const appliedOffset = THREE.MathUtils.damp(0, targetCycleOffset, 2.2, dt);
+  cyclePhase = (cyclePhase + appliedOffset + 1.0) % 1.0;
+  targetCycleOffset -= appliedOffset;
+
+  const orbitAngle = cyclePhase * Math.PI * 2; // 0 = high day, PI/2 = sunset, PI = midnight, 3PI/2 = sunrise
+  const sunElevation = Math.cos(orbitAngle);   // +1 noon, 0 horizon, -1 midnight
+  const sunAzimuthX  = -Math.sin(orbitAngle);
+
+  _sunDir.set(sunAzimuthX * 0.92, sunElevation * 0.78 + 0.06, -0.52).normalize();
+  skyUniforms.uSunDir.value.copy(_sunDir);
+
+  const dayFactor = THREE.MathUtils.smoothstep(sunElevation, -0.22, 0.45);
+  const nightFactor = 1.0 - dayFactor;
+  const horizonGlow = 1.0 - Math.min(1.0, Math.abs(sunElevation) * 2.2);
+
+  skyUniforms.uDayFactor.value = dayFactor;
+  starUniforms.uTime.value = elapsed;
+  starUniforms.uFade.value = 0.22 + 0.78 * nightFactor;
+
+  // Position visible Sun & Moon orbs along great cosmic arc
+  sunOrbVisual.position.copy(_sunDir).multiplyScalar(260);
+  moonOrbVisual.position.copy(_sunDir).negate().multiplyScalar(235);
+  moonOrbVisual.position.y = Math.max(moonOrbVisual.position.y, -40);
+
+  // Update Directional Sun, Moon Rim, Hemisphere & Fog smoothly
+  sunLight.position.copy(_sunDir).multiplyScalar(28);
+  sunLight.position.y += 4.8;
+  const sunVis = THREE.MathUtils.smoothstep(sunElevation, -0.14, 0.32);
+  sunLight.intensity = sunVis * 3.1;
+  sunLight.color.copy(_sunColDay).lerp(_sunColSet, horizonGlow * 0.85);
+
+  moonRimLight.position.set(-_sunDir.x * 20, Math.max(6, -_sunDir.y * 18 + 8), 14);
+  moonRimLight.intensity = 0.35 + 0.85 * nightFactor;
+
+  hemiLight.intensity = 0.42 + 0.45 * dayFactor;
+  scene.fog.color.copy(_fogNight).lerp(_fogDay, dayFactor * 0.65);
+  scene.background.copy(scene.fog.color);
+
+  flowerEmissiveMat.emissiveIntensity = 0.15 + 1.35 * nightFactor;
+
+  // 2. Automatic Dusk/Dawn Trigger for the Lamplighter
+  if (manualLockTimer > 0) {
+    manualLockTimer -= dt;
+  } else if (actionType === 'idle') {
+    if (!lampIsLit && sunElevation < -0.02) {
+      startSwitchAction(true);
+    } else if (lampIsLit && sunElevation > 0.08) {
+      startSwitchAction(false);
+    }
+  }
+
+  // 3. Choreographed Character & Switch State Machine
+  let reachWeight = 0.0;
+  let poleRaiseWeight = 0.0;
+  let bodyTurnTowardLamp = 0.0;
+  let torsoLean = 0.0;
+  let headLookMode = 0.0; // 0 = gentle idle, 1 = switch box, 2 = lantern
+
+  if (actionType === 'turnOn') {
+    actionTime += dt;
+    const dur = 2.65;
+    // Turn toward post & reach right hand onto switch handle
+    bodyTurnTowardLamp = smoothStep01(actionTime, 0.0, 0.45) * (1 - smoothStep01(actionTime, 2.05, dur));
+    torsoLean = smoothBell(actionTime, 0.15, 1.45) * 0.14;
+
+    if (actionTime < 1.25) {
+      reachWeight = smoothStep01(actionTime, 0.05, 0.52) * (1 - smoothStep01(actionTime, 0.98, 1.25));
+      headLookMode = reachWeight; // Look at switch box
+    }
+    // Pull brass switch lever from OFF -> ON while hand is gripping handle!
+    if (actionTime >= 0.52 && actionTime <= 0.98) {
+      const p = (actionTime - 0.52) / (0.98 - 0.52);
+      // Mechanical spring ease
+      leverProgress = THREE.MathUtils.clamp(p * p * (3 - 2 * p) + Math.sin(p * Math.PI) * 0.06, 0, 1);
+    } else if (actionTime > 0.98) {
+      leverProgress = 1.0;
+    }
+
+    // Lift left-hand brass lighter pole up to lantern burner port & spark!
+    poleRaiseWeight = smoothStep01(actionTime, 0.78, 1.38) * (1 - smoothStep01(actionTime, 1.78, 2.48));
+    if (actionTime >= 0.95) {
+      headLookMode = 1.0 + smoothStep01(actionTime, 0.95, 1.35); // Look up at lantern!
+    }
+
+    if (!actionSwitched && actionTime >= 1.40) {
+      actionSwitched = true;
+      lampIsLit = true;
+      ignitionFlare = 1.0;
+      lanternIgniteTarget.getWorldPosition(_igniteWorld);
+      triggerIgnitionSparks(_igniteWorld);
+    }
+
+    if (actionTime >= dur) {
+      actionType = 'idle';
+    }
+  } else if (actionType === 'turnOff') {
+    actionTime += dt;
+    const dur = 2.10;
+    bodyTurnTowardLamp = smoothStep01(actionTime, 0.0, 0.45) * (1 - smoothStep01(actionTime, 1.55, dur));
+    torsoLean = smoothBell(actionTime, 0.15, 1.45) * 0.13;
+    reachWeight = smoothStep01(actionTime, 0.08, 0.55) * (1 - smoothStep01(actionTime, 1.18, 1.68));
+    headLookMode = reachWeight;
+
+    // Push brass switch lever from ON -> OFF while hand holds handle
+    if (actionTime >= 0.55 && actionTime <= 1.12) {
+      const p = (actionTime - 0.55) / (1.12 - 0.55);
+      leverProgress = 1.0 - THREE.MathUtils.clamp(p * p * (3 - 2 * p), 0, 1);
+    } else if (actionTime > 1.12) {
+      leverProgress = 0.0;
+    }
+
+    if (!actionSwitched && actionTime >= 0.95) {
+      actionSwitched = true;
+      lampIsLit = false;
+    }
+
+    if (actionTime >= dur) {
+      actionType = 'idle';
+    }
+  } else {
+    leverProgress = THREE.MathUtils.damp(leverProgress, lampIsLit ? 1.0 : 0.0, 8, dt);
+  }
+
+  // 4. Apply Mechanical Switch Lever, Pressure Gauge Needle & Pilot Jewel
+  switchLeverPivot.rotation.x = THREE.MathUtils.lerp(SWITCH_OFF_ANGLE, SWITCH_ON_ANGLE, leverProgress);
+  gaugeNeedlePivot.rotation.z = THREE.MathUtils.lerp(0.88, -0.72, leverProgress)
+                              + Math.sin(elapsed * 19.0) * 0.025 * leverProgress;
+  pilotJewelMat.emissiveIntensity = 0.15 + leverProgress * 2.4;
+  switchAssembly.userData.dialMat.emissiveIntensity = 0.05 + leverProgress * 0.45;
+
+  // 5. Smooth Filament Warm-Up / Cool-Down & Practical Lantern Lighting
+  ignitionFlare = THREE.MathUtils.damp(ignitionFlare, 0, 4.2, dt);
+  lampGlow = THREE.MathUtils.damp(lampGlow, lampIsLit ? 1.0 : 0.0, lampIsLit ? 5.2 : 2.6, dt);
+
+  const subtleFlicker = 1.0 + Math.sin(elapsed * 9.7) * 0.022 + Math.cos(elapsed * 16.3) * 0.015;
+  const activePower = (lampGlow + ignitionFlare * 0.45) * subtleFlicker;
+
+  // Realistic filament color temperature shift (cherry ember -> warm golden-ivory)
+  mantleCoreMat.emissive.setRGB(
+    1.0,
+    THREE.MathUtils.lerp(0.28, 0.76, lampGlow),
+    THREE.MathUtils.lerp(0.05, 0.36, lampGlow)
+  );
+  mantleCoreMat.emissiveIntensity = activePower * 4.4;
+  filamentWireMat.emissiveIntensity = activePower * 5.2;
+  reflectorMat.emissiveIntensity = activePower * 1.1;
+  lanternGlassMat.emissiveIntensity = activePower * 0.95;
+
+  lampPointLight.intensity = activePower * 16.5;
+  lampSpotLight.intensity  = activePower * 22.0;
+  lanternHaloSprite.material.opacity = activePower * 0.56;
+  lanternHaloSprite.scale.setScalar(2.4 + activePower * 0.55);
+  beamUniforms.uIntensity.value = lampGlow * (0.45 + 0.55 * nightFactor);
+  groundPoolMat.opacity = activePower * (0.14 + 0.24 * nightFactor);
+
+  // 6. Character Posture, Breathing, Blinking, Head Gaze & Exact 2-Bone Arm IK
+  const breath = Math.sin(elapsed * 2.1);
+  // Negative Y rotation turns character toward his right (-X), straight toward the lamp switch!
+  charTurnGroup.rotation.y = -bodyTurnTowardLamp * 0.56 + Math.sin(elapsed * 0.55) * 0.04 * (1 - bodyTurnTowardLamp);
+
+  spinePivot.position.y = 0.58 + breath * 0.010;
+  spinePivot.rotation.x = torsoLean + breath * 0.018;
+  spinePivot.rotation.z = Math.sin(elapsed * 0.85) * 0.016 * (1 - reachWeight);
+
+  scarfTailF.rotation.x = 0.08 + Math.sin(elapsed * 2.4) * 0.06;
+  scarfTailF.rotation.z = Math.cos(elapsed * 1.9) * 0.05;
+
+  // Natural Eye Blinking & Expressive Brows
+  const blinkCycle = elapsed % 4.3;
+  const blinkAmt = (blinkCycle > 4.08 && blinkCycle < 4.26)
+    ? Math.sin(((blinkCycle - 4.08) / 0.18) * Math.PI)
+    : 0;
+  for (const lid of eyelids) {
+    lid.rotation.x = THREE.MathUtils.lerp(-1.25, 0.12, blinkAmt);
+  }
+  const browLift = (lampGlow * 0.012) + (ignitionFlare * 0.022);
+  for (const b of eyebrows) {
+    b.mesh.position.y = b.baseY + browLift;
+  }
+
+  // Head Pitch & Yaw (negative yaw turns head toward lamp on his right; negative pitch looks UP at lantern)
+  const idleLookUp = lampIsLit ? 0.22 : 0.04;
+  const idleLookYaw = lampIsLit ? -0.22 + Math.sin(elapsed * 0.5) * 0.06 : Math.sin(elapsed * 0.45) * 0.12;
+  if (headLookMode <= 1.0) {
+    headPivot.rotation.y = THREE.MathUtils.lerp(idleLookYaw, -0.28, headLookMode);
+    headPivot.rotation.x = THREE.MathUtils.lerp(-idleLookUp, 0.14, headLookMode);
+  } else {
+    const u = headLookMode - 1.0;
+    headPivot.rotation.y = THREE.MathUtils.lerp(-0.28, -0.20, u);
+    headPivot.rotation.x = THREE.MathUtils.lerp(0.14, -0.44, u);
+  }
+
+  // Update world matrices before reading IK targets!
+  worldGroup.updateMatrixWorld(true);
+  switchHandleGripTarget.getWorldPosition(_handleWorld);
+  lanternIgniteTarget.getWorldPosition(_igniteWorld);
+
+  // Right Arm IK (Idle coat-side rest <-> Exact Switch Lever Wooden Grip!)
+  _restRWorld.set(-0.29, 0.16 + breath * 0.01, 0.14);
+  spinePivot.localToWorld(_restRWorld);
+
+  _handRTarget.lerpVectors(_restRWorld, _handleWorld, reachWeight);
+  // Subtle outward-upward arc mid-reach so hand never clips coat or box
+  _handRTarget.y += Math.sin(reachWeight * Math.PI) * 0.08;
+  _handRTarget.z += Math.sin(reachWeight * Math.PI) * 0.07;
+
+  _poleRWorld.set(-0.68, 0.06, -0.42);
+  spinePivot.localToWorld(_poleRWorld);
+  solveTwoBoneIK(rightArm, _handRTarget, _poleRWorld);
+
+  // Left Arm IK (Holds Brass Lighter Staff; lifts comfortably so staff tip meets Lantern Igniter Port!)
+  _restLWorld.set(0.32, 0.24 + breath * 0.012, 0.18);
+  spinePivot.localToWorld(_restLWorld);
+
+  _liftLWorld.set(0.06, 0.88, 0.28);
+  spinePivot.localToWorld(_liftLWorld);
+  _handLTarget.lerpVectors(_restLWorld, _liftLWorld, poleRaiseWeight);
+
+  _poleLWorld.set(0.72, 0.08, -0.38);
+  spinePivot.localToWorld(_poleLWorld);
+  solveTwoBoneIK(leftArm, _handLTarget, _poleLWorld);
+
+  // Anchor lighterStaff right in the left palm & aim smoothly from standing rest to Lantern Igniter Ring!
+  leftArm.wrist.updateWorldMatrix(true, false);
+  leftArm.wrist.getWorldPosition(lighterStaff.position);
+
+  _lookTarget.set(0.08, 1.0, 0.06).normalize(); // Jaunty standing staff angle
+  charRoot.localToWorld(_lookTarget).sub(charRoot.getWorldPosition(_vT)).normalize();
+  _vDir.copy(_igniteWorld).sub(lighterStaff.position).normalize();
+  _lookTarget.lerp(_vDir, poleRaiseWeight).normalize();
+  lighterStaff.quaternion.setFromUnitVectors(_upVec, _lookTarget);
+  lighterStaff.rotateY(-0.6); // Point brass hook toward lantern burner
+
+  // 7. Update Ignition Sparks, Fireflies, Grass Sway & Orbiting Pebbles
+  let activeSparks = 0;
+  for (let i = 0; i < SPARK_COUNT; i++) {
+    const s = sparks[i];
+    if (s.life > 0) {
+      s.life -= dt;
+      s.vel.y -= 3.8 * dt;
+      s.pos.addScaledVector(s.vel, dt);
+      activeSparks++;
+    }
+    sparkPositions[i * 3]     = s.pos.x;
+    sparkPositions[i * 3 + 1] = s.pos.y;
+    sparkPositions[i * 3 + 2] = s.pos.z;
+  }
+  sparkGeo.attributes.position.needsUpdate = true;
+  sparkMat.opacity = activeSparks > 0 ? Math.min(1, activeSparks / 6) : 0;
+
+  lanternGroup.getWorldPosition(_lanternCenterWorld);
+  for (let i = 0; i < FIREFLY_COUNT; i++) {
+    const f = ffSeeds[i];
+    const a = elapsed * f.spd + f.ang;
+    const r = f.rad + Math.sin(elapsed * 1.4 + f.ph) * 0.18;
+    ffPos[i * 3]     = _lanternCenterWorld.x + Math.cos(a) * r;
+    ffPos[i * 3 + 1] = _lanternCenterWorld.y + 0.25 + f.yOff * 0.55 + Math.sin(elapsed * 2.1 + f.ph) * 0.18;
+    ffPos[i * 3 + 2] = _lanternCenterWorld.z + Math.sin(a) * r;
+  }
+  ffGeo.attributes.position.needsUpdate = true;
+  ffMat.opacity = lampGlow * (0.25 + 0.65 * nightFactor);
+
+  grassTufts.forEach((tuft, idx) => {
+    tuft.rotation.z = Math.sin(elapsed * 1.6 + idx * 0.9) * 0.045;
+  });
+
+  for (const sr of satelliteRocks) {
+    const a = elapsed * sr.speed + sr.phase;
+    sr.mesh.position.set(
+      Math.cos(a) * sr.radius,
+      sr.yBase + Math.sin(elapsed * 0.6 + sr.phase) * 0.45,
+      Math.sin(a) * sr.radius
+    );
+    sr.mesh.rotation.x = elapsed * 0.22 + sr.phase;
+    sr.mesh.rotation.y = elapsed * 0.31;
+  }
+
+  // 8. Gentle Cinematic Pendulum Camera Drift when Idle (keeps hero face + switch in clear view!)
+  if (!userInteracting) {
+    idleSeconds += dt;
+    if (idleSeconds > 3.5) {
+      const blend = Math.min(1, (idleSeconds - 3.5) * 0.25) * dt * 0.9;
+      const swayAz = BASE_CAM_AZIMUTH + Math.sin(elapsed * 0.22) * 0.46;
+      const curDist = camera.position.distanceTo(controls.target);
+      const desiredX = controls.target.x + Math.sin(swayAz) * Math.cos(0.18) * curDist;
+      const desiredY = controls.target.y + Math.sin(0.18 + Math.sin(elapsed * 0.17) * 0.05) * curDist;
+      const desiredZ = controls.target.z + Math.cos(swayAz) * Math.cos(0.18) * curDist;
+      camera.position.x = THREE.MathUtils.lerp(camera.position.x, desiredX, blend);
+      camera.position.y = THREE.MathUtils.lerp(camera.position.y, desiredY, blend);
+      camera.position.z = THREE.MathUtils.lerp(camera.position.z, desiredZ, blend);
+    }
+  }
+
+  controls.update();
+  composer.render();
+}
+
+animate();
+requestAnimationFrame(() => {
+  document.getElementById('fade').style.opacity = '0';
+});
+</script>
+</body>
+</html>

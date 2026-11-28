@@ -1,0 +1,13 @@
+{
+  "name": "Puzzle Card",
+  "short_name": "Puzzle Card",
+  "description": "Turn a photo into a jigsaw, write a letter on the back and send it. Finish the puzzle to read the letter.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0b0b0d",
+  "theme_color": "#0b0b0d",
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

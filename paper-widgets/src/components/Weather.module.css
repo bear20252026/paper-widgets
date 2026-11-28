@@ -1,0 +1,70 @@
+.range {
+  position: absolute;
+  right: var(--pad);
+  top: var(--range-y);
+  font-size: var(--small);
+  color: var(--muted);
+}
+
+.temp {
+  position: absolute;
+  left: var(--temp-x);
+  top: var(--temp-y);
+  font-size: var(--temp-size);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  line-height: 1;
+}
+
+.sky {
+  position: absolute;
+  left: var(--sky-x);
+  top: var(--sky-y);
+  font-size: var(--sky-size);
+}
+
+.arcBox {
+  position: absolute;
+  left: var(--arc-x);
+  top: var(--arc-y);
+  overflow: visible;
+}
+
+.dotted {
+  fill: none;
+  stroke: var(--dotted);
+}
+
+.horizon {
+  stroke: var(--hair);
+}
+
+.arc {
+  fill: none;
+  stroke: var(--accent);
+  stroke-linecap: round;
+}
+
+.glow {
+  fill: var(--sun-glow);
+}
+
+.sun {
+  fill: var(--accent);
+}
+
+.time {
+  position: absolute;
+  top: var(--sun-times-y);
+  font-family: var(--font-mono);
+  font-size: var(--tiny);
+  color: var(--muted);
+}
+
+.sunrise {
+  left: var(--pad);
+}
+
+.sunset {
+  right: var(--pad);
+}

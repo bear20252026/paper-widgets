@@ -1,0 +1,215 @@
+/* Design tokens. Every size is a pixel of the 1080 × 1080 stage: the stage scales as a whole to fit the window
+   (components/Stage.tsx), so nothing here needs a viewport unit. Positions the animation also computes live in
+   src/lib/layout.ts; motion numbers in src/lib/timeline.ts. Icon sizes are the components' `size` props. */
+
+:root {
+  /* Stage and grid: 3 × 3 cells of 296, 20 apart, 76 in from the edge; two tiles span two cells */
+  --stage: 1080px;
+  --grid-margin: 76px;
+  --grid-step: 316px;
+  --cell: 296px;
+  --cell-wide: 612px;
+
+  /* Palette: warm paper, black ink, one ultramarine accent */
+  --bg: #e7e5e0;
+  --tile: #f8f7f4;
+  --ink: #141416;
+  --ink-rgb: 20 20 22; /* for the press wash, alpha set per frame */
+  --muted: #8b887f;
+  --accent: #2b36ff;
+  --white: #fff;
+  --line: rgba(20, 20, 22, 0.08); /* calendar divider */
+  --wash: rgba(20, 20, 22, 0.05); /* icon wells, empty step bars */
+  --track: rgba(20, 20, 22, 0.07); /* progress and battery tracks */
+  --hair: rgba(20, 20, 22, 0.12); /* the arc's horizon, the knob's ring, the switch when off */
+  --marker: rgba(20, 20, 22, 0.14); /* calendar markers */
+  --dotted: rgba(20, 20, 22, 0.16); /* the sun's dotted path, unlit timer ticks */
+  --sun-glow: rgba(43, 54, 255, 0.14);
+
+  /* Type */
+  --font-sans: "Geist", system-ui, sans-serif;
+  --font-mono: "Geist Mono", monospace;
+  --display-weight: 300; /* the thin numerals */
+  --display-tracking: -0.04em;
+  --small: 13px; /* secondary lines, muted */
+  --tiny: 10.5px; /* mono time and day captions */
+
+  /* Widget labels: dot + word, top left of every tile */
+  --label-font: 400 14px "Inter", system-ui, sans-serif;
+  --label-tracking: -0.1px;
+  --label-case: none;
+  --label-left: 26px;
+  --label-top: 22px;
+  --label-gap: 8px;
+  --label-dot: 6px;
+
+  /* Tile */
+  --tile-radius: 38px;
+  --tile-shadow:
+    0 0 0 1px rgba(20, 20, 22, 0.05), inset 0 1px 0 #fff, 0 28px 46px -30px rgba(40, 34, 20, 0.35),
+    0 2px 4px rgba(40, 34, 20, 0.04);
+  --pad: 26px; /* right-hand text inset */
+
+  /* Weather */
+  --range-y: 22px; /* "H 26° · L 17°", top right */
+  --temp-size: 92px;
+  --temp-x: 22px;
+  --temp-y: 58px;
+  --sky-size: 15px;
+  --sky-x: 27px;
+  --sky-y: 160px;
+  --arc-x: 24px;
+  --arc-y: 182px;
+  --sun-times-y: 268px;
+
+  /* Now playing */
+  --cover-inset: 24px;
+  --cover-size: 248px;
+  --cover-radius: 24px;
+  --cover-a: var(--accent);
+  --cover-a-disc: #ffb48a;
+  --cover-a-disc-size: 190px;
+  --cover-a-disc-right: -56px;
+  --cover-a-disc-top: -40px;
+  --cover-a-rule-w: 120px;
+  --cover-a-rule-h: 2px;
+  --cover-a-rule-bottom: 30px;
+  --cover-a-rule-opacity: 0.85;
+  --cover-a-mark-size: 10px;
+  --cover-a-mark-tracking: 1px;
+  --cover-a-mark-bottom: 42px;
+  --cover-a-x: 22px;
+  --cover-b: #e6e0d2;
+  --cover-b-disc-size: 150px;
+  --cover-b-disc-x: 24px;
+  --cover-b-disc-y: 30px;
+  --cover-b-square: 38px;
+  --cover-b-square-inset: 30px;
+  --cover-b-square-radius: 6px;
+  --player-x: 300px; /* label, title, progress */
+  --eq-x: 426px;
+  --eq-y: 24px;
+  --eq-w: 30px;
+  --eq-h: 14px;
+  --eq-bar: 3px;
+  --eq-pitch: 6px;
+  --eq-radius: 2px;
+  --title-size: 28px;
+  --title-tracking: -0.6px;
+  --title-y: 70px;
+  --artist-size: 15px;
+  --artist-x: 301px;
+  --artist-y: 106px;
+  --progress-y: 186px;
+  --progress-w: 288px;
+  --progress-h: 5px;
+  --knob: 15px;
+  --knob-y: 181px;
+  --knob-pull: -7px;
+  --knob-shadow: 0 0 0 1px var(--hair), 0 2px 6px rgba(0, 0, 0, 0.15);
+  --times-size: 11px;
+  --times-y: 202px;
+  --length-x: 552px;
+  --button: 40px;
+  --button-y: 232px;
+  --prev-x: 348px;
+  --next-x: 504px;
+  --play: 52px;
+  --play-x: 420px;
+  --play-y: 226px;
+
+  /* Focus timer */
+  --dial-x: 48px;
+  --dial-y: 56px;
+  --dial: 200px;
+  --digits-size: 42px;
+  --digits-tracking: -1.5px;
+  --digits-y: 128px;
+  --dial-caption-y: 178px;
+
+  /* Steps */
+  --steps-size: 54px;
+  --steps-x: 24px;
+  --steps-y: 58px;
+  --goal-x: 27px;
+  --goal-y: 118px;
+  --day-x: 26px;
+  --day-pitch: 35px;
+  --day-w: 22px;
+  --day-h: 90px;
+  --day-y: 166px;
+  --day-radius: 7px;
+  --day-opacity: 0.85; /* past days; today is the accent at full */
+  --day-letter-y: 264px;
+
+  /* Batteries */
+  --device-y: 70px;
+  --device-pitch: 72px;
+  --well: 36px;
+  --well-x: 24px;
+  --well-radius: 11px;
+  --device-x: 72px;
+  --device-size: 14.5px;
+  --device-name-y: 1px;
+  --level-size: 12.5px;
+  --level-y: 2px;
+  --level-bar-y: 26px;
+  --level-bar-w: 198px;
+  --level-bar-h: 8px;
+  --shimmer-w: 40px;
+  --shimmer: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  --bolt-x: 128px;
+
+  /* Calendar */
+  --day-size: 150px;
+  --day-tracking: -8px;
+  --date-x: 20px;
+  --date-y: 64px;
+  --month-size: 17px;
+  --month-x: 28px;
+  --month-y: 222px;
+  --summary-y: 246px;
+  --divider-x: 262px;
+  --divider-inset: 28px;
+  --list-x: 290px;
+  --list-y: 34px;
+  --list-w: 296px;
+  --list-h: 232px;
+  --row-h: 56px;
+  --row-gap: 14px;
+  --event-time: 500 12px var(--font-mono);
+  --event-time-w: 46px;
+  --event-marker-w: 3px;
+  --event-marker-h: 30px;
+  --event-marker-radius: 2px;
+  --event-size: 15.5px;
+  --event-tracking: -0.2px;
+  --event-detail-size: 12px;
+  --event-detail-gap: 2px;
+  --chip-font: 500 11px var(--font-mono);
+  --chip-pad: 5px 9px;
+
+  /* Focus mode */
+  --focus-dark: radial-gradient(260px 220px at 75% 15%, rgba(43, 54, 255, 0.55), transparent 70%), #121215;
+  --focus-text: #f4f3f0;
+  --focus-muted: rgba(244, 243, 240, 0.55);
+  --focus-well: rgba(255, 255, 255, 0.1);
+  --moon-well: 64px;
+  --moon-x: 24px;
+  --moon-y: 70px;
+  --state-size: 30px;
+  --state-tracking: -0.8px;
+  --state-x: 26px;
+  --state-y: 160px;
+  --state-caption-x: 27px;
+  --state-caption-y: 200px;
+  --switch-x: 26px;
+  --switch-y: 238px;
+  --switch-w: 60px;
+  --switch-h: 34px;
+  --switch-knob: 28px;
+  --switch-inset: 3px;
+  --switch-knob-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+
+  --round: 99px;
+}

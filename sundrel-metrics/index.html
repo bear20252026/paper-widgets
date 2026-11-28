@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sundrel Metrics — Project Dashboard</title>
+<meta name="description" content="A project manager's dashboard cut from a reference at 1440 × 782: a lime hero, seven cards on a sage field, and small things that answer back.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fastly.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://fastly.jsdelivr.net/npm/@fontsource/inter-tight@5.1.1/400.css">
+<link rel="stylesheet" href="https://fastly.jsdelivr.net/npm/@fontsource/inter-tight@5.1.1/500.css">
+<link rel="stylesheet" href="https://fastly.jsdelivr.net/npm/@fontsource/inter-tight@5.1.1/600.css">
+<link rel="stylesheet" href="https://fastly.jsdelivr.net/npm/@fontsource/instrument-serif@5.1.1/400-italic.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --ink:#14170E;
+    --ink-70:rgba(20,23,14,.70);
+    --ink-55:rgba(20,23,14,.55);
+    --ink-40:rgba(20,23,14,.40);
+    --muted:#878C7C;
+    --lime:#DFF23F;
+    --lime-soft:#E7F79A;
+    --paper:#FFFFFF;
+    --beige:#ECEFE5;
+    --sage:#B7C0B0;
+    --sage-deep:#77826B;
+    --bar:#F1F2EB;
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(130% 110% at 50% -10%, #BFC8B5 0%, #B9C2AE 48%, #B3BDAA 100%);
+    font-family:'Inter Tight','Helvetica Neue',Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  /* paper grain */
+  body::after{
+    content:"";
+    position:fixed;inset:0;pointer-events:none;z-index:9;
+    opacity:.32;mix-blend-mode:soft-light;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- fixed composition, scaled to viewport ---------- */
+  .viewport{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  .stage{
+    position:relative;width:1440px;height:782px;flex:none;
+    transform:scale(var(--s,1));transform-origin:center center;
+  }
+
+  .board{
+    position:absolute;inset:0;
+    padding:17px 46px 19px 58px;
+    display:grid;
+    grid-template-columns:551px 1fr;
+    grid-template-rows:349px 1fr;
+    gap:17px 27px;
+  }
+  .card{
+    position:relative;
+    border-radius:38px;
+    overflow:hidden;
+    opacity:0;transform:translateY(12px);
+    animation:cardIn .72s var(--ease) forwards;
+  }
+  .card:nth-child(2){animation-delay:.06s}
+  .card:nth-child(3){animation-delay:.12s}
+  .card:nth-child(4){animation-delay:.18s}
+  @keyframes cardIn{to{opacity:1;transform:none}}
+
+  /* ============ hero ============ */
+  .hero{
+    background:
+      radial-gradient(120% 120% at 8% 0%, #DDF247 0%, #E2F45C 38%, #E6F575 72%, #E9F792 100%);
+    padding:19px 31px 9px 23px;
+    display:flex;flex-direction:column;
+  }
+  .hero-head{display:flex;align-items:flex-start;justify-content:space-between;margin-right:-19px}
+  .person{display:flex;align-items:center;gap:13px}
+  .avatar{
+    width:58px;height:58px;border-radius:50%;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:15.5px;font-weight:600;letter-spacing:.01em;
+    background:radial-gradient(120% 120% at 30% 25%, #EE9A76 0%, #E18362 55%, #D8724F 100%);
+    box-shadow:inset 0 -6px 12px rgba(150,60,25,.18);
+  }
+  .person-txt{padding-top:0;margin-top:-22px;margin-left:-6px}
+  .person-name{font-size:14px;font-weight:600;letter-spacing:-.012em;line-height:1.05}
+  .person-role{font-size:11.5px;font-weight:400;color:rgba(20,23,14,.50);line-height:1.1;letter-spacing:.002em;margin-top:0}
+  .tools{display:flex;gap:12px}
+  .tool{
+    width:40px;height:40px;border:0;border-radius:50%;flex:none;
+    background:rgba(255,255,255,.88);color:#252A16;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    transition:background .2s var(--ease), transform .2s var(--ease);
+  }
+  .tool:hover{background:#fff}
+  .tool:active{transform:scale(.94)}
+  .tool svg{width:19px;height:19px}
+
+  .hero h1{
+    margin-top:22px;
+    font-size:40px;line-height:.94;font-weight:600;
+    letter-spacing:-.047em;
+  }
+  .industry{
+    margin-top:19px;font-size:13px;font-weight:400;
+    color:rgba(20,23,14,.70);letter-spacing:.004em;
+  }
+  .saas{
+    font-family:'Instrument Serif',Georgia,'Times New Roman',serif;
+    font-style:italic;font-size:21px;line-height:1;letter-spacing:.015em;
+    margin-left:2px;
+    background:repeating-linear-gradient(42deg,#20250F 0 1.2px,#6C7248 1.2px 2.6px);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    vertical-align:-2px;
+  }
+
+  .hero-foot{margin-top:auto}
+  .bar{
+    height:8px;border-radius:5px;background:rgba(255,255,255,.94);
+    overflow:hidden;position:relative;
+  }
+  .bar i{
+    display:block;height:100%;width:0;border-radius:5px;background:#11150B;
+    transition:width 1.4s cubic-bezier(.2,.7,.2,1);
+  }
+  .bar-meta{
+    margin-top:8px;display:flex;justify-content:space-between;align-items:baseline;
+    font-size:14px;letter-spacing:.002em;
+  }
+  .bar-meta span:first-child{color:rgba(20,23,14,.58)}
+  .bar-meta .pct{font-weight:600;color:#14170E;font-size:14px}
+  .hero-bottom{display:flex;align-items:center;gap:12px;margin-top:8px}
+  .report{
+    height:40px;border-radius:20px;border:0;flex:1;
+    background:rgba(255,255,255,.62);
+    display:flex;align-items:center;gap:11px;padding:0 20px 0 18px;
+    font:500 14.5px/1 'Inter Tight',sans-serif;color:#22270F;text-align:left;
+    cursor:pointer;transition:background .2s var(--ease);
+  }
+  .report:hover{background:#fff}
+  .report svg.doc{width:17px;height:17px;flex:none;opacity:.85}
+  .report .chev{margin-left:auto;display:flex;opacity:.4}
+  .report .chev svg{width:13px;height:13px}
+  .send{
+    width:40px;height:40px;border:0;border-radius:50%;flex:none;cursor:pointer;
+    background:#11150B;color:#E9F79A;
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .22s var(--ease),background .22s var(--ease);
+  }
+  .send:hover{background:#22280F;transform:rotate(-6deg)}
+  .send:active{transform:scale(.94)}
+  .send svg{width:18px;height:18px;transform:translateX(-1px)}
+
+  /* dropdown menus */
+  .menu{
+    position:absolute;z-index:20;min-width:140px;
+    background:#fff;border-radius:18px;padding:7px;
+    box-shadow:0 18px 40px rgba(20,23,14,.16),0 2px 6px rgba(20,23,14,.08);
+    opacity:0;transform:translateY(-6px) scale(.97);pointer-events:none;
+    transition:opacity .18s var(--ease),transform .18s var(--ease);
+  }
+  .menu.open{opacity:1;transform:none;pointer-events:auto}
+  .menu button{
+    display:block;width:100%;text-align:left;border:0;background:none;
+    font:500 13.5px/1 'Inter Tight',sans-serif;color:#22260F;
+    padding:9px 11px;border-radius:11px;cursor:pointer;
+  }
+  .menu button:hover{background:#F1F3E6}
+
+  /* ============ meetings ============ */
+  .meetings{
+    background:#EEF1E7;
+    padding:13px 14px 19px 12px;
+    display:flex;flex-direction:column;
+  }
+  .meet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+  .meet-head h2{
+    font-size:35px;line-height:1.11;font-weight:600;letter-spacing:-.048em;
+  }
+  .month-wrap{position:relative;flex:none;margin-top:4px}
+  .month-btn{
+    height:30px;border:0;border-radius:15px;background:#fff;
+    display:flex;align-items:center;gap:7px;padding:0 11px;
+    font:500 12px/1 'Inter Tight',sans-serif;color:#23270F;cursor:pointer;
+    box-shadow:0 1px 2px rgba(20,23,14,.04);
+    transition:background .2s var(--ease)
+  }
+  .month-btn:hover{background:#FBFCF6}
+  .month-btn svg{width:11px;height:11px;opacity:.55}
+  .month-wrap .menu{top:38px;right:0;min-width:128px}
+  .meet-sub{
+    margin-top:12px;display:flex;align-items:center;gap:8px;
+    font-size:14px;color:rgba(20,23,14,.48);letter-spacing:.005em;
+  }
+  .meet-sub svg{width:16px;height:16px;opacity:.55;flex:none}
+  .meet-sub b{font-weight:600;color:#14170E}
+  .meet-sub .sep{margin:0 1px;opacity:.6}
+  .days{
+    margin-top:auto;display:grid;grid-template-columns:repeat(6,1fr);gap:15px;
+  }
+  .day{
+    aspect-ratio:1;border:0;border-radius:50%;background:#fff;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    cursor:pointer;color:#15190F;
+    transition:background .28s var(--ease),color .28s var(--ease),transform .28s var(--ease);
+  }
+  .day:hover{transform:translateY(-2px)}
+  .day .n{font-size:28px;font-weight:600;letter-spacing:-.035em;line-height:1}
+  .day .w{font-size:13px;font-weight:400;color:#8D9183;letter-spacing:.01em}
+  .day.active{background:#DFF23F}
+  .day.active .w{color:#4B521F}
+  .dots{display:flex;align-items:center;justify-content:center;gap:24px;margin-top:26px}
+  .dots button{
+    width:8px;height:8px;border:0;border-radius:50%;padding:0;cursor:default;
+    background:rgba(20,23,14,.13);transition:background .2s,transform .2s;
+  }
+  .dots button.on{width:10px;height:10px;background:#14170E}
+
+  /* ============ roadmap ============ */
+  .roadmap{
+    background:#fff;
+    padding:32px 19px 36px 23px;
+    display:flex;flex-direction:column;
+  }
+  .rm-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .rm-head h2{font-size:34px;line-height:.98;font-weight:600;letter-spacing:-.048em}
+  .add-wrap{position:relative;flex:none;margin-top:-14px}
+  .add{
+    height:42px;border:0;border-radius:21px;background:#11150B;color:#F4F7E7;
+    display:flex;align-items:center;gap:8px;padding:0 17px;
+    font:500 13.5px/1 'Inter Tight',sans-serif;cursor:pointer;
+    transition:background .2s var(--ease),transform .2s var(--ease);
+  }
+  .add:hover{background:#23290F}
+  .add:active{transform:scale(.97)}
+  .add svg{width:13px;height:13px}
+  .add-wrap .menu{top:46px;right:0;min-width:176px}
+  .add-wrap .menu button{font-size:13px}
+
+  .chart-wrap{margin-top:11px;flex:1;display:flex;flex-direction:column;min-height:0}
+  .chart{position:relative;flex:1}
+  .hatch{
+    position:absolute;top:0;bottom:0;left:61%;right:6%;
+    background:repeating-linear-gradient(48deg,rgba(126,137,114,.16) 0 1.6px,rgba(126,137,114,0) 1.6px 9px);
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 10px,#000 100%);
+            mask-image:linear-gradient(90deg,transparent 0,#000 10px,#000 100%);
+  }
+  .today{
+    position:absolute;top:6px;bottom:0;left:66.8%;width:2px;background:#11150B;
+  }
+  .today i{
+    position:absolute;left:50%;top:-6px;width:11px;height:11px;border-radius:50%;
+    background:#11150B;transform:translateX(-50%);
+  }
+  .task{
+    position:absolute;height:35px;border-radius:18px;
+    display:grid;grid-template-columns:1fr auto auto;align-items:center;
+    gap:11px;padding:0 3px 0 15px;
+    background:var(--bar);
+    color:#15190F;white-space:nowrap;
+  }
+  .task.lime{background:#DFF23F;--ring:#DFF23F}
+  .task .tname{
+    font-size:14.5px;font-weight:500;letter-spacing:-.015em;
+    overflow:hidden;text-overflow:ellipsis;
+  }
+  .task .tpct{font-size:13.5px;font-weight:400;color:#70756A;letter-spacing:.005em}
+  .task.lime .tpct{color:#4E5523}
+  .avs{display:flex;align-items:center;padding-right:1px}
+  .av{
+    width:34px;height:34px;border-radius:50%;flex:none;margin-left:-7px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:10.5px;font-weight:600;color:#fff;letter-spacing:.02em;
+    box-shadow:0 0 0 2.5px var(--ring,#F1F2EB);
+  }
+  .av:first-child{margin-left:0}
+  .task:nth-child(4) .av{--ring:#F1F2EB}
+  .axis{
+    margin-top:7px;display:grid;grid-template-columns:repeat(5,1fr);
+    font-size:13px;letter-spacing:.005em;color:#8B8F81;
+  }
+  .axis span{text-align:center}
+  .axis span.on{color:#14170E;font-weight:600}
+
+  /* ============ bottom right ============ */
+  .br{
+    display:grid;grid-template-columns:300px 1fr;gap:24px;
+    min-height:0;
+  }
+  .br-col{display:flex;flex-direction:column;min-height:0}
+
+  .mini{
+    height:116px;margin-top:2px;flex:none;background:#fff;border-radius:40px;
+    display:flex;align-items:center;gap:8px;padding:2px 26px 0;
+  }
+  .mini .date{
+    width:60px;height:60px;border-radius:50%;flex:none;background:#14170E;color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:27px;font-weight:600;letter-spacing:-.03em;
+  }
+  .mini .txt{font-size:13px;font-weight:500;line-height:1.3;letter-spacing:-.005em;margin-top:3px}
+  .mini .txt small{display:block;font-size:13px;color:#6E7366;font-weight:400;margin-top:1px;line-height:1.3}
+
+  .eff{
+    margin-top:16px;flex:1;min-height:0;background:#11150C;border-radius:38px;
+    padding:12px 14px;color:#F2F5E6;
+  }
+  .eff h3{font-size:17px;font-weight:600;letter-spacing:-.025em}
+  .eff .chip{
+    margin-top:11px;height:28px;display:inline-flex;align-items:center;gap:6px;
+    border:1px solid rgba(240,243,229,.24);border-radius:15px;
+    padding:0 12px;font-size:11.5px;color:rgba(240,243,229,.60);
+    background:none;cursor:pointer;
+  }
+  .eff .chip svg{width:9px;height:9px;opacity:.7}
+  .bubble{
+    position:absolute;left:92px;top:92px;height:42px;
+    display:flex;align-items:center;gap:6px;
+    padding:0 21px;border-radius:21px;background:#FFFEF4;color:#14170E;
+    font-size:17.5px;font-weight:500;letter-spacing:-.01em;
+    box-shadow:0 4px 12px rgba(0,0,0,.18);
+  }
+  .bubble svg{width:11px;height:11px;opacity:.75}
+  .wave{position:absolute;left:0;right:0;bottom:0;height:118px}
+  .wave svg{width:100%;height:100%;display:block}
+  .wave path.line{filter:drop-shadow(0 0 5px rgba(223,242,63,.40))}
+
+  .right-col{display:flex;flex-direction:column;min-height:0;margin-top:8px}
+  .total{
+    height:162px;flex:none;border-radius:40px;
+    background:radial-gradient(130% 170% at 0% 0%,#8B957D 0%,#848E76 26%,#79846C 58%,#727D65 82%,#707B64 100%);
+    padding:22px 23px 46px;color:#F3F5EC;
+    display:flex;flex-direction:column;
+  }
+  .total-head{display:flex;align-items:flex-start;gap:8px}
+  .clock-orb{
+    width:34px;height:34px;border-radius:50%;flex:none;
+    background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;
+  }
+  .clock-orb svg{width:17px;height:17px;opacity:.85}
+  .total-lab{
+    font-size:13.5px;line-height:1.3;letter-spacing:.004em;color:rgba(246,248,240,.88);
+  }
+  .total-lab span{display:block;color:rgba(246,248,240,.55)}
+  .total-num{
+    margin-top:auto;display:flex;align-items:baseline;gap:2px;
+    font-size:46px;font-weight:500;letter-spacing:-.03em;line-height:.9;
+  }
+  .total-num small{font-size:19px;font-weight:500;letter-spacing:-.01em;margin-left:1px}
+
+  .ai{
+    margin-top:24px;flex:1;min-height:0;border-radius:38px;
+    background:radial-gradient(120% 140% at 12% 8%,#DFF250 0%,#E4F36B 52%,#EBF98F 100%);
+    padding:22px;overflow:hidden;
+  }
+  .ai .go{
+    position:relative;z-index:3;
+    width:43px;height:43px;border:0;border-radius:50%;background:#fff;color:#15190F;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    box-shadow:0 2px 6px rgba(60,70,20,.10);
+    transition:transform .22s var(--ease);
+  }
+  .ai .go:hover{transform:translate(2px,-2px)}
+  .ai .go svg{width:15px;height:15px}
+  .ai .copy{
+    position:absolute;left:23px;bottom:30px;z-index:3;
+    font-size:19px;line-height:1.2;letter-spacing:-.02em;
+  }
+  .ai .copy b{font-weight:600}
+  .blob{
+    position:absolute;z-index:2;right:-6%;top:1%;
+    width:56%;aspect-ratio:1;border-radius:50%;
+    background:
+      radial-gradient(76% 70% at 31% 26%, #FFF6EC 0%, #F9DFCB 15%, #F0CBAD 33%, #E7BC9D 50%, #DBAA8A 66%, #CC9374 82%, #B97A5C 100%);
+    box-shadow:
+      inset -28px -40px 68px rgba(110,56,30,.34),
+      inset 22px 20px 48px rgba(255,255,255,.38),
+      inset 0 0 0 1px rgba(255,255,255,.10);
+  }
+  .blob::after{
+    content:"";position:absolute;inset:8% 10% 12% 18%;
+    border-radius:50%;
+    background:radial-gradient(60% 55% at 55% 52%,rgba(255,246,236,.35),rgba(255,246,236,0) 70%);
+  }
+
+  /* toast */
+  .toast{
+    position:fixed;left:50%;bottom:34px;z-index:60;
+    transform:translate(-50%,14px);
+    background:#14170E;color:#F2F5E4;
+    padding:13px 22px;border-radius:999px;
+    font:500 13.5px/1 'Inter Tight',sans-serif;letter-spacing:.005em;
+    box-shadow:0 14px 34px rgba(10,14,6,.28);
+    opacity:0;pointer-events:none;
+    transition:opacity .25s var(--ease),transform .25s var(--ease);
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  @media (max-width:760px){
+    html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto}
+    .viewport{position:relative;inset:auto;display:block;min-height:100vh}
+    .stage{width:100%;height:auto;transform:none}
+    .board{position:relative;inset:auto;display:flex;flex-direction:column;padding:16px 12px 32px;gap:14px}
+    .hero{height:350px;min-height:350px;padding:22px 20px 18px;border-radius:32px}
+    .hero h1{font-size:clamp(32px,9vw,38px);margin-top:20px}
+    .hero .person-txt{margin-top:-8px}
+    .industry{font-size:12px}
+    .meetings{height:340px;min-height:340px;padding:16px 14px 18px;border-radius:32px}
+    .meet-head h2{font-size:clamp(28px,7.4vw,31px)}
+    .days{grid-template-columns:repeat(6,1fr);gap:8px}
+    .day .n{font-size:clamp(20px,6vw,23px)}
+    .day .w{font-size:10px}
+    .dots{gap:16px;margin-top:18px}
+    .roadmap{height:360px;min-height:360px;padding:24px 16px 22px;border-radius:32px}
+    .rm-head h2{font-size:clamp(28px,7.4vw,31px)}
+    .add{height:38px;padding:0 14px}
+    .chart-wrap{margin-top:8px}
+    .task{height:32px;border-radius:16px;padding-left:12px;gap:7px}
+    .task .tname{font-size:12.5px}
+    .task .tpct{font-size:11.5px}
+    .av{width:28px;height:28px;font-size:9px;margin-left:-5px}
+    .axis{font-size:11px;margin-top:6px}
+    .br{display:flex;flex-direction:column;gap:14px;min-height:0}
+    .br-col{gap:12px;min-height:0}
+    .mini{height:98px;border-radius:30px;padding:2px 20px 0}
+    .mini .date{width:52px;height:52px;font-size:24px}
+    .eff{height:200px;min-height:200px;margin-top:0;border-radius:32px}
+    .bubble{left:72px;top:88px;font-size:16px}
+    .right-col{margin-top:0;gap:12px;min-height:0}
+    .total{height:150px;min-height:150px;border-radius:32px;padding:18px 20px 28px}
+    .total-num{font-size:42px}
+    .ai{height:190px;min-height:190px;flex:none;border-radius:32px;padding:20px}
+    .ai .copy{left:20px;bottom:22px;font-size:17px}
+    .toast{position:fixed;bottom:24px;max-width:calc(100vw - 32px);text-align:center}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.001s!important;transition-duration:.001s!important}
+  }
+</style>
+</head>
+<body>
+<div class="viewport">
+  <div class="stage" id="stage">
+    <div class="board">
+
+      <!-- ===== hero ===== -->
+      <section class="card hero" aria-label="Project overview">
+        <div class="hero-head">
+          <div class="person">
+            <div class="avatar" aria-hidden="true">AH</div>
+            <div class="person-txt">
+              <div class="person-name">Aleisha Hyacinth</div>
+              <div class="person-role">Project Manager</div>
+            </div>
+          </div>
+          <div class="tools">
+            <button class="tool" aria-label="Notifications">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8.4A6 6 0 0 0 6 8.4c0 7-3 8.6-3 8.6h18s-3-1.6-3-8.6"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            </button>
+            <button class="tool" aria-label="Activity history">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.6v4.8l3.2 1.9"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <h1>Sundrel Metrics</h1>
+        <p class="industry">Industry: <span class="saas">SaaS</span></p>
+
+        <div class="hero-foot">
+          <div class="bar"><i id="progressFill" style="width:0"></i></div>
+          <div class="bar-meta"><span>Project progress</span><span class="pct">34%</span></div>
+          <div class="hero-bottom">
+            <button class="report" id="reportBtn" aria-haspopup="true" aria-expanded="false">
+              <svg class="doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7.5A1.5 1.5 0 0 0 6 4.5v15A1.5 1.5 0 0 0 7.5 21h9a1.5 1.5 0 0 0 1.5-1.5V7z"/><path d="M14 3v4.5H19"/><path d="M9.5 12.5h7M9.5 16.5h4.5"/></svg>
+              <span id="reportLabel">Select a report</span>
+              <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9.5 6 6 6-6"/></svg></span>
+            </button>
+            <button class="send" id="sendBtn" aria-label="Send report">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 11.3 20.6 3.4l-6.2 17.2-3.2-6.4z"/><path d="m11.2 14.2 9.4-10.8"/></svg>
+            </button>
+          </div>
+          <div class="menu" id="reportMenu" style="bottom:52px;left:0;right:54px">
+            <button data-report="Weekly summary">Weekly summary</button>
+            <button data-report="Budget overview">Budget overview</button>
+            <button data-report="Sprint velocity">Sprint velocity</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== upcoming meetings ===== -->
+      <section class="card meetings" aria-label="Upcoming meetings">
+        <div class="meet-head">
+          <h2>Upcoming<br>Meetings</h2>
+          <div class="month-wrap">
+            <button class="month-btn" id="monthBtn" aria-haspopup="true" aria-expanded="false">
+              <span id="monthLabel">September</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9.5 6 6 6-6"/></svg>
+            </button>
+            <div class="menu" id="monthMenu">
+              <button data-month="September">September</button>
+              <button data-month="October">October</button>
+              <button data-month="November">November</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="meet-sub">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6.5" width="13" height="11" rx="3"/><path d="m15.5 10.8 6-3.1v8.6l-6-3.1z"/></svg>
+          <span><b>3 calls</b> <span class="sep">-</span> <span id="meetDate">Thu, 11</span></span>
+        </div>
+
+        <div class="days" id="days" role="tablist" aria-label="Dates">
+          <button class="day" data-i="0"><span class="n">8</span><span class="w">Mon</span></button>
+          <button class="day" data-i="1"><span class="n">9</span><span class="w">Tue</span></button>
+          <button class="day" data-i="2"><span class="n">10</span><span class="w">Wed</span></button>
+          <button class="day active" data-i="3"><span class="n">11</span><span class="w">Thu</span></button>
+          <button class="day" data-i="4"><span class="n">12</span><span class="w">Fri</span></button>
+          <button class="day" data-i="5"><span class="n">13</span><span class="w">Sat</span></button>
+        </div>
+
+        <div class="dots" aria-hidden="true">
+          <button></button><button></button><button></button><button class="on"></button><button></button><button></button>
+        </div>
+      </section>
+
+      <!-- ===== project roadmap ===== -->
+      <section class="card roadmap" aria-label="Project roadmap">
+        <div class="rm-head">
+          <h2>Project<br>Roadmap</h2>
+          <div class="add-wrap">
+            <button class="add" id="addBtn" aria-haspopup="true" aria-expanded="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              Add task
+            </button>
+            <div class="menu" id="addMenu">
+              <button data-task="User interviews">User interviews</button>
+              <button data-task="Design audit">Design audit</button>
+              <button data-task="QA pass">QA pass</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <div class="chart" id="chart">
+            <div class="hatch" aria-hidden="true"></div>
+            <div class="today" aria-hidden="true"><i></i></div>
+
+            <div class="task" style="left:2.0%;top:23px;width:135px">
+              <span class="tname">Intro</span>
+              <span class="tpct">100%</span>
+              <span class="avs"><span class="av" style="background:#DD7E5B">AM</span></span>
+            </div>
+            <div class="task" style="left:25.7%;top:92px;width:170px">
+              <span class="tname">Audit</span>
+              <span class="tpct">50%</span>
+              <span class="avs"><span class="av" style="background:#C4693F">RJ</span><span class="av" style="background:#2D4E67">TK</span></span>
+            </div>
+            <div class="task lime" style="left:3.4%;top:156px;width:292px">
+              <span class="tname">Benchmarking</span>
+              <span class="tpct">75%</span>
+              <span class="avs"><span class="av" style="background:#DD7E5B">AM</span><span class="av" style="background:#3B6DA6">GD</span><span class="av" style="background:#765F9F">LN</span></span>
+            </div>
+          </div>
+          <div class="axis">
+            <span>Mon 12</span><span>Tue 13</span><span>Wed 14</span><span class="on">Thu 15</span><span>Fri 16</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== bottom right cluster ===== -->
+      <div class="br">
+        <div class="br-col">
+          <div class="mini" aria-label="Today">
+            <span class="date">19</span>
+            <span class="txt">Tue,<small>January</small></span>
+          </div>
+
+          <section class="card eff" style="animation-delay:.24s" aria-label="Efficiency">
+            <h3>Efficiency</h3>
+            <button class="chip">January
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9.5 6 6 6-6"/></svg>
+            </button>
+            <div class="bubble">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18 18 6M9 6h9v9"/></svg>
+              40%
+            </div>
+            <div class="wave" aria-hidden="true">
+              <svg viewBox="0 0 300 120" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="wf" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#5C6420" stop-opacity="0"/>
+                    <stop offset=".55" stop-color="#555D1E" stop-opacity=".06"/>
+                    <stop offset="1" stop-color="#3D4416" stop-opacity=".30"/>
+                  </linearGradient>
+                </defs>
+                <path fill="url(#wf)" d="M0.00,82.81 C10.00,79.10 12.50,78.64 15.00,78.66 C17.50,78.67 20.00,79.26 22.50,79.87 C25.00,80.47 27.50,81.64 30.00,82.30 C32.50,82.96 35.00,83.77 37.50,83.83 C40.00,83.90 42.50,83.55 45.00,82.69 C47.50,81.84 50.00,80.22 52.50,78.71 C55.00,77.21 57.50,75.09 60.00,73.67 C62.50,72.25 65.00,70.79 67.50,70.22 C70.00,69.65 72.50,69.70 75.00,70.24 C77.50,70.78 80.00,72.27 82.50,73.47 C85.00,74.66 87.50,76.51 90.00,77.43 C92.50,78.34 95.00,79.16 97.50,78.97 C100.00,78.77 102.50,77.73 105.00,76.26 C107.50,74.79 110.00,72.23 112.50,70.16 C115.00,68.09 117.50,65.38 120.00,63.82 C122.50,62.27 125.00,61.00 127.50,60.83 C130.00,60.66 132.50,61.56 135.00,62.78 C137.50,64.00 140.00,66.45 142.50,68.17 C145.00,69.88 147.50,72.16 150.00,73.08 C152.50,74.01 155.00,74.42 157.50,73.70 C160.00,72.98 162.50,70.95 165.00,68.76 C167.50,66.56 170.00,63.06 172.50,60.54 C175.00,58.02 177.50,55.06 180.00,53.64 C182.50,52.22 185.00,51.56 187.50,52.04 C190.00,52.51 192.50,54.52 195.00,56.49 C197.50,58.45 200.00,61.78 202.50,63.85 C205.00,65.91 207.50,68.27 210.00,68.90 C212.50,69.53 215.00,69.14 217.50,67.66 C220.00,66.19 222.50,62.97 225.00,60.04 C227.50,57.11 230.00,52.82 232.50,50.07 C235.00,47.32 237.50,44.49 240.00,43.51 C242.50,42.53 245.00,42.89 247.50,44.20 C250.00,45.52 252.50,48.76 255.00,51.43 C257.50,54.10 260.00,58.07 262.50,60.24 C265.00,62.41 267.50,64.39 270.00,64.43 C272.50,64.47 275.00,62.90 277.50,60.51 C280.00,58.12 282.50,53.67 285.00,50.09 C287.50,46.51 290.00,41.74 292.50,39.04 C295.00,36.34 298.75,34.74 300.00,33.89 L300,120 L0,120 Z"/>
+                <path class="line" id="waveLine" fill="none" stroke="#E3F53F" stroke-width="1.9" stroke-linecap="round" d="M0.00,82.81 C10.00,79.10 12.50,78.64 15.00,78.66 C17.50,78.67 20.00,79.26 22.50,79.87 C25.00,80.47 27.50,81.64 30.00,82.30 C32.50,82.96 35.00,83.77 37.50,83.83 C40.00,83.90 42.50,83.55 45.00,82.69 C47.50,81.84 50.00,80.22 52.50,78.71 C55.00,77.21 57.50,75.09 60.00,73.67 C62.50,72.25 65.00,70.79 67.50,70.22 C70.00,69.65 72.50,69.70 75.00,70.24 C77.50,70.78 80.00,72.27 82.50,73.47 C85.00,74.66 87.50,76.51 90.00,77.43 C92.50,78.34 95.00,79.16 97.50,78.97 C100.00,78.77 102.50,77.73 105.00,76.26 C107.50,74.79 110.00,72.23 112.50,70.16 C115.00,68.09 117.50,65.38 120.00,63.82 C122.50,62.27 125.00,61.00 127.50,60.83 C130.00,60.66 132.50,61.56 135.00,62.78 C137.50,64.00 140.00,66.45 142.50,68.17 C145.00,69.88 147.50,72.16 150.00,73.08 C152.50,74.01 155.00,74.42 157.50,73.70 C160.00,72.98 162.50,70.95 165.00,68.76 C167.50,66.56 170.00,63.06 172.50,60.54 C175.00,58.02 177.50,55.06 180.00,53.64 C182.50,52.22 185.00,51.56 187.50,52.04 C190.00,52.51 192.50,54.52 195.00,56.49 C197.50,58.45 200.00,61.78 202.50,63.85 C205.00,65.91 207.50,68.27 210.00,68.90 C212.50,69.53 215.00,69.14 217.50,67.66 C220.00,66.19 222.50,62.97 225.00,60.04 C227.50,57.11 230.00,52.82 232.50,50.07 C235.00,47.32 237.50,44.49 240.00,43.51 C242.50,42.53 245.00,42.89 247.50,44.20 C250.00,45.52 252.50,48.76 255.00,51.43 C257.50,54.10 260.00,58.07 262.50,60.24 C265.00,62.41 267.50,64.39 270.00,64.43 C272.50,64.47 275.00,62.90 277.50,60.51 C280.00,58.12 282.50,53.67 285.00,50.09 C287.50,46.51 290.00,41.74 292.50,39.04 C295.00,36.34 298.75,34.74 300.00,33.89"/>
+              </svg>
+            </div>
+          </section>
+        </div>
+
+        <div class="right-col">
+          <section class="card total" style="animation-delay:.24s" aria-label="Total project time">
+            <div class="total-head">
+              <span class="clock-orb">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.8v4.6l3.1 1.8"/></svg>
+              </span>
+              <div class="total-lab">Total project<span>time</span></div>
+            </div>
+            <div class="total-num">645<small>h</small></div>
+          </section>
+
+          <section class="card ai" style="animation-delay:.3s" aria-label="AI smart assistant">
+            <button class="go" aria-label="Open AI assistant">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18 18 6M9 6h9v9"/></svg>
+            </button>
+            <div class="copy">AI<br><b>Smart</b><br>Assistant</div>
+            <div class="blob" aria-hidden="true"></div>
+          </section>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ---------- fit composition ---------- */
+(function(){
+  const stage = document.getElementById('stage');
+  function fit(){
+    const s = Math.min(window.innerWidth / 1440, window.innerHeight / 782);
+    stage.style.setProperty('--s', s);
+  }
+  fit();
+  window.addEventListener('resize', fit);
+})();
+
+/* ---------- boot animations ---------- */
+window.addEventListener('load', () => {
+  setTimeout(()=>{ document.getElementById('progressFill').style.width = '34%'; }, 350);
+  const line = document.getElementById('waveLine');
+  if (line){
+    const len = line.getTotalLength();
+    line.style.strokeDasharray = len;
+    line.style.strokeDashoffset = len;
+    line.style.transition = 'stroke-dashoffset 1.6s cubic-bezier(.3,.7,.2,1) .35s';
+    requestAnimationFrame(()=>{ line.style.strokeDashoffset = 0; });
+  }
+});
+
+/* ---------- toast ---------- */
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+/* ---------- dropdown helper ---------- */
+const menus = [];
+function bindMenu(btn, menu){
+  menus.push(menu);
+  btn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    const open = menu.classList.contains('open');
+    menus.forEach(m=>m.classList.remove('open'));
+    menu.classList.toggle('open', !open);
+    btn.setAttribute('aria-expanded', String(!open));
+  });
+  menu.addEventListener('click', e=>e.stopPropagation());
+}
+document.addEventListener('click', ()=>menus.forEach(m=>m.classList.remove('open')));
+bindMenu(document.getElementById('reportBtn'), document.getElementById('reportMenu'));
+bindMenu(document.getElementById('monthBtn'), document.getElementById('monthMenu'));
+bindMenu(document.getElementById('addBtn'), document.getElementById('addMenu'));
+
+/* ---------- report picker ---------- */
+document.querySelectorAll('#reportMenu [data-report]').forEach(item=>{
+  item.addEventListener('click', ()=>{
+    document.getElementById('reportLabel').textContent = item.dataset.report;
+    document.getElementById('reportMenu').classList.remove('open');
+  });
+});
+document.getElementById('sendBtn').addEventListener('click', ()=>{
+  const r = document.getElementById('reportLabel').textContent;
+  toast(r === 'Select a report' ? 'Pick a report first' : r + ' sent to Aleisha');
+});
+
+/* ---------- dates ---------- */
+const WEEKS = {
+  September: [['8','Mon'],['9','Tue'],['10','Wed'],['11','Thu'],['12','Fri'],['13','Sat']],
+  October:   [['5','Mon'],['6','Tue'],['7','Wed'],['8','Thu'],['9','Fri'],['10','Sat']],
+  November:  [['2','Mon'],['3','Tue'],['4','Wed'],['5','Thu'],['6','Fri'],['7','Sat']]
+};
+let activeMonth = 'September';
+let activeDay = 3;
+function paintDays(){
+  const days = document.querySelectorAll('.day');
+  const data = WEEKS[activeMonth];
+  days.forEach((d,i)=>{
+    d.querySelector('.n').textContent = data[i][0];
+    d.querySelector('.w').textContent = data[i][1];
+    d.classList.toggle('active', i === activeDay);
+    d.setAttribute('aria-selected', String(i === activeDay));
+  });
+  const d = data[activeDay];
+  document.getElementById('meetDate').textContent = d[1] + ', ' + d[0];
+}
+document.querySelectorAll('.day').forEach(d=>{
+  d.addEventListener('click', ()=>{
+    activeDay = Number(d.dataset.i);
+    paintDays();
+  });
+});
+document.querySelectorAll('#monthMenu [data-month]').forEach(item=>{
+  item.addEventListener('click', ()=>{
+    activeMonth = item.dataset.month;
+    document.getElementById('monthLabel').textContent = activeMonth;
+    document.getElementById('monthMenu').classList.remove('open');
+    paintDays();
+  });
+});
+
+/* ---------- add task ---------- */
+let added = false;
+document.querySelectorAll('#addMenu [data-task]').forEach(item=>{
+  item.addEventListener('click', ()=>{
+    const name = item.dataset.task;
+    document.getElementById('addMenu').classList.remove('open');
+    if (!added){
+      const chart = document.getElementById('chart');
+      const chip = document.createElement('div');
+      chip.className = 'task';
+      chip.style.cssText = 'left:56%;top:92px;width:172px;opacity:0;transform:translateY(6px);transition:opacity .3s,transform .3s';
+      chip.innerHTML = '<span class="tname">' + name + '</span><span class="tpct">0%</span><span class="avs"><span class="av" style="background:#3B6DA6">YO</span></span>';
+      chart.appendChild(chip);
+      requestAnimationFrame(()=>{ chip.style.opacity = 1; chip.style.transform = 'none'; });
+      added = true;
+      toast('“' + name + '” added to the roadmap');
+    } else {
+      toast('Task added to the backlog');
+    }
+  });
+});
+</script>
+</body>
+</html>
+

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="floor" x2="0" y2="1"><stop offset="0" stop-color="#303030"/><stop offset="1" stop-color="#888"/></linearGradient>
+    <linearGradient id="cape" x2="1" y2="1"><stop offset="0" stop-color="#d4d4d4"/><stop offset="1" stop-color="#aaa"/></linearGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="3"/></filter>
+  </defs>
+  <rect width="1280" height="720" fill="#262626"/>
+  <g filter="url(#soft)">
+    <path d="M0 584 719 443 1280 465V740H0Z" fill="url(#floor)"/>
+    <path d="M0 0h380l-5 601-45 15V509L0 559Z" fill="#626262"/>
+    <path d="m0 403 94-11 13 274L0 693Z" fill="#a4a4a4"/>
+    <path d="m1061 0 77 0-10 720-87 0Z" fill="#646464"/>
+    <path d="m1111 453 170-48v315h-177Z" fill="#898989"/>
+    <path d="m464 401 564-22 34 104-37 76-9-99-544-23Z" fill="#454545"/>
+    <path d="M555 105Q579 88 644 91L676 77Q699 42 758 22Q828-5 877 31L914 81 934 83Q922 102 895 93L854 68Q840 81 848 125L851 162Q904 218 927 262Q930 290 855 273L842 312 873 356 885 390Q900 450 937 512L899 551 927 720H476L503 623 527 522 490 543Q456 553 424 533L393 522 368 502Q347 474 386 447L432 439 483 448 526 452 560 422 586 371 626 316 634 288Q623 276 633 259L626 247 640 226 640 211Q616 196 618 171Q565 142 555 105Z" fill="url(#cape)"/>
+    <path d="M379 176Q400 187 415 184Q460 168 486 194Q510 206 508 241L503 257 507 272 498 287Q522 336 488 401L462 434 469 446 447 451 419 449 389 468 350 500 274 536 287 504 262 526 277 477 255 478 280 429Q297 369 326 324L351 287 365 282Q365 241 381 215Z" fill="#ededed"/>
+    <ellipse cx="689" cy="240" rx="47" ry="60" fill="#d4d4d4"/>
+  </g>
+</svg>

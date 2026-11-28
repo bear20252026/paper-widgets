@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Seam Transitions | Demo 9 | Codrops</title>
+    <meta name="description" content="Roots grow down from an old oak into the white page, reach the words below and drink their ink, letter by letter, as it scrolls. A canvas scroll transition with GSAP." />
+    <meta name="keywords" content="roots, generative art, text-aware animation, scroll transition, section transition, scroll animation, canvas, GSAP, ScrollTrigger" />
+    <meta name="theme-color" content="#111" />
+    <meta property="og:type" content="website" />
+    <meta property="og:description" content="Roots grow down from an old oak into the white page, reach the words below and drink their ink, letter by letter, as it scrolls. A canvas scroll transition with GSAP." />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Seam Transitions: misty pines bleeding like ink into the white page that scrolls up over them, under the name Canopy" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:description" content="Roots grow down from an old oak into the white page, reach the words below and drink their ink, letter by letter, as it scrolls. A canvas scroll transition with GSAP." />
+    <meta name="twitter:image:alt" content="Seam Transitions: misty pines bleeding like ink into the white page that scrolls up over them, under the name Canopy" />
+    <link rel="icon" type="image/svg+xml" href="https://tympanus.net/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="https://tympanus.net/favicon/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500&display=swap" />
+    <link rel="stylesheet" type="text/css" href="css/base.css" />
+    <script>
+      document.documentElement.className = 'js';
+    </script>
+    <!-- Added on the live server only, leave commented out in the repo -->
+  </head>
+
+  <body class="demo-9 loading" data-seam="roots">
+    <div id="smooth-wrapper">
+      <main id="smooth-content">
+        <section class="hero">
+          <header class="frame">
+            <h1 class="frame__title">Seam Transitions</h1>
+            <nav class="frame__links">
+              <a href="https://tympanus.net/codrops/hub/">All demos</a>
+              <a href="https://github.com/codrops/SeamTransitions">GitHub</a>
+            </nav>
+            <nav class="frame__tags">
+              <a href="https://tympanus.net/codrops/hub/tag/scroll/">#scroll</a>
+              <a href="https://tympanus.net/codrops/hub/tag/webgl/">#webgl</a>
+              <a href="https://tympanus.net/codrops/hub/tag/gsap/">#gsap</a>
+            </nav>
+            <nav class="frame__demos">
+              <span class="frame__demos-label">Variations</span>
+              <a class="frame__demo" href="index.html">01</a>
+              <a class="frame__demo" href="index2.html">02</a>
+              <a class="frame__demo" href="index3.html">03</a>
+              <a class="frame__demo" href="index4.html">04</a>
+              <a class="frame__demo" href="index5.html">05</a>
+              <a class="frame__demo" href="index6.html">06</a>
+              <a class="frame__demo" href="index7.html">07</a>
+              <a class="frame__demo" href="index8.html">08</a>
+              <span class="frame__demo frame__demo--current">09</span>
+              <a class="frame__demo" href="index10.html">10</a>
+              <a class="frame__demo" href="index11.html">11</a>
+            </nav>
+          </header>
+          <img class="hero__img" src="img/hero-roots.jpg" width="1376" height="768" alt="The trunk and spreading base of an old oak, its bark and earth in the foreground" />
+          <div class="hero__content">
+            <h2 class="hero__title">Soak</h2>
+            <p class="hero__note">Landscape &amp; water<br />Lisbon · Oslo</p>
+          </div>
+          <p class="hero__scroll" aria-hidden="true">Scroll</p>
+
+        </section>
+        <div class="seam" aria-hidden="true"></div>
+        <section class="next">
+          <div class="next__intro">
+            <p class="next__label">(01) Studio</p>
+            <p class="next__text">We design streets, squares and schoolyards that let the rain soak into the ground, where the trees can drink it.</p>
+          </div>
+          <ul class="projects">
+            <li>
+              <img src="img/soak-1.jpg" width="896" height="1200" alt="A street of young linden trees in sunken planted beds along the pavement, gaps in the kerb letting rain run in" />
+              <p>Linden Street <span>2025</span></p>
+            </li>
+            <li>
+              <img src="img/soak-2.jpg" width="896" height="1200" alt="A limestone square with a sunken rain garden of grasses and young birches, stone steps leading down into it" />
+              <p>Fonte Square <span>2024</span></p>
+            </li>
+            <li>
+              <img src="img/soak-3.jpg" width="896" height="1200" alt="A schoolyard with its asphalt replaced by gravel, planted mounds, young trees and a pebble stream bed" />
+              <p>Ribeira Schoolyard <span>2024</span></p>
+            </li>
+            <li>
+              <img src="img/soak-4.jpg" width="896" height="1200" alt="A lane with a planted swale of grasses running between the road and a gravel footpath" />
+              <p>Mill Lane <span>2023</span></p>
+            </li>
+            <li>
+              <img src="img/soak-5.jpg" width="896" height="1200" alt="A small wetland park of reeds and shallow pools between apartment buildings, crossed by a timber boardwalk" />
+              <p>Pocket Wetland <span>2022</span></p>
+            </li>
+            <li>
+              <img src="img/soak-6.jpg" width="896" height="1200" alt="A courtyard where downpipes empty into stone channels that lead into planted beds of ferns and grasses" />
+              <p>Courtyard Garden <span>2021</span></p>
+            </li>
+          </ul>
+          <footer class="next__foot">
+            <a href="mailto:studio@soak.example">studio@soak.example</a>
+            <p class="next__credits">Inspired by <a href="https://mosaic.flabbergast.agency/">Mosaic</a> and Jesper Landberg’s <a href="https://tympanus.net/Demos/PaperDrops/">demo</a> on Codrops</p>
+            <span>(02) Projects</span>
+          </footer>
+        </section>
+      </main>
+    </div>
+    <script src="js/gsap.min.js"></script>
+    <script src="js/ScrollTrigger.min.js"></script>
+    <script src="js/ScrollSmoother.min.js"></script>
+    <script src="js/SplitText.min.js"></script>
+    <script type="module" src="js/index.js"></script>
+    <!-- Added on the live server only, leave commented out in the repo -->
+  </body>
+</html>

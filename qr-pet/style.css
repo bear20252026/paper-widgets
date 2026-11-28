@@ -1,0 +1,291 @@
+/* Light is the default; dark is a full second skin, not a filter.
+     Every colour is declared here once and only re-declared in the dark
+     block, so nothing can be left behind in one theme. */
+  :root{
+    --panel:320px;
+    --paper:#F6F1E7;      /* the room behind the canvas */
+    --fg:#3B342B;
+    --dim:#9A907E;        /* section headers, labels */
+    --card:rgba(255,254,250,.66);
+    --card-solid:#FFFDF8;
+    --edge:#E4DAC6;
+    --track:#EFE8DA;      /* the groove a segmented control sits in */
+    --seg-on:#FFFDF8;
+    --accent:#D9748A;      /* nose pink — the cat's own nose, promoted to UI */
+    --accent-fg:#FFF7F2;
+    --shadow:0 1px 2px rgba(60,50,35,.07);
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  :root[data-theme="dark"]{
+    --paper:#141416;
+    --fg:#E9E5DC;
+    --dim:#7D7871;
+    --card:rgba(30,30,33,.72);
+    --card-solid:#1E1E21;
+    --edge:#2E2E33;
+    --track:#232326;
+    --seg-on:#34343A;
+    --accent:#E89AAA;      /* nose pink, milkier for dark ground */
+    --accent-fg:#221014;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    background:var(--paper);
+    color:var(--fg);
+    font:13px/1.45 var(--mono);
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+    transition:background .45s,color .45s;
+  }
+  #stage{position:fixed;left:0;top:0;bottom:0;right:var(--panel);}
+  /* width/height are required: `inset:0` alone leaves a canvas at its
+     intrinsic (drawing-buffer) size, which then overflows the stage */
+  #stage canvas{
+    position:absolute;left:0;top:0;width:100%;height:100%;
+    display:block;cursor:grab;z-index:0;
+    touch-action:none;   /* a finger-drag turns the pet; the browser must not claim it as a scroll */
+  }
+  #stage canvas:active{cursor:grabbing}
+
+  /* Shown until the first WebGL frame, and kept as a readable QR if
+     WebGL / the 3D module cannot start. It sits over the canvas but
+     yields as soon as the engine has rendered once. */
+  #fallback{
+    position:absolute;inset:0;z-index:1;
+    display:grid;place-items:center;
+    background:var(--paper);
+    transition:opacity .35s ease;
+  }
+  #fallback.hidden{opacity:0;pointer-events:none}
+  .fallbackCard{
+    display:flex;flex-direction:column;align-items:center;gap:9px;
+    padding:14px;border:1px solid var(--edge);border-radius:14px;
+    background:var(--card-solid);box-shadow:var(--shadow);
+  }
+  .fallbackCard img{display:block;width:min(62vw,280px);height:auto;image-rendering:pixelated}
+  .fallbackCap{font-size:9px;letter-spacing:.16em;color:var(--dim)}
+
+  /* ---- the dashboard --------------------------------------------
+     One card per section, headed by a small letter-spaced label.
+     No drag handles: the order is fixed, so a handle would promise a
+     rearrangement that does not exist.                             */
+  #panel{
+    position:fixed;right:0;top:0;bottom:0;width:var(--panel);
+    padding:18px;
+    display:flex;flex-direction:column;gap:10px;
+    border-left:1px solid var(--edge);
+    background:var(--paper);
+    overflow-y:auto;
+    transition:background .35s,border-color .35s;
+  }
+  #brand{
+    display:flex;align-items:center;gap:10px;
+    padding:4px 0 12px 6px;   /* the mute button's own frame lands flush
+                                 with the cards' right edge */
+  }
+  #brand .mark{
+    font-size:15px;letter-spacing:.02em;color:var(--fg);
+  }
+  #brand .sub{
+    font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);
+  }
+  /* the environment controls live inside the VIEW card: bare icons,
+     flush with the segmented control's right edge — no stroke, no box */
+  .cardHead{display:flex;align-items:center;justify-content:space-between}
+  .headIcons{display:flex;align-items:center;gap:10px}
+  #themeBtn, #muteBtn{
+    border:none;background:none;padding:0;margin:0;
+    display:grid;place-items:center;
+    color:var(--dim);cursor:pointer;
+    transition:color .2s;
+  }
+  #themeBtn:hover, #muteBtn:hover{color:var(--accent)}
+
+  .card{
+    border:1px solid var(--edge);border-radius:14px;
+    background:var(--card);
+    padding:13px;
+    display:flex;flex-direction:column;gap:11px;
+    transition:background .35s,border-color .35s;
+  }
+  .card h2{
+    margin:0;font:inherit;
+    font-size:9.5px;letter-spacing:.17em;text-transform:uppercase;
+    color:var(--dim);font-weight:400;
+  }
+  /* text follows the theme at the same pace as the surfaces */
+  .card h2,#stats .k,#stats .v,.foot,#brand .mark,#brand .sub,
+  .seg,.seg button,#url,#themeBtn{transition:color .45s,background .35s,border-color .35s,box-shadow .18s}
+
+  /* segmented control — a groove with one raised segment */
+  .seg{
+    display:flex;gap:3px;padding:3px;
+    background:var(--track);border-radius:11px;
+  }
+  .seg button{
+    flex:1;min-width:0;
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    padding:8px 4px;border-radius:8px;
+    border:1px solid transparent;background:transparent;color:var(--dim);
+    font:inherit;font-size:11.5px;cursor:pointer;
+    transition:background .18s,color .18s,box-shadow .18s;
+  }
+  /* one size and stroke for every bare icon — mismatch reads instantly */
+  .seg button svg, #themeBtn svg, #muteBtn svg{width:13px;height:13px;flex:none}
+  /* the mute switch shares the brand row's hierarchy, so unlike the bare
+     in-card icons it gets a framed treatment from the design system */
+  #brand #muteBtn{
+    margin-left:auto;
+    width:26px;height:26px;
+    border:1px solid var(--edge);border-radius:9px;
+    background:var(--card);
+    transition:color .2s,border-color .35s,background .35s;
+  }
+  /* colour swatches speak for themselves — no labels */
+  #coatColor .dot{
+    width:15px;height:15px;border-radius:50%;flex:none;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.16);
+  }
+  .seg button:hover:not(:disabled):not([aria-pressed="true"]){color:var(--fg)}
+  .seg button[aria-pressed="true"]{
+    background:var(--seg-on);color:var(--fg);
+    box-shadow:var(--shadow);
+  }
+  .seg button:disabled{opacity:.35;cursor:default}
+
+  /* VIEW is a mode switch, not a menu — the two states of one scene.
+     It gets the accent fill; content choices stay neutral, so "which
+     side am I on" and "what am I making" read as different questions. */
+  #view button[aria-pressed="true"]{
+    background:var(--accent);color:var(--accent-fg);
+  }
+
+  #url{
+    padding:10px 12px;border-radius:10px;width:100%;
+    border:1px solid var(--edge);background:var(--card-solid);color:var(--fg);
+    font:inherit;font-size:11.5px;outline:none;
+    transition:border-color .18s;
+  }
+  #url:focus{border-color:var(--accent)}
+
+  /* readout — label left, value right, like any instrument panel */
+  #stats{display:flex;flex-direction:column;gap:7px}
+  #stats .row{
+    display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+    font-size:11px;
+  }
+  #stats .k{color:var(--dim)}
+  #stats .v{color:var(--fg);font-variant-numeric:tabular-nums}
+
+  .foot{
+    margin-top:auto;padding:10px 6px 2px;
+    font-size:9.5px;line-height:1.6;color:var(--dim);
+    text-align:right;             /* the footer keeps to the right edge */
+  }
+  /* one rule for every footer link, so no underline is heavier than
+     another — and none is heavy: a hairline at a third of the text's
+     own colour, there when you look for it, quiet when you don't */
+  .foot a, #made a{
+    color:inherit;font-weight:400;
+    text-decoration:underline;text-underline-offset:2.5px;
+    text-decoration-thickness:0.5px;
+    text-decoration-color:color-mix(in srgb, currentColor 35%, transparent);
+  }
+  .foot a:hover, #made a:hover{color:var(--accent)}
+
+  /* the sign-off mirrors the credits header: line first, icon at the
+     far right, everything flush with the right edge */
+  #made{
+    padding:8px 6px 4px;
+    font-size:9.5px;color:var(--dim);
+    display:flex;align-items:center;gap:5px;
+    justify-content:flex-end;
+  }
+  /* AI will point at the open-source repo one day; till then it is a
+     quiet link-in-waiting — no underline, no destination */
+  #made a#aiLink{text-decoration:none;cursor:default}
+  .inspTitle{display:inline-flex;align-items:center;gap:5px}
+  .inspTitle svg{width:11px;height:11px;color:var(--accent)}
+
+  /* every quick action answers back */
+  #toast{
+    position:absolute;left:50%;bottom:26px;
+    transform:translateX(-50%) translateY(8px);
+    padding:8px 16px;border-radius:999px;
+    background:var(--card-solid);border:1px solid var(--edge);
+    color:var(--fg);font-size:11px;box-shadow:var(--shadow);
+    opacity:0;pointer-events:none;z-index:3;
+    transition:opacity .25s, transform .25s;
+  }
+  #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* share row: four quick actions, not toggles */
+  #shareRow button{padding:9px 4px}
+  #shareRow .glyphB{font-weight:700;font-size:12px;line-height:1}
+  #shareRow button.done{color:var(--accent)}
+  #heart{
+    background:none;border:none;padding:0 1px;cursor:pointer;
+    display:inline-grid;place-items:center;color:var(--accent);
+  }
+  #heart svg{width:12px;height:12px}
+  @keyframes wiggle{
+    0%,100%{transform:rotate(0)}
+    25%{transform:rotate(-14deg)}
+    70%{transform:rotate(11deg)}
+  }
+  #heart:hover svg{animation:wiggle .45s ease-in-out}
+  #heart.loved svg{fill:currentColor}
+
+  /* narrow: the dashboard becomes a bottom sheet */
+  /* the grip only exists on phones: a pill at the panel's top edge that
+     toggles between two splits — more scene, or more room to work */
+  #grip{display:none}
+  @media (max-width: 860px){
+    :root{--stageBase:56vh}
+    body.big{--stageBase:34vh}
+    #stage{right:0;bottom:auto;height:var(--stageBase);transition:height .32s ease}
+    #panel{
+      top:var(--stageBase);width:100%;
+      border-left:none;border-top:1px solid var(--edge);
+      transition:top .32s ease,background .35s,border-color .35s;
+      padding-top:22px;
+    }
+    #grip{
+      display:block;position:absolute;top:8px;left:50%;
+      width:38px;height:5px;margin-left:-19px;padding:0;
+      border:none;border-radius:3px;background:var(--edge);
+      cursor:pointer;
+    }
+    #grip::before{ content:'';position:absolute;inset:-12px -20px }   /* a finger-sized target */
+    .foot{margin-top:8px}
+
+    /* iOS zooms the page into any input under 16px — the whole layout
+       lurched on focus. 16px, and the lurch is gone. */
+    #url{font-size:16px}
+
+    /* TYPING MODE (phone, input focused): the scene keeps the screen,
+       the link card alone rides just above the keyboard. --kb is the
+       keyboard's height from visualViewport, --stageH what is left. */
+    /* The keyboard carries the card: iOS reports the new viewport once
+       the keyboard has landed, so the lift is a short eased glide on
+       the keyboard's own curve rather than a snap. The scene's height
+       eases on the same clock. */
+    /* iOS scrolls the WHOLE page (fixed layers included) if the focused
+       input sits where the keyboard is about to be — that is how the
+       code got pushed off the top. So in typing mode the card is placed
+       by its TOP edge, high enough to be clear of any keyboard at the
+       moment of focus, and eased to the exact keyboard edge once
+       visualViewport reports it. The scene is whatever is above it. */
+    /* The stage itself keeps its size in typing mode — resizing the
+       canvas rebuilds the GL buffer and flashes a blank frame. The card
+       simply overlaps its lower part, and the CAMERA makes room: the
+       code is re-framed above the card in per-frame interpolation. */
+    body.typing #panel{
+      top:var(--stageH, 45vh);bottom:auto;height:auto;
+      padding:10px 14px 12px;overflow:hidden;
+      transition:top .28s cubic-bezier(.2,.8,.2,1);
+    }
+    body.typing #panel > :not(.linkCard){display:none}
+  }

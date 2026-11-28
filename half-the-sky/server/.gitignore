@@ -1,0 +1,5 @@
+# Run-time artefacts — not part of the piece
+.env
+nominations.jsonl
+__pycache__/
+*.pyc

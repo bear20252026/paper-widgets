@@ -1,0 +1,88 @@
+/* The 1080 stage, centred; the engine sets transform: translate(-50%, -50%) scale(min(w, h) / 1080) */
+.stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--stage);
+  height: var(--stage);
+  transform: translate(-50%, -50%);
+  background: radial-gradient(70% 70% at 50% 50%, var(--glow), var(--page) 72%);
+}
+
+/* The engine dims it as the night grows (#f6f6f9 → #eaeaf3) */
+.card {
+  position: absolute;
+  left: var(--card-x);
+  top: var(--card-y);
+  width: var(--card-w);
+  height: var(--card-h);
+  border-radius: var(--card-radius);
+  background: var(--card);
+  box-shadow: var(--card-shadow);
+}
+
+/* 2160 × 2160 backing pixels shown at 1080: the shader draws at 2 px per stage px */
+.gl {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--stage);
+  height: var(--stage);
+}
+
+/* Both knobs; the engine moves each to its hour on the ring (translate to the centre) */
+.knob {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--knob);
+  height: var(--knob);
+  margin: calc(var(--knob) / -2) 0 0 calc(var(--knob) / -2);
+  border-radius: calc(var(--knob) / 2);
+  background: var(--knob-face);
+  box-shadow: var(--knob-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+}
+
+.bars {
+  position: absolute;
+  left: var(--bars-x);
+  top: var(--bars-y);
+  width: var(--bars-w);
+  height: var(--bar-h);
+}
+
+.bar {
+  position: absolute;
+  top: 0;
+  width: var(--bar-w);
+  height: var(--bar-h);
+  border-radius: var(--bar-radius);
+  background: var(--bar-empty);
+  overflow: hidden;
+}
+
+/* The engine sets its colour, scaleY (hours left to fill, 0–1) and opacity */
+.fill {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: var(--bar-w);
+  height: var(--bar-h);
+  border-radius: var(--bar-radius);
+  transform-origin: 50% 100%;
+}
+
+/* The drawn demo cursor; its tip is 2 px in from the top left */
+.cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 9;
+  pointer-events: none;
+  filter: var(--cursor-shadow);
+  transform-origin: 2px 2px;
+}

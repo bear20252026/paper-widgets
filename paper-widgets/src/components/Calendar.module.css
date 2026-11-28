@@ -1,0 +1,93 @@
+.day {
+  position: absolute;
+  left: var(--date-x);
+  top: var(--date-y);
+  font-size: var(--day-size);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--day-tracking);
+  line-height: 1;
+}
+
+.month {
+  position: absolute;
+  left: var(--month-x);
+  top: var(--month-y);
+  font-size: var(--month-size);
+}
+
+.summary {
+  position: absolute;
+  left: var(--month-x);
+  top: var(--summary-y);
+  font-size: var(--small);
+  color: var(--muted);
+}
+
+.divider {
+  position: absolute;
+  left: var(--divider-x);
+  top: var(--divider-inset);
+  bottom: var(--divider-inset);
+  width: 1px;
+  background: var(--line);
+}
+
+/* The event list is a window: rows move under it per frame (top, opacity) */
+.list {
+  position: absolute;
+  left: var(--list-x);
+  top: var(--list-y);
+  width: var(--list-w);
+  height: var(--list-h);
+  overflow: hidden;
+}
+
+.row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: var(--row-h);
+  display: flex;
+  align-items: center;
+  gap: var(--row-gap);
+}
+
+/* `font` also sets font-variant-numeric back to normal (Geist Mono is monospaced anyway) */
+.time {
+  font: var(--event-time);
+  color: var(--muted);
+  width: var(--event-time-w);
+}
+
+.marker {
+  width: var(--event-marker-w);
+  height: var(--event-marker-h);
+  border-radius: var(--event-marker-radius);
+  background: var(--marker);
+}
+
+/* The next event's marker is the accent */
+.next .marker {
+  background: var(--accent);
+}
+
+.title {
+  font-size: var(--event-size);
+  letter-spacing: var(--event-tracking);
+}
+
+.detail {
+  font-size: var(--event-detail-size);
+  color: var(--muted);
+  margin-top: var(--event-detail-gap);
+}
+
+.chip {
+  position: absolute;
+  right: 0;
+  font: var(--chip-font);
+  padding: var(--chip-pad);
+  border-radius: var(--round);
+  background: var(--accent);
+  color: var(--white);
+}

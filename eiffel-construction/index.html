@@ -1,0 +1,2106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <link rel="icon" href="data:," />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>1887–1889 · 埃菲尔铁塔建造 14 秒 · Three.js + GLSL</title>
+<style>
+:root{
+  --bg:#131010; --bg2:#1a1614; --panel:#191512; --line:#332b24; --line2:#463a30;
+  --txt:#ece0d2; --dim:#9c8d7c; --acc:#e08b3c; --acc2:#f0b96a; --iron:#b0543a;
+  --lift:#f0a63c; --align:#6fc3e8; --seat:#7fd18b;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(--txt);
+  font:13px/1.45 "Inter","Segoe UI",system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased}
+#wrap{display:flex;height:100vh;width:100vw}
+#left{flex:1 1 auto;min-width:300px;display:flex;flex-direction:column;min-height:0}
+#cvwrap{flex:1 1 auto;position:relative;min-height:0;overflow:hidden;background:#0b0908;cursor:grab}
+#cvwrap.drag{cursor:grabbing}
+#cv{display:block;width:100%;height:100%}
+#hud{position:absolute;left:10px;top:10px;pointer-events:none;display:flex;flex-direction:column;gap:4px}
+#hud .b{background:rgba(12,9,7,.62);border:1px solid rgba(255,255,255,.08);border-radius:5px;
+  padding:4px 9px;font-size:11.5px;letter-spacing:.02em;color:#f0e4d4;backdrop-filter:blur(4px)}
+#hud .b b{color:var(--acc2);font-weight:600;font-variant-numeric:tabular-nums}
+#legend{position:absolute;right:10px;bottom:10px;pointer-events:none;font-size:10.5px;color:#c9b9a4;
+  background:rgba(12,9,7,.5);border:1px solid rgba(255,255,255,.07);border-radius:5px;padding:5px 8px;line-height:1.5}
+#legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+/* ---------- controls (two compact rows) ---------- */
+#ctrl{flex:0 0 auto;border-top:1px solid var(--line);background:linear-gradient(#201b17,#161210);padding:5px 8px 6px}
+.row{display:flex;align-items:center;gap:6px;min-width:0}
+.row+.row{margin-top:5px}
+button{font:inherit;color:var(--txt);background:#26201b;border:1px solid var(--line2);border-radius:5px;
+  padding:3px 8px;cursor:pointer;white-space:nowrap;transition:.13s;background-image:linear-gradient(#2c2520,#211b17)}
+button:hover{border-color:#6a5443;color:#fff;background-image:linear-gradient(#38302a,#251f1a)}
+button.on{color:#1a1005;background-image:linear-gradient(#f3b464,#dd8c33);border-color:#f0b96a;font-weight:600}
+button.ic{width:30px;text-align:center;padding:3px 0;font-size:12px}
+#tl{flex:1 1 auto;min-width:80px;height:22px;position:relative;background:#0d0a09;border:1px solid var(--line2);
+  border-radius:5px;cursor:pointer;overflow:hidden}
+#tl .seg{position:absolute;top:0;bottom:0;border-right:1px solid rgba(0,0,0,.55)}
+#tl .seg span{position:absolute;left:3px;top:2px;font-size:9px;color:#7d6e5d;letter-spacing:.02em;pointer-events:none}
+#tlfill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,rgba(224,139,60,.34),rgba(240,185,106,.5));pointer-events:none}
+#tlhand{position:absolute;top:-2px;bottom:-2px;width:2px;background:#ffd79a;box-shadow:0 0 6px rgba(255,190,110,.9);pointer-events:none}
+#clock{font-variant-numeric:tabular-nums;font-size:11.5px;color:var(--dim);min-width:96px;text-align:right}
+#stages{display:flex;gap:4px;flex:1 1 auto;min-width:0;overflow:hidden}
+#stages button{font-size:11px;padding:3px 7px;flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis}
+#speeds{display:flex;gap:3px}
+#speeds button{font-size:11px;padding:3px 7px;min-width:38px}
+.grp{display:flex;gap:4px}
+/* ---------- right source panel ---------- */
+#split{flex:0 0 6px;cursor:col-resize;background:linear-gradient(90deg,#241d18,#2f2620,#241d18)}
+#split:hover{background:var(--acc)}
+#right{flex:0 0 380px;min-width:210px;max-width:70vw;display:flex;flex-direction:column;background:var(--panel);
+  border-left:1px solid var(--line);min-height:0}
+#phead{flex:0 0 auto;padding:7px 9px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;
+  background:linear-gradient(#201a16,#171310)}
+#phead .t{flex:1 1 auto;min-width:0;overflow:hidden}
+#phead .t b{font-size:12px;color:#f4e8d8;font-weight:600}
+#phead .t small{display:block;color:var(--dim);font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#phead button{font-size:11px;padding:3px 8px}
+#code{flex:1 1 auto;overflow:auto;min-height:0;font:11.5px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  background:#100d0b;padding:6px 0 30px}
+.cl{display:flex;align-items:stretch;border-left:3px solid transparent}
+.cl .ln{flex:0 0 40px;text-align:right;padding:0 7px 0 0;color:#5d5145;user-select:none;background:#100d0b;
+  position:sticky;left:0;font-variant-numeric:tabular-nums}
+.cl .tx{flex:1 1 auto;white-space:pre-wrap;word-break:break-all;padding-right:10px;color:#cbbda9}
+.cl.k{background:rgba(255,255,255,.028)}
+.cl.tag{cursor:pointer}
+.cl.a-lift{border-left-color:var(--lift);background:rgba(240,166,60,.11)}
+.cl.a-align{border-left-color:var(--align);background:rgba(111,195,232,.11)}
+.cl.a-seat{border-left-color:var(--seat);background:rgba(127,209,139,.11)}
+.cl.cur{background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(255,220,170,.35)}
+.cl.cur .tx{color:#fff}
+.cl:hover .tx{color:#fff}
+#pfoot{flex:0 0 auto;padding:5px 9px;border-top:1px solid var(--line);font-size:10.5px;color:var(--dim);
+  display:flex;gap:10px;align-items:center;background:#171310}
+#pfoot .sw{display:flex;gap:8px;align-items:center}
+#pfoot .sw i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+#toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);background:rgba(24,18,14,.95);
+  border:1px solid var(--line2);color:#f3e6d4;padding:6px 14px;border-radius:6px;font-size:12px;opacity:0;
+  transition:.25s;pointer-events:none;z-index:50}
+#toast.on{opacity:1}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:#0e0b09}
+::-webkit-scrollbar-thumb{background:#3a2f27;border-radius:5px;border:2px solid #0e0b09}
+::-webkit-scrollbar-thumb:hover{background:#55443a}
+/* ---------- pure capture mode ---------- */
+body.cap #ctrl,body.cap #right,body.cap #split,body.cap #legend,body.cap #hud{display:none}
+body.cap #wrap{display:block}
+body.cap #cvwrap{position:fixed;inset:0}
+body.cap #cv{width:1280px;height:720px}
+#capbar{display:none}
+body.cap #capbar{display:block;position:fixed;left:0;right:0;bottom:0;background:rgba(10,8,7,.85);
+  border-top:1px solid #3a2f27;padding:4px 10px;font:11px ui-monospace,monospace;color:#c9b9a4;z-index:60}
+</style>
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"
+}}
+</script>
+</head>
+<body>
+<div id="wrap">
+  <main id="left">
+    <div id="cvwrap">
+      <canvas id="cv"></canvas>
+      <div id="hud">
+        <div class="b">1888 · 战神广场 <b id="hud-t">0.00s</b> / 14.00s</div>
+        <div class="b" id="hud-s">① 开挖与地基</div>
+        <div class="b" id="hud-h" style="color:#c8b8a4">6 台蒸汽吊 · 300 名工人</div>
+      </div>
+      <div id="legend">
+        <div><i style="background:#f0a63c"></i>起吊 lift</div>
+        <div><i style="background:#6fc3e8"></i>对位 align</div>
+        <div><i style="background:#7fd18b"></i>落座 seat</div>
+      </div>
+    </div>
+    <div id="ctrl">
+      <div class="row">
+        <button class="ic" id="b-restart" title="从头回放">⟲</button>
+        <button class="ic" id="b-play" title="播放 / 暂停">❚❚</button>
+        <div id="tl"><div id="tlfill"></div><div id="tlsegs"></div><div id="tlhand"></div></div>
+        <div id="clock">00.00 / 14.00</div>
+      </div>
+      <div class="row">
+        <div id="stages"></div>
+        <div id="speeds"></div>
+        <div class="grp"><button id="b-fit" title="保留当前角度，把整座岛纳入画面">全景</button><button id="b-reset" title="恢复默认运镜">复位视角</button></div>
+      </div>
+    </div>
+  </main>
+  <div id="split"></div>
+  <aside id="right">
+    <div id="phead">
+      <div class="t"><b>Three.js 场景源码</b><small id="p-sub">① 开挖与地基 · buildExcavation()</small></div>
+      <div class="grp"><button id="b-full">完整源码</button><button id="b-copy">复制</button></div>
+    </div>
+    <div id="code"></div>
+    <div id="pfoot">
+      <div class="sw">
+        <span><i style="background:var(--lift)"></i>起吊</span>
+        <span><i style="background:var(--align)"></i>对位</span>
+        <span><i style="background:var(--seat)"></i>落座</span>
+      </div>
+      <span style="flex:1 1 auto">双击代码行 → 跳到该施工动作</span>
+    </div>
+  </aside>
+</div>
+<div id="capbar">CAPTURE 1280×720 · 30fps · 420 帧 · <span id="capinfo">renderAt(0)</span></div>
+<div id="toast"></div>
+
+<script type="module" id="app">
+/* ============================================================================
+   1887–1889 · LA TOUR EIFFEL — 14 秒建造过程
+   Three.js + GLSL · 单文件 · 全部由时间 t (0..14s) 驱动，可任意顺序重放
+   window.renderAt(t)  ——  第 n 帧调用 renderAt(n/30), n = 0..419
+   ========================================================================== */
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+/* ------------------------------- 0. 常量 ------------------------------- */
+const CAPTURE = /[?&]capture\b/.test(location.search);
+const DUR = 14, FPS = 30, FRAMES = 420;
+const V3 = THREE.Vector3;
+
+/* --------------------------- 1. 数学 / 随机 --------------------------- */
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const sm = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
+const sstep = (e0, e1, x) => sm(clamp((x - e0) / (e1 - e0), 0, 1));
+const sat = v => clamp(v, 0, 1);
+function h32(n) { n = (n ^ 61) ^ (n >>> 16); n = (n + (n << 3)) | 0; n = n ^ (n >>> 4); n = Math.imul(n, 0x27d4eb2d); n = n ^ (n >>> 15); return (n >>> 0) / 4294967296; }
+function rnd(s, k) { return h32((Math.imul(s | 0, 374761393) ^ Math.imul(((k | 0) + 1), 668265263)) | 0); }
+function vr(s, k, a, b) { return a + rnd(s, k) * (b - a); }
+function vn2(x, z, s) {
+  const xi = Math.floor(x), zi = Math.floor(z), xf = x - xi, zf = z - zi;
+  const u = xf * xf * (3 - 2 * xf), v = zf * zf * (3 - 2 * zf);
+  const A = xi * 73856093 ^ zi * 19349663 ^ (s * 83492791), B = (xi + 1) * 73856093 ^ zi * 19349663 ^ (s * 83492791);
+  const C = xi * 73856093 ^ (zi + 1) * 19349663 ^ (s * 83492791), D = (xi + 1) * 73856093 ^ (zi + 1) * 19349663 ^ (s * 83492791);
+  return lerp(lerp(h32(A), h32(B), u), lerp(h32(C), h32(D), u), v);
+}
+function tri(u) { u = u - Math.floor(u); return u < .5 ? u * 2 : 2 - u * 2; }
+function shade(hex, f) { const c = new THREE.Color(hex); c.r = sat(c.r * f); c.g = sat(c.g * f); c.b = sat(c.b * f); return c.getHex(); }
+
+/* ------------------------- 2. 渲染器 / 场景 ------------------------- */
+const canvas = document.getElementById('cv');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(CAPTURE ? 1 : Math.min(window.devicePixelRatio || 1, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;   // 由 OutputPass 统一执行
+renderer.toneMappingExposure = 1.02;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0xcbb494, 155, 330);
+
+const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 700);
+cam.position.set(0, 20, 120); cam.lookAt(0, 10, 0);
+scene.add(cam);
+
+/* --- 暖色傍晚主光 + 偏冷补光 + 柔和阴影 --- */
+const sun = new THREE.DirectionalLight(0xffd7a4, 3.05);
+sun.position.set(34, 42, 82); sun.target.position.set(0, 12, 0);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.near = 1; sun.shadow.camera.far = 260;
+sun.shadow.camera.left = -42; sun.shadow.camera.right = 42;
+sun.shadow.camera.top = 46; sun.shadow.camera.bottom = -46;
+sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.035; sun.shadow.radius = 2.6;
+scene.add(sun, sun.target);
+const fill = new THREE.DirectionalLight(0x9dbbe4, 0.72); fill.position.set(-70, 34, -40); scene.add(fill);
+scene.add(new THREE.HemisphereLight(0xbcd2e6, 0x6d5b44, 0.62));
+
+/* --- 天空穹顶（暖霞 + 太阳光晕，亮部交给 Bloom） --- */
+scene.add(new THREE.Mesh(new THREE.SphereGeometry(260, 32, 16), new THREE.ShaderMaterial({
+  side: THREE.BackSide, depthWrite: false, fog: false,
+  vertexShader: `varying vec3 vP; void main(){ vP=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+  fragmentShader: `varying vec3 vP;
+    void main(){
+      vec3 d=normalize(vP); float h=d.y;
+      vec3 hor=vec3(1.35,0.86,0.50), mid=vec3(0.66,0.62,0.62), top=vec3(0.28,0.38,0.54);
+      vec3 c=mix(hor,mid,smoothstep(-0.02,0.26,h));
+      c=mix(c,top,smoothstep(0.20,0.75,h));
+      c=mix(vec3(0.50,0.42,0.37),c,smoothstep(-0.45,-0.02,h));
+      vec3 sd=normalize(vec3(0.34,0.42,0.85));
+      float g=pow(max(dot(d,sd),0.0),26.0);
+      c+=vec3(1.9,1.25,0.72)*g*0.95;
+      c+=vec3(1.1,0.8,0.5)*pow(max(dot(d,sd),0.0),4.0)*0.10;
+      gl_FragColor=vec4(c,1.0);
+    }`
+})));
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, cam));
+const bloom = new UnrealBloomPass(new THREE.Vector2(1280, 720), 0.62, 0.85, 0.82);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+/* ---------------------- 3. 几何 / 材质 / 批处理 ---------------------- */
+const G = {
+  box: new THREE.BoxGeometry(1, 1, 1),
+  round: new RoundedBoxGeometry(1, 1, 1, 1, 0.17),   // 轻微圆角：石块 / 建筑
+  soft: new RoundedBoxGeometry(1, 1, 1, 1, 0.42)     // 人物体块
+};
+const M = {
+  vox: new THREE.MeshStandardMaterial({ roughness: 0.86, metalness: 0.02 }),
+  iron: new THREE.MeshStandardMaterial({ roughness: 0.48, metalness: 0.62 }),
+  wood: new THREE.MeshStandardMaterial({ roughness: 0.9, metalness: 0.0 }),
+  rod: new THREE.MeshStandardMaterial({ color: 0x241d19, roughness: 0.8, metalness: 0.2 }),
+  lamp: new THREE.MeshStandardMaterial({ color: 0x120c06, emissive: 0xffc877, emissiveIntensity: 2.6, roughness: .5 })
+};
+const _m4 = new THREE.Matrix4(), _m4b = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(),
+      _v1 = new V3(), _v2 = new V3(), _v3 = new V3(), _v4 = new V3(), _c1 = new THREE.Color();
+const ZM = new THREE.Matrix4().makeScale(0, 0, 0);
+
+const BATCH = {};
+function batch(name, geo, mat, opt) {
+  const b = { geo, mat, items: [], cast: !(opt && opt.cast === false), rec: true };
+  BATCH[name] = b; return b;
+}
+function vox(b, x, y, z, sx, sy, sz, c, ry, rx, rz) { b.items.push([x, y, z, sx, sy, sz, c, ry || 0, rx || 0, rz || 0]); }
+function bake(b) {
+  const m = new THREE.InstancedMesh(b.geo, b.mat, Math.max(1, b.items.length));
+  m.frustumCulled = false; m.castShadow = b.cast; m.receiveShadow = b.rec;
+  for (let i = 0; i < b.items.length; i++) {
+    const it = b.items[i];
+    _e.set(it[8], it[7], it[9]); _q.setFromEuler(_e);
+    _m4.compose(_v1.set(it[0], it[1], it[2]), _q, _v2.set(it[3], it[4], it[5]));
+    m.setMatrixAt(i, _m4);
+    m.setColorAt(i, _c1.setHex(it[6]).convertSRGBToLinear());
+  }
+  m.count = b.items.length;
+  m.instanceMatrix.needsUpdate = true;
+  if (m.instanceColor) m.instanceColor.needsUpdate = true;
+  m.computeBoundingSphere && m.computeBoundingSphere();
+  scene.add(m); return m;
+}
+/* 可按时序出现 / 消失的体素（土方、脚手架、回填） */
+class Timed {
+  constructor(geo, mat, cap, cast) {
+    this.list = [];
+    this.mesh = new THREE.InstancedMesh(geo, mat, cap);
+    this.mesh.frustumCulled = false; this.mesh.castShadow = !!cast; this.mesh.receiveShadow = true;
+    this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    for (let i = 0; i < cap; i++) this.mesh.setColorAt(i, _c1.setHex(0xffffff).convertSRGBToLinear());
+    this.cap = cap; scene.add(this.mesh);
+  }
+  add(x, y, z, sx, sy, sz, c, t0, t1, pop, ry) {
+    if (this.list.length >= this.cap) return;
+    const i = this.list.length; this.list.push(1);
+    this.mesh.setColorAt(i, _c1.setHex(c).convertSRGBToLinear());
+    this.mesh.instanceColor.needsUpdate = true;
+    this.list[i] = [x, y, z, sx, sy, sz, ry || 0, t0, t1 === undefined ? 1e9 : t1, pop || 0.25];
+  }
+  update(t) {
+    let n = 0;
+    for (let i = 0; i < this.list.length; i++) {
+      const o = this.list[i], vis = t >= o[7] && t < o[8];
+      if (!vis) { this.mesh.setMatrixAt(n++, ZM); continue; }
+      let k = 1;
+      if (o[9] > 0) k = sstep(o[7], o[7] + o[9], t) * (1 - sstep(o[8] - o[9], o[8], t));
+      _e.set(0, o[6], 0); _q.setFromEuler(_e);
+      _m4.compose(_v1.set(o[0], o[1], o[2]), _q, _v2.set(o[3] * k, o[4] * k, o[5] * k));
+      this.mesh.setMatrixAt(n++, _m4);
+    }
+    this.mesh.count = n; this.mesh.instanceMatrix.needsUpdate = true;
+  }
+}
+
+/* ---------------- 4. 世界坐标常量：浮岛 / 塞纳河 / 铁塔 ---------------- */
+const RIV = {
+  c: x => -11 + 4.6 * Math.sin(x * 0.055 + 0.6) + 1.9 * Math.sin(x * 0.13 + 1.9),
+  h: x => 4.2 + 1.1 * Math.sin(x * 0.09 + 2.3)
+};
+const WX0 = -30, WX1 = 30, WZ0 = -24, WZ1 = 26;
+const GRADE = 4.0, WATER = 2.6;
+const C = { x: 0, z: 7 };
+const TOWER = { y1: 10, y2: 17.5, y3: 29, top: 36.6, d: y => 0.5 + 5.9 * Math.pow(Math.max(0, 1 - y / 36.6), 1.5) };
+/* 腿按方位顺时针排列，相邻两条共一个立面（拱肋 / 环梁连接相邻腿） */
+const LEGDIR = [{ x: 1, z: 1 }, { x: -1, z: 1 }, { x: -1, z: -1 }, { x: 1, z: -1 }];
+const PITS = LEGDIR.map(s => ({ x: C.x + s.x * TOWER.d(GRADE), z: C.z + s.z * TOWER.d(GRADE), r: 2.4, s }));
+const IRONC = [0x8d4026, 0x7c371f, 0x9a4a2b, 0x6e311d];
+const ironCol = s => IRONC[Math.floor(rnd(s, 3) * IRONC.length) % IRONC.length];
+const WOODC = [0x8a6a44, 0x74573a, 0x9d7c50];
+
+const STAGES = [
+  { a: 0.00, b: 3.05, n: '开挖与地基' },
+  { a: 3.05, b: 6.20, n: '四条弯曲塔腿' },
+  { a: 5.90, b: 8.70, n: '拱肋与第一平台' },
+  { a: 8.40, b: 10.70, n: '第二平台' },
+  { a: 10.35, b: 12.55, n: '上部铁架' },
+  { a: 11.95, b: 14.00, n: '塔尖合拢' }
+];
+const stageAt = t => { let s = 0; for (let i = 0; i < STAGES.length; i++) if (t >= STAGES[i].a) s = i; return s; };
+
+/* ======================================================================
+   5. 浮空体素岛 · 塞纳河 · 奥斯曼街景 · 战神广场工地
+   ====================================================================== */
+const bTerra = batch('terra', G.box, M.vox, { cast: false });
+const bStone = batch('stone', G.round, M.vox);
+const bBld = batch('bld', G.round, M.vox);
+const bWin = batch('win', G.box, M.vox);
+const bProp = batch('prop', G.round, M.vox);
+const bGlow = batch('glow', G.round, M.lamp, { cast: false });
+
+const STRATA = [0x8c8577, 0x736850, 0x5d4b3b, 0x4a4139, 0x7d6b52];
+const PAL = { bed: 0x4a4233, quay: 0x8f8878, pave: 0x9d978a, site: 0x6e5636, grass: 0x5b7a42, plot: 0x8b857a };
+function inPit(x, z) {
+  for (let i = 0; i < 4; i++) { const p = PITS[i], dx = x - p.x, dz = z - p.z; if (dx * dx + dz * dz < p.r * p.r) return i; }
+  return -1;
+}
+function surfKind(x, z) {
+  const rc = RIV.c(x), rh = RIV.h(x), adz = Math.abs(z - rc);
+  if (adz < rh) return 'bed';
+  if (adz < rh + 2.0) return 'quay';
+  if (Math.abs(x + 14) < 2.0 || Math.abs(x - 13) < 2.0) { if (z > -1 && z < 16.2) return 'pave'; }
+  if (z > 20.4) return 'plot';
+  if (Math.abs(z - 18.3) < 2.0) return 'pave';
+  if ((x < -20.4 || x > 20.4) && z > -1.5 && z < 19) return 'plot';
+  if (z < -19.6) return 'pave';
+  if (z > 0.5 && z < 16.2 && x > -20.4 && x < 20.4) return 'site';
+  return 'grass';
+}
+
+/* ---- 5.0 接触阴影贴花（柔和大范围 AO） ---- */
+const csTex = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 3, 64, 64, 62);
+  gr.addColorStop(0, 'rgba(0,0,0,0.60)'); gr.addColorStop(.5, 'rgba(0,0,0,0.28)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(c);
+})();
+const csMat = new THREE.MeshBasicMaterial({ map: csTex, transparent: true, depthWrite: false, color: 0x000000, opacity: .85 });
+const csPool = [];
+function contactShadow(x, y, z, sx, sz) {
+  const p = new THREE.Mesh(new THREE.PlaneGeometry(sx, sz), csMat);
+  p.rotation.x = -Math.PI / 2; p.position.set(x, y + .035, z); p.renderOrder = 1;
+  scene.add(p); csPool.push(p); return p;
+}
+
+/* ---- 5.1 体素地层：表层 / 砌石堤岸 / 多层断面岩石 ---- */
+for (let x = WX0 + .5; x <= WX1; x++) {
+  for (let z = WZ0 + .5; z <= WZ1; z++) {
+    const rc = RIV.c(x), rh = RIV.h(x), dz = z - rc, adz = Math.abs(dz);
+    const kind = surfKind(x, z);
+    const inRiver = kind === 'bed';
+    const pit = inRiver ? -1 : inPit(x, z);
+    let top = GRADE;
+    if (inRiver) top = 1.5; else if (pit >= 0) top = 1.0;
+    else if (kind === 'grass' && vn2(x * .25, z * .25, 7) > 0.68) top = GRADE + 1;
+    let bot = -6 - Math.floor(vn2(x * .19, z * .19, 3) * 3.2);
+    if (vn2(x * .42, z * .42, 11) > 0.80) bot -= 3;
+    const seed = (Math.round(x * 7 + 91) * 131 + Math.round(z * 7 + 77) * 57) | 0;
+    const jf = 0.86 + rnd(seed, 5) * 0.28;
+    const dirtVar = vn2(x * .5, z * .5, 21) > 0.55 ? 0.84 : 1.0;
+    for (let y = Math.floor(bot) + .5; y < top - .02; y += 1) {
+      let c;
+      if (y > top - 1.02) {
+        c = pit >= 0 ? 0x4d4234 : PAL[kind];
+        if (kind === 'site') c = shade(PAL.site, dirtVar);
+        if (kind === 'grass') c = shade(PAL.grass, vn2(x * .8, z * .8, 31) > .5 ? 1.06 : .88);
+      } else if (!inRiver && adz < rh + 2.2 && y > top - 3.02) {
+        c = shade(PAL.quay, 0.92 + rnd(seed + Math.round(y * 9), 6) * 0.2);
+      } else {
+        const b = Math.floor((y + 10) / 2.15);
+        c = shade(STRATA[((b % 5) + 5) % 5], 0.9 + rnd(seed + Math.round(y * 3), 4) * 0.2);
+      }
+      vox(bTerra, x, y, z, .985, .985, .985, shade(c, jf));
+    }
+    /* 堤岸压顶石 */
+    if (!inRiver && adz < rh + 2.2 && adz > rh - .2)
+      vox(bStone, x, GRADE + .07, z, 1.0, .16, 1.0, shade(0x9a9282, .9 + rnd(seed, 8) * .2));
+  }
+}
+/* ---- 5.2 下水台阶（石阶没入河中） ---- */
+[-6.5, 9.5].forEach((sx, si) => {
+  const z0 = RIV.c(sx) + RIV.h(sx) + .3;
+  for (let k = 0; k < 5; k++)
+    for (let w = -1; w <= 1; w++)
+      vox(bStone, sx + w, 3.72 - k * .62, z0 - k * .82, 1.0, .62, .84, shade(0x948c7c, .92 + rnd(sx * 9 + k * 7 + w, 2) * .18));
+  vox(bProp, sx, GRADE + 1.5, z0 + .6, .16, 3.0, .16, 0x2c2a26);
+  vox(bGlow, sx, GRADE + 3.1, z0 + .6, .46, .5, .46, 0xffcf7a);
+});
+
+/* ---- 5.3 多拱石桥 ---- */
+function buildBridge(bx) {
+  const zA = RIV.c(bx) - RIV.h(bx) - 1.4, zB = RIV.c(bx) + RIV.h(bx) + 1.4;
+  const L = zB - zA, stone = 0x948b7b, XS = [-1, 0, 1];
+  /* 桥墩 */
+  for (let pi = 1; pi <= 2; pi++) {
+    const pz = zA + L * pi / 3;
+    for (let y = 1.5; y < 3.4; y += .55)
+      for (const w of XS)
+        vox(bStone, bx + w, y, pz, .97, .55, 1.35, shade(stone, .9 + rnd(bx + pi * 7 + Math.round(y * 5), 3) * .2));
+  }
+  /* 三跨拱肋（石拱侧壁可见） */
+  for (let s = 0; s < 3; s++) {
+    const s0 = zA + L * s / 3, s1 = zA + L * (s + 1) / 3;
+    for (let i = 0; i <= 10; i++) {
+      const u = i / 10, zz = lerp(s0, s1, u), y = 3.35 + Math.sin(u * Math.PI) * 1.15;
+      for (const w of [-1.5, 1.5])
+        vox(bStone, bx + w, y, zz, .98, .55, L / 3 / 10 * 1.3, shade(stone, .86 + rnd(bx + i * 3 + s, 4) * .28));
+      if (i % 2 === 0) vox(bStone, bx, y, zz, 1.0, .5, .8, shade(stone, .8));
+    }
+  }
+  /* 桥面 */
+  for (let z = Math.floor(zA); z < zB; z++)
+    for (const w of XS)
+      vox(bStone, bx + w, 4.66, z + .5, .99, .5, 1.0, shade(0x9d9484, .9 + rnd(bx + z * 3 + w, 6) * .2));
+  /* 石栏杆 */
+  for (const w of [-1.5, 1.5]) {
+    for (let z = Math.floor(zA) + .5; z < zB; z += 1.6) vox(bStone, bx + w, 5.15, z, .34, .42, .34, 0x8a8272);
+    for (let z = Math.floor(zA); z < zB; z++) vox(bStone, bx + w, 5.36, z + .5, .22, .16, 1.02, 0x867e6e);
+  }
+  /* 桥灯 */
+  for (const z of [zA + 1.6, (zA + zB) / 2, zB - 1.6]) {
+    for (const w of [-1.5, 1.5]) { vox(bProp, bx + w, 4.95, z, .14, 1.5, .14, 0x2c2a26); vox(bGlow, bx + w, 5.8, z, .4, .44, .4, 0xffcf7a); }
+  }
+}
+buildBridge(-14); buildBridge(13);
+
+/* ---- 5.4 奥斯曼式建筑（奶油立面 · 灰锌折坡屋顶 · 老虎窗 · 烟囱 · 阳台） ---- */
+function building(x, z, w, d, floors, nx, nz, seed) {
+  const fh = 1.55, h = floors * fh, y0 = GRADE;
+  const cream = [0xe6dabf, 0xdccfae, 0xefe4cd, 0xd6c8a6][Math.floor(rnd(seed, 1) * 4) % 4];
+  vox(bBld, x, y0 + h / 2, z, w, h, d, cream);
+  vox(bBld, x, y0 + h + .14, z, w + .32, .28, d + .32, 0xcfc2a4);          // 檐口
+  const zinc = 0x6e7276;
+  for (let i = 0; i < 3; i++)
+    vox(bBld, x, y0 + h + .46 + i * .44, z, w * (1 - .18 * i), .46, d * (1 - .18 * i), shade(zinc, 1 - .07 * i));
+  vox(bBld, x, y0 + h + 1.9, z, w * .46, .22, d * .46, shade(zinc, .88));
+  /* 烟囱 */
+  const nch = 2 + Math.floor(rnd(seed, 2) * 3);
+  for (let i = 0; i < nch; i++) {
+    const cx = x + vr(seed, 10 + i, -w * .3, w * .3), cz = z + vr(seed, 30 + i, -d * .3, d * .3);
+    vox(bBld, cx, y0 + h + 2.4, cz, .42, 1.1, .42, 0x8c5b46);
+  }
+  /* 老虎窗 */
+  const nd = Math.max(1, Math.floor((nx ? d : w) / 2.6));
+  for (let i = 0; i < nd; i++) {
+    const u = nd === 1 ? 0 : (i / (nd - 1) - .5);
+    const perp = { x: -nz, z: nx };
+    const spanLen = (nx !== 0) ? d : w;
+    const dx = x + perp.x * u * spanLen * .72 + nx * (d / 2 - .1), dzz = z + perp.z * u * spanLen * .72 + nz * (d / 2 - .1);
+    vox(bBld, dx, y0 + h + 1.1, dzz, nx ? .8 : 1.0, .7, nx ? 1.0 : .8, 0xd8cdb2);
+    vox(bBld, dx, y0 + h + 1.55, dzz, nx ? .9 : 1.1, .18, nx ? 1.1 : .9, shade(zinc, .95));
+  }
+  /* 立面：窗户 + 小阳台 */
+  const fx = x + nx * (d / 2 + .02), fz = z + nz * (d / 2 + .02);
+  const perp = { x: -nz, z: nx }, spanLen = (nx !== 0) ? d : w;
+  const cols = Math.max(2, Math.floor(spanLen / 1.3));
+  for (let f = 0; f < floors; f++) {
+    const wy = y0 + .95 + f * fh;
+    for (let ci = 0; ci < cols; ci++) {
+      const u = (ci + .5) / cols - .5;
+      const wx = fx + perp.x * u * spanLen * .92, wz = fz + perp.z * u * spanLen * .92;
+      vox(bWin, wx + nx * .04, wy, wz + nz * .04, nx ? .12 : .66, .82, nx ? .66 : .12, 0x363d44);
+      vox(bWin, wx + nx * .1, wy + .45, wz + nz * .1, nx ? .1 : .74, .1, nx ? .74 : .1, 0x8d7f63);   // 窗楣
+      if (f > 0 && ci % 1 === 0) {
+        vox(bProp, wx + nx * .2, wy - .46, wz + nz * .2, nx ? .09 : .84, .08, nx ? .84 : .09, 0x4b463c);   // 阳台
+        vox(bProp, wx + nx * .2, wy - .2, wz + nz * .2, nx ? .07 : .8, .3, nx ? .8 : .07, 0x3d3931);
+      }
+    }
+    vox(bProp, fx + nx * .12, wy + .78, fz + nz * .12, nx ? .1 : spanLen * .92, .1, nx ? spanLen * .92 : .1, 0xa79a7c);  // 线脚
+  }
+  contactShadow(x, y0, z, w + 1.6, d + 1.6);
+}
+/* 北侧一排 */
+for (let x = -26; x <= 26; x += 7) {
+  if (Math.abs(x + 14) < 3.4 || Math.abs(x - 13) < 3.4) continue;
+  const w = vr(x, 1, 5.4, 6.6);
+  building(x + vr(x, 2, -.6, .6), 23.4, w, vr(x, 3, 4.6, 5.6), 4 + Math.floor(rnd(x, 4) * 3), 0, -1, x * 13 + 7);
+}
+/* 东西两排 */
+for (const side of [-1, 1]) {
+  for (let z = 1.6; z <= 17; z += 6.2) {
+    const bx = side * 24.6;
+    if (Math.abs(z - 9) < 2.6) continue;
+    building(bx, z + vr(z, 5, -.5, .5), vr(z, 6, 4.4, 5.4), vr(z, 7, 5.0, 6.2), 3 + Math.floor(rnd(z * 3, 8) * 3), -side, 0, z * 17 + side * 5);
+  }
+}
+
+/* ---- 5.5 林荫大道 · 体素小树 · 路灯 · 长椅 ---- */
+function tree(x, z, seed) {
+  const hh = vr(seed, 1, 1.5, 2.4);
+  vox(bProp, x, GRADE + hh / 2, z, .3, hh, .3, 0x5b422c);
+  const g1 = [0x5f7f43, 0x6b8c4a, 0x54723c][Math.floor(rnd(seed, 2) * 3) % 3];
+  vox(bProp, x, GRADE + hh + .45, z, 1.75, 1.1, 1.75, g1);
+  vox(bProp, x, GRADE + hh + 1.2, z, 1.25, .95, 1.25, shade(g1, 1.12));
+  vox(bProp, x, GRADE + hh + 1.85, z, .75, .7, .75, shade(g1, .9));
+  contactShadow(x, GRADE, z, 2.4, 2.4);
+}
+function lamp(x, z) {
+  vox(bProp, x, GRADE + 1.35, z, .15, 2.7, .15, 0x2b2925);
+  vox(bProp, x, GRADE + 2.72, z, .34, .1, .34, 0x2b2925);
+  vox(bGlow, x, GRADE + 2.95, z, .44, .5, .44, 0xffd08a);
+}
+function bench(x, z, ry) {
+  vox(bProp, x, GRADE + .34, z, 1.5, .12, .46, 0x6b4f34);
+  vox(bProp, x, GRADE + .6, z, 1.5, .4, .1, 0x6b4f34);
+  vox(bProp, x, GRADE + .16, z, 1.3, .3, .12, 0x3a342c);
+}
+for (let x = -27; x <= 27; x += 3.1) {
+  if (Math.abs(x + 14) < 2.6 || Math.abs(x - 13) < 2.6) continue;
+  if (rnd(x, 44) > .25) tree(x + vr(x, 45, -.5, .5), 17.2 + vr(x, 46, -.3, .3), Math.round(x * 31));
+  if (rnd(x, 47) > .3) tree(x + vr(x, 48, -.5, .5), 19.4 + vr(x, 49, -.3, .3), Math.round(x * 31) + 5);
+}
+for (let x = -26; x <= 26; x += 6.2) { lamp(x, 16.4); lamp(x + 3.1, 20.2); }
+for (let x = -28; x <= 28; x += 4.4) {
+  const bz = RIV.c(x) + RIV.h(x) + 2.5;
+  if (bz > WZ0 + 2 && bz < 15) { lamp(x, bz - 1.0); if (rnd(x, 50) > .4) bench(x + 1.5, bz + .2, 0); }
+  const sz = RIV.c(x) - RIV.h(x) - 2.5;
+  if (sz > WZ0 + 1.6) { lamp(x, sz + 1.0); if (rnd(x, 51) > .45) tree(x + 1.6, sz - .4, Math.round(x * 7 + 3)); }
+}
+for (let x = -27; x <= 27; x += 3.4) if (rnd(x, 60) > .35) tree(x, -22.6 + vr(x, 61, -.4, .4), Math.round(x * 11 + 9));
+
+/* ---- 5.6 战神广场工地：铁梁捆 · 木棚 · 围栏 · 工具箱 · 蒸汽机 ---- */
+function beamStack(x, z, n, ry, seed) {
+  for (let i = 0; i < n; i++) {
+    const row = Math.floor(i / 3), col = i % 3;
+    vox(bProp, x + Math.cos(ry) * (col - 1) * .3 - Math.sin(ry) * row * .28, GRADE + .2 + row * .3,
+      z - Math.sin(ry) * (col - 1) * .3 + Math.cos(ry) * row * .28, ry === 0 ? 5.2 : .17, .17, ry === 0 ? .17 : 5.2, IRONC[i % 4]);
+  }
+  contactShadow(x, GRADE, z, 6, 2.6);
+}
+beamStack(-16.5, 3.2, 9, 0, 1); beamStack(-17.2, 7.6, 6, Math.PI / 2, 2);
+beamStack(17.0, 4.4, 9, 0, 3); beamStack(16.4, 12.2, 6, Math.PI / 2, 4);
+beamStack(-9.0, 15.0, 6, 0, 5); beamStack(9.4, 15.2, 6, 0, 6);
+function shed(x, z, ry, seed) {
+  const w = 3.0, d = 2.2, h = 1.9, wd = WOODC[seed % 3];
+  vox(bBld, x, GRADE + h / 2, z, w, h, .14, wd); vox(bBld, x, GRADE + h / 2, z + d - .07, w, h, .14, shade(wd, .9));
+  vox(bBld, x - w / 2, GRADE + h / 2, z + d / 2, .14, h, d, wd);
+  vox(bBld, x, GRADE + h + .14, z + d / 2, w + .5, .22, d + .6, 0x54565a);
+  vox(bBld, x, GRADE + h + .46, z + d / 2, w - .2, .5, d + .1, 0x54565a);
+  vox(bProp, x + 1.2, GRADE + .5, z + d + .5, .8, .9, .6, 0x6a5a44);
+  contactShadow(x, GRADE, z + d / 2, w + 1.4, d + 1.8);
+}
+shed(-16.2, 11.5, 0, 0); shed(15.6, 8.4, 0, 1); shed(-4.6, 15.8, 0, 2);
+/* 临时围栏 */
+function fence(x0, z0, x1, z1) {
+  const dx = x1 - x0, dz = z1 - z0, L = Math.hypot(dx, dz), n = Math.max(1, Math.round(L / 1.5));
+  for (let i = 0; i <= n; i++) {
+    const px = x0 + dx * i / n, pz = z0 + dz * i / n;
+    vox(bProp, px, GRADE + .55, pz, .13, 1.1, .13, 0x6b5334);
+  }
+  for (const ry of [.32, .68]) {
+    vox(bProp, (x0 + x1) / 2, GRADE + ry, (z0 + z1) / 2, Math.abs(dx) > Math.abs(dz) ? L : .08, .1, Math.abs(dx) > Math.abs(dz) ? .08 : L, 0x7a6040);
+  }
+}
+fence(-15.5, .9, 15.5, .9); fence(-15.5, 15.9, -2.5, 15.9); fence(2.5, 15.9, 15.5, 15.9);
+fence(-15.5, .9, -15.5, 15.9); fence(15.5, .9, 15.5, 15.9);
+/* 工具箱 / 料斗 / 蒸汽机 */
+for (let i = 0; i < 16; i++) {
+  const a = vr(i, 70, 0, Math.PI * 2), r = vr(i, 71, 7, 15);
+  vox(bProp, C.x + Math.cos(a) * r, GRADE + .2, C.z + Math.sin(a) * r * .8, .7, .34, .46, [0x7a4a2e, 0x4a4f57, 0x6b3b2a][i % 3]);
+}
+const ENGINE = { x: 11.6, z: 13.6 };
+(function engine() {
+  const x = ENGINE.x, z = ENGINE.z;
+  vox(bBld, x, GRADE + .8, z, 2.4, 1.6, 1.7, 0x3c4046);                 // 锅炉
+  vox(bBld, x - 1.3, GRADE + .8, z, .5, 1.6, 1.7, 0x2f3338);
+  vox(bProp, x + .3, GRADE + 2.6, z - .3, .42, 2.2, .42, 0x2b2e33);      // 烟囱
+  vox(bProp, x + .3, GRADE + 3.75, z - .3, .56, .18, .56, 0x23262a);
+  vox(bProp, x + 1.6, GRADE + 1.5, z + .4, 1.5, 1.5, .16, 0x6d5a3c);     // 飞轮
+  vox(bProp, x + 1.6, GRADE + 1.5, z + .4, .18, 1.7, .18, 0x4a4034);
+  vox(bProp, x - .4, GRADE + 1.75, z + 1.0, .9, .3, .6, 0x8a7a5c);       // 汽缸
+  vox(bProp, x - 1.9, GRADE + .3, z + 1.2, 1.6, .5, 1.0, 0x4b3a28);      // 煤斗
+  contactShadow(x, GRADE, z, 5, 4.4);
+})();
+
+/* ---- 5.7 塔基接触阴影 ---- */
+contactShadow(C.x, GRADE, C.z, 27, 25);
+
+/* ---- 5.8 塞纳河：程序化水纹 / 流向 / 碎光 / 岸边水沫 / 船只尾流 ---- */
+const waterUni = {
+  uTime: { value: 0 }, uCam: { value: new V3() },
+  uBoat: { value: new V3(-20, WATER, -11) }, uBoatDir: { value: new V3(1, 0, 0) }, uBoat2: { value: new V3(20, WATER, -11) }
+};
+const water = new THREE.Mesh(new THREE.PlaneGeometry(66, 28, 1, 1), new THREE.ShaderMaterial({
+  transparent: true, uniforms: waterUni, side: THREE.DoubleSide,
+  vertexShader: `varying vec3 vW; void main(){ vW=(modelMatrix*vec4(position,1.0)).xyz; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
+  fragmentShader: `
+    varying vec3 vW;
+    uniform float uTime; uniform vec3 uCam, uBoat, uBoatDir, uBoat2;
+    float rc(float x){ return -11.0 + 4.6*sin(x*0.055+0.6) + 1.9*sin(x*0.13+1.9); }
+    float rh(float x){ return 4.2 + 1.1*sin(x*0.09+2.3); }
+    float h21(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
+    float n2(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
+      float a=h21(i),b=h21(i+vec2(1,0)),c=h21(i+vec2(0,1)),d=h21(i+vec2(1,1));
+      return mix(mix(a,b,f.x),mix(c,d,f.x),f.y); }
+    void main(){
+      float c=rc(vW.x), hw=rh(vW.x), dz=vW.z-c, adz=abs(dz);
+      if(adz>hw) discard;
+      float shore=hw-adz;
+      float t=uTime;
+      vec2 uv=vec2(vW.x*0.55, dz*0.95);
+      float w1=sin(uv.x*1.6+t*1.9+sin(uv.y*1.25+t*0.7)*1.3);
+      float w2=sin(uv.x*3.2-t*1.5+uv.y*2.3+1.7);
+      float w3=n2(uv*2.3+vec2(t*1.05,-t*0.42));
+      float w4=n2(uv*5.1+vec2(-t*1.7,t*0.9));
+      vec3 nrm=normalize(vec3((w1*0.30+w2*0.22+w3*0.55)*0.55, 1.0, (w2*0.30-w1*0.22+w4*0.3)*0.45));
+      vec3 V=normalize(uCam-vW);
+      float fres=pow(1.0-max(dot(V,nrm),0.0), 3.0);
+      vec3 deep=vec3(0.075,0.105,0.10), shal=vec3(0.16,0.20,0.16);
+      vec3 col=mix(deep,shal,smoothstep(0.0,3.2,shore));
+      col=mix(col, vec3(0.30,0.26,0.18), smoothstep(1.1,0.0,shore)*0.55);
+      col=mix(col, vec3(0.58,0.52,0.45), fres*0.62);
+      vec3 L=normalize(vec3(0.34,0.42,0.85));
+      float spec=pow(max(dot(reflect(-V,nrm),L),0.0), 46.0);
+      col+=vec3(1.55,1.15,0.72)*spec*1.5;
+      float sp=pow(n2(uv*7.5+vec2(t*2.7,t*1.3)),14.0);
+      col+=vec3(1.7,1.35,0.95)*sp*2.6*smoothstep(0.35,2.0,shore);
+      float foamN=n2(uv*3.6+vec2(t*1.15,0.0))*0.6+n2(uv*9.0-vec2(t*2.2,0.0))*0.4;
+      float foam=smoothstep(0.95,0.0,shore)*(0.34+0.66*foamN);
+      float wake=0.0;
+      for(int k=0;k<2;k++){
+        vec3 B = (k==0) ? uBoat : uBoat2;
+        vec2 rel = vW.xz - B.xz;
+        vec2 back = (k==0) ? -uBoatDir.xz : vec2(1.0, 0.0);   // 船行反方向 = 尾流
+        float along=dot(rel,back), side=abs(dot(rel,vec2(-back.y,back.x)));
+        if(along>0.0 && along<17.0){
+          float spread=0.7+along*0.32;
+          float dd=(side-spread)*0.85;
+          float band=exp(-dd*dd);
+          float turb=0.5+0.5*n2(vec2(along*0.85-t*2.1, side*1.3));
+          wake+=band*turb*smoothstep(17.0,2.0,along)*0.9;
+          wake+=exp(-length(rel)*0.5)*(0.45+0.55*n2(vec2(along*2.1-t*3.0, side*2.2)))*0.8;
+        }
+      }
+      col=mix(col, vec3(0.80,0.82,0.78), clamp(foam+wake,0.0,0.92));
+      gl_FragColor=vec4(col, 0.95);
+    }`
+}));
+water.rotation.x = -Math.PI / 2; water.position.set(0, WATER, -11);
+water.frustumCulled = false; water.renderOrder = 0;
+scene.add(water);
+
+/* ======================================================================
+   6. 铁塔：分件吊装系统（起吊 → 摆转对位 → 落座）
+   ====================================================================== */
+const FACE = [{ nx: 1, nz: 0 }, { nx: 0, nz: 1 }, { nx: -1, nz: 0 }, { nx: 0, nz: -1 }];
+const legHalf = y => clamp(0.32 + 0.52 * (1 - (y - GRADE) / 32), 0.30, 0.84);
+const PARTS = [], SCHED = [[], [], [], [], [], []], WALKS = [], RIVETS = [], NCREW = 6;
+let ironMesh = null, rodMesh = null, rodN = 0;
+const ROD_CAP = 220;
+const _ax = new V3();
+
+function qToY(dx, dy, dz, out) {
+  const L = Math.hypot(dx, dy, dz); if (L < 1e-6) { out.identity(); return out; }
+  const nx = dx / L, ny = dy / L, nz = dz / L;
+  if (ny > .99999) { out.identity(); return out; }
+  if (ny < -.99999) { out.setFromAxisAngle(_ax.set(0, 0, 1), Math.PI); return out; }
+  return out.setFromAxisAngle(_ax.set(nz, 0, -nx).normalize(), Math.acos(clamp(ny, -1, 1)));
+}
+function newPart(kind, stage, origin, opt) {
+  opt = opt || {};
+  const p = {
+    kind, stage, origin: origin.clone(), items: [], tStart: 0, tEnd: 0, dur: opt.dur || 0,
+    top: origin.y + (opt.hh || 1) * .5, seed: (PARTS.length * 977 + 31) | 0, state: -1,
+    hook: new V3(), pickup: origin.clone(), riseH: opt.riseH || 1.5, dropH: opt.dropH || 1.35,
+    bulge: opt.bulge || 1.2, hangOff: opt.hangOff || .55, tiltAmp: opt.tiltAmp || .13,
+    spread: opt.spread || 1.3, attY: opt.attY === undefined ? .35 : opt.attY, t: opt.t, u: 0, phase: 0, crane: 0
+  };
+  p.tiltAxis = new V3(rnd(p.seed, 1) - .5, rnd(p.seed, 2) - .5, rnd(p.seed, 3) - .5).normalize();
+  PARTS.push(p); SCHED[stage].push(p); return p;
+}
+function addItem(p, px, py, pz, sx, sy, sz, q, col) {
+  p.items.push({
+    lm: new THREE.Matrix4().compose(new V3(px - p.origin.x, py - p.origin.y, pz - p.origin.z), q.clone(), new V3(sx, sy, sz)),
+    bm: new THREE.Matrix4().compose(new V3(px, py, pz), q.clone(), new V3(sx, sy, sz)),
+    col: col === undefined ? ironCol(p.seed + Math.round(px * 7 + pz * 3)) : col
+  });
+}
+function addBeamI(p, ax, ay, az, bx, by, bz, th, col) {
+  const dx = bx - ax, dy = by - ay, dz = bz - az, L = Math.hypot(dx, dy, dz);
+  if (L < 1e-4) return;
+  const q = qToY(dx, dy, dz, new THREE.Quaternion());
+  addItem(p, (ax + bx) / 2, (ay + by) / 2, (az + bz) / 2, th, L + th * .85, th, q, col);
+}
+function addBoxI(p, x, y, z, sx, sy, sz, col, ry) {
+  addItem(p, x, y, z, sx, sy, sz, new THREE.Quaternion().setFromAxisAngle(_ax.set(0, 1, 0), ry || 0), col);
+}
+
+/* ---- 6.1 工序 ①：开挖 / 沉箱 / 垫层 / 基础 / 锚座 ---- */
+function buildFoundations() {
+  PITS.forEach((pit, pi) => {
+    const px = pit.x, pz = pit.z;
+    if (pi === 3) {                                   // 塞纳河侧：沉箱下放
+      const p = newPart('caisson', 0, new V3(px, 2.55, pz),
+        { t: .95, dur: .95, hangOff: 1.75, spread: 2.1, attY: 1.55, tiltAmp: .045, bulge: .6, dropH: 1.0, riseH: 1.0 });
+      for (const o of [[0, 1], [1, 0], [0, -1], [-1, 0]])
+        addBoxI(p, px + o[0] * 1.78, 2.55, pz + o[1] * 1.78, o[0] ? .2 : 3.75, 3.0, o[0] ? 3.75 : .2, 0x6d5536);
+      addBoxI(p, px, 4.1, pz, 3.95, .32, 3.95, 0x7d6342);
+      for (const o of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) addBeamI(p, px + o[0] * 1.6, 1.1, pz + o[1] * 1.6, px + o[0] * 1.6, 4.2, pz + o[1] * 1.6, .12, 0x5f4a30);
+      p.pickup.set(px + 6.6, WATER + 1.0, pz - 5.6);
+    }
+    const bed = newPart('bed', 0, new V3(px, 1.35, pz), { t: 1.8 + pi * .1, dur: .5, hangOff: .6, spread: 1.8, attY: .22 });
+    addBoxI(bed, px, 1.35, pz, 3.55, .5, 3.55, 0x7d7666);
+    for (let c = 0; c < 2; c++) {
+      const y = 1.98 + c * .8;
+      const m = newPart('mason', 0, new V3(px, y, pz), { t: 2.05 + pi * .08 + c * .22, dur: .48, hangOff: .6, spread: 1.75, attY: .3 });
+      const w = 3.3 - c * .16;
+      addBoxI(m, px - .82, y, pz, w / 2 - .04, .74, w, 0x9a9384); addBoxI(m, px + .82, y, pz, w / 2 - .04, .74, w, 0x908a7b);
+      addBoxI(m, px, y, pz - .82, w, .74, w / 2 - .04, 0x968f80); addBoxI(m, px, y, pz + .82, w, .74, w / 2 - .04, 0x8b8576);
+    }
+    const an = newPart('anchor', 0, new V3(px, 3.62, pz), { t: 2.6 + pi * .06, dur: .42, hangOff: .45, spread: 1.2, attY: .2 });
+    addBoxI(an, px, 3.62, pz, 2.3, .34, 2.3, IRONC[1]);
+    for (const o of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) addBeamI(an, px + o[0] * .92, 3.62, pz + o[1] * .92, px + o[0] * .92, 4.3, pz + o[1] * .92, .11, IRONC[0]);
+  });
+}
+/* ---- 6.2 工序 ②：四条弯曲塔腿（逐层木脚手架 + 预制铁架分段） ---- */
+function legPanel(si, y0, y1, stage) {
+  const s = LEGDIR[si], d0 = TOWER.d(y0), d1 = TOWER.d(y1);
+  const c0x = C.x + s.x * d0, c0z = C.z + s.z * d0, c1x = C.x + s.x * d1, c1z = C.z + s.z * d1;
+  const h0 = legHalf(y0), h1 = legHalf(y1);
+  const p = newPart('leg', stage, new V3((c0x + c1x) / 2, (y0 + y1) / 2, (c0z + c1z) / 2),
+    { hh: (y1 - y0) + 1.1, hangOff: (y1 - y0) / 2 + .55, spread: 1.5, attY: .35 });
+  const th = Math.max(.088, .16 - y0 * .0024), thx = Math.max(.054, .096 - (y0 - GRADE) * .0013);
+  const OF = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+  const A = OF.map(o => [c0x + o[0] * h0, y0, c0z + o[1] * h0]);
+  const B = OF.map(o => [c1x + o[0] * h1, y1, c1z + o[1] * h1]);
+  for (let k = 0; k < 4; k++) addBeamI(p, A[k][0], A[k][1], A[k][2], B[k][0], B[k][1], B[k][2], th);
+  for (let k = 0; k < 4; k++) { const a = B[k], b = B[(k + 1) & 3]; addBeamI(p, a[0], a[1], a[2], b[0], b[1], b[2], th * .8); }
+  for (let k = 0; k < 4; k++) {
+    const a0 = A[k], b0 = A[(k + 1) & 3], a1 = B[k], b1 = B[(k + 1) & 3];
+    addBeamI(p, a0[0], a0[1], a0[2], b1[0], b1[1], b1[2], thx);      // X 形交叉撑
+    addBeamI(p, b0[0], b0[1], b0[2], a1[0], a1[1], a1[2], thx);
+  }
+  return p;
+}
+function ringPart(y0, y1, stage, withX) {
+  const p = newPart('ring', stage, new V3(C.x, (y0 + y1) / 2, C.z), { hh: 2.2, hangOff: 1.1, spread: 2.4, attY: .4, dur: .6 });
+  const d1 = TOWER.d(y1), d0 = TOWER.d(y0), h1 = legHalf(y1), h0 = legHalf(y0);
+  const thx = Math.max(.054, .096 - (y1 - GRADE) * .0013);
+  for (let k = 0; k < 4; k++) {
+    const s0 = LEGDIR[k], s1 = LEGDIR[(k + 1) & 3];
+    const gx = Math.sign(s1.x - s0.x), gz = Math.sign(s1.z - s0.z);
+    addBeamI(p, C.x + s0.x * d1 + gx * h1, y1, C.z + s0.z * d1 + gz * h1,
+      C.x + s1.x * d1 - gx * h1, y1, C.z + s1.z * d1 - gz * h1, .17);
+    if (withX) {
+      addBeamI(p, C.x + s0.x * d0 + gx * h0, y0, C.z + s0.z * d0 + gz * h0,
+        C.x + s1.x * d1 - gx * h1, y1, C.z + s1.z * d1 - gz * h1, thx);
+      addBeamI(p, C.x + s1.x * d0 - gx * h0, y0, C.z + s1.z * d0 - gz * h0,
+        C.x + s0.x * d1 + gx * h1, y1, C.z + s0.z * d1 + gz * h1, thx);
+      addBeamI(p, C.x + s0.x * d1 + gx * h1, y1, C.z + s0.z * d1 + gz * h1,
+        C.x + s0.x * d0 + gx * h0, y0, C.z + s0.z * d0 + gz * h0, thx * .9);
+    }
+  }
+  return p;
+}
+function buildLegs() {
+  const n = 5, y0 = GRADE, y1 = TOWER.y1;
+  for (let i = 0; i < n; i++) {
+    const a = y0 + (y1 - y0) * i / n, b = y0 + (y1 - y0) * (i + 1) / n;
+    for (let si = 0; si < 4; si++) {
+      legPanel(si, a, b, 1);
+      WALKS.push({ y: b + .04, r: TOWER.d(b) + .12, h: b });
+    }
+    ringPart(a, b, 1, false);
+  }
+}
+/* ---- 6.3 工序 ③：开放式拱肋 + 第一平台 ---- */
+function archPt(fi, s) {
+  const y = 4.95 + 3.55 * (1 - s * s), r = TOWER.d(y) - .18, sh = TOWER.d(4.95) - 1.05;
+  const f = FACE[fi];
+  return [C.x + f.nx * r + (-f.nz) * s * sh, y, C.z + f.nz * r + f.nx * s * sh];
+}
+function buildArches() {
+  for (let fi = 0; fi < 4; fi++) for (const sgn of [1, -1]) {
+    const c = archPt(fi, sgn * .52);
+    const p = newPart('arch', 2, new V3(c[0], c[1], c[2]), { hh: 1.4, hangOff: .75, spread: 1.6, attY: .45, bulge: 1.6, dur: .62 });
+    const N = 6;
+    for (let i = 0; i < N; i++) {
+      const s0 = sgn * (1 - i / N), s1 = sgn * (1 - (i + 1) / N);
+      const a = archPt(fi, s0), b = archPt(fi, s1);
+      addBeamI(p, a[0], a[1] + .42, a[2], b[0], b[1] + .42, b[2], .105);
+      addBeamI(p, a[0], a[1] - .42, a[2], b[0], b[1] - .42, b[2], .105);
+      addBeamI(p, a[0], a[1] - .42, a[2], a[0], a[1] + .42, a[2], .086);
+      addBeamI(p, a[0], a[1] - .42, a[2], b[0], b[1] + .42, b[2], .076);
+      addBeamI(p, a[0], a[1] + .42, a[2], b[0], b[1] - .42, b[2], .076);
+    }
+    const e = archPt(fi, sgn * 1);
+    addBoxI(p, e[0], e[1], e[2], .6, .85, .6, IRONC[2]);
+  }
+}
+function buildPlatform(py, half, stage, thin) {
+  const cs = [[-half, -half], [half, -half], [half, half], [-half, half]];
+  for (let k = 0; k < 4; k++) {
+    const a = cs[k], b = cs[(k + 1) & 3];
+    const p = newPart('girder', stage, new V3(C.x + (a[0] + b[0]) / 2, py + .2, C.z + (a[1] + b[1]) / 2),
+      { hh: 1.2, hangOff: .55, spread: Math.min(2.2, half * .6), attY: .3, dur: .6 });
+    addBeamI(p, C.x + a[0], py + .2, C.z + a[1], C.x + b[0], py + .2, C.z + b[1], thin ? .2 : .27);
+    addBeamI(p, C.x + a[0], py - .3, C.z + a[1], C.x + b[0], py - .3, C.z + b[1], thin ? .15 : .2);
+    for (let i = 1; i < 4; i++) {
+      const u = i / 4, v = (i + 1) / 4;
+      const x = lerp(a[0], b[0], u), z = lerp(a[1], b[1], u);
+      addBeamI(p, C.x + x, py - .3, C.z + z, C.x + x, py + .2, C.z + z, .13);
+      addBeamI(p, C.x + x, py - .3, C.z + z, C.x + lerp(a[0], b[0], v), py + .2, C.z + lerp(a[1], b[1], v), .11);
+    }
+  }
+  const nc = Math.max(2, Math.round(half * 1.5));
+  for (let i = 1; i < nc; i++) {
+    const u = -half + 2 * half * i / nc;
+    const p = newPart('cross', stage, new V3(C.x + u, py + .18, C.z), { hh: .9, hangOff: .45, spread: half * .55, attY: .25, dur: .5 });
+    addBeamI(p, C.x + u, py + .18, C.z - half, C.x + u, py + .18, C.z + half, thin ? .13 : .17);
+    if (i % 2 === 0) addBeamI(p, C.x + u, py - .22, C.z - half, C.x + u, py - .22, C.z + half, .11);
+  }
+  const rows = Math.max(3, Math.round(half * 1.15));
+  for (let r = 0; r < rows; r++) {
+    const z0 = -half + 2 * half * r / rows, z1 = -half + 2 * half * (r + 1) / rows;
+    const p = newPart('deck', stage, new V3(C.x, py + .5, C.z + (z0 + z1) / 2),
+      { hh: .8, hangOff: .42, spread: half * .8, attY: .12, dur: .48, tiltAmp: .07 });
+    const cols = Math.max(3, Math.round(half * 2.0));
+    for (let ci = 0; ci < cols; ci++) {
+      const x0 = -half + 2 * half * ci / cols;
+      addBoxI(p, C.x + x0 + half / cols, py + .47, C.z + (z0 + z1) / 2,
+        2 * half / cols * .88, .1, (z1 - z0) * .84, ci % 3 === 0 ? 0x8a6f4a : 0x7d6442);
+    }
+  }
+  for (let k = 0; k < 4; k++) {
+    const a = cs[k], b = cs[(k + 1) & 3];
+    const p = newPart('rail', stage, new V3(C.x + (a[0] + b[0]) / 2, py + .9, C.z + (a[1] + b[1]) / 2),
+      { hh: 1.1, hangOff: .5, spread: 1.2, attY: .3, dur: .45, tiltAmp: .06 });
+    const n = Math.max(3, Math.round(half * 1.8));
+    for (let i = 0; i <= n; i++) {
+      const u = i / n, x = lerp(a[0], b[0], u), z = lerp(a[1], b[1], u);
+      addBeamI(p, C.x + x, py + .56, C.z + z, C.x + x, py + 1.16, C.z + z, .068);
+    }
+    addBeamI(p, C.x + a[0], py + 1.14, C.z + a[1], C.x + b[0], py + 1.14, C.z + b[1], .074);
+    addBeamI(p, C.x + a[0], py + .84, C.z + a[1], C.x + b[0], py + .84, C.z + b[1], .068);
+  }
+}
+/* ---- 6.4 工序 ④⑤：上部斜腿 / 越来越窄的镂空桁架 ---- */
+function shaftLevel(y0, y1, stage) {
+  const p = newPart('shaft', stage, new V3(C.x, (y0 + y1) / 2, C.z),
+    { hh: (y1 - y0) + 1.2, hangOff: (y1 - y0) / 2 + .6, spread: 2.3, attY: .32, dur: .85 });
+  const d0 = TOWER.d(y0), d1 = TOWER.d(y1), h0 = legHalf(y0), h1 = legHalf(y1);
+  const th = Math.max(.08, .152 - y0 * .0021), thx = Math.max(.054, .094 - (y0 - GRADE) * .0012);
+  const OF = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+  for (let si = 0; si < 4; si++) {
+    const s = LEGDIR[si];
+    const c0x = C.x + s.x * d0, c0z = C.z + s.z * d0, c1x = C.x + s.x * d1, c1z = C.z + s.z * d1;
+    const A = OF.map(o => [c0x + o[0] * h0, y0, c0z + o[1] * h0]);
+    const B = OF.map(o => [c1x + o[0] * h1, y1, c1z + o[1] * h1]);
+    for (let k = 0; k < 4; k++) addBeamI(p, A[k][0], A[k][1], A[k][2], B[k][0], B[k][1], B[k][2], th);
+    for (let k = 0; k < 4; k++) { const a = B[k], b = B[(k + 1) & 3]; addBeamI(p, a[0], a[1], a[2], b[0], b[1], b[2], th * .76); }
+    for (let k = 0; k < 4; k++) {
+      const a0 = A[k], b0 = A[(k + 1) & 3], a1 = B[k], b1 = B[(k + 1) & 3];
+      addBeamI(p, a0[0], a0[1], a0[2], b1[0], b1[1], b1[2], thx);
+      addBeamI(p, b0[0], b0[1], b0[2], a1[0], a1[1], a1[2], thx);
+    }
+  }
+  const cs1 = LEGDIR.map(s => [C.x + s.x * d1, y1, C.z + s.z * d1]);
+  const cs0 = LEGDIR.map(s => [C.x + s.x * d0, y0, C.z + s.z * d0]);
+  for (let k = 0; k < 4; k++) {
+    const a = cs0[k], b = cs0[(k + 1) & 3], c = cs1[k], e = cs1[(k + 1) & 3];
+    addBeamI(p, c[0], c[1], c[2], e[0], e[1], e[2], thx * 1.1);
+    addBeamI(p, a[0], a[1], a[2], e[0], e[1], e[2], thx * .95);
+    addBeamI(p, b[0], b[1], b[2], c[0], c[1], c[2], thx * .95);
+  }
+  WALKS.push({ y: y1 + .04, r: TOWER.d(y1) + .12, h: y1 });
+  return p;
+}
+function buildP2() {
+  const n = 4, y0 = TOWER.y1, y1 = TOWER.y2;
+  for (let i = 0; i < n; i++) shaftLevel(y0 + (y1 - y0) * i / n, y0 + (y1 - y0) * (i + 1) / n, 3);
+  buildPlatform(TOWER.y2, 3.5, 3, true);
+}
+function buildUpper() {
+  const n = 7, y0 = TOWER.y2, y1 = TOWER.y3;
+  for (let i = 0; i < n; i++) shaftLevel(y0 + (y1 - y0) * i / n, y0 + (y1 - y0) * (i + 1) / n, 4);
+}
+/* ---- 6.5 工序 ⑥：顶层平台 · 观测室 · 塔尖合拢 ---- */
+function latticeBox(p, y0, y1, w0, w1, th, thx) {
+  const OF = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+  const A = OF.map(o => [C.x + o[0] * w0, y0, C.z + o[1] * w0]);
+  const B = OF.map(o => [C.x + o[0] * w1, y1, C.z + o[1] * w1]);
+  for (let k = 0; k < 4; k++) addBeamI(p, A[k][0], A[k][1], A[k][2], B[k][0], B[k][1], B[k][2], th);
+  for (const Y of [y0, y1]) {
+    const P = Y === y0 ? A : B;
+    for (let k = 0; k < 4; k++) { const a = P[k], b = P[(k + 1) & 3]; addBeamI(p, a[0], a[1], a[2], b[0], b[1], b[2], th * .8); }
+  }
+  for (let k = 0; k < 4; k++) {
+    const a0 = A[k], b0 = A[(k + 1) & 3], a1 = B[k], b1 = B[(k + 1) & 3];
+    addBeamI(p, a0[0], a0[1], a0[2], b1[0], b1[1], b1[2], thx);
+    addBeamI(p, b0[0], b0[1], b0[2], a1[0], a1[1], a1[2], thx);
+  }
+}
+function buildCrown() {
+  buildPlatform(TOWER.y3, 1.95, 5, true);
+  /* 观测室 */
+  const oy = TOWER.y3 + .1;
+  const w = 1.7;
+  const fl = newPart('obs', 5, new V3(C.x, oy + .35, C.z), { hh: .9, hangOff: .5, spread: 1.9, attY: .2, dur: .6 });
+  addBoxI(fl, C.x, oy + .3, C.z, 3.5, .22, 3.5, IRONC[3]);
+  for (const f of FACE) {
+    const p = newPart('wall', 5, new V3(C.x + f.nx * w, oy + 1.4, C.z + f.nz * w), { hh: 2, hangOff: 1.1, spread: 1.5, attY: .8, dur: .6 });
+    for (let i = -2; i <= 2; i++) {
+      const t = i / 2.4, x = C.x + f.nx * w + (-f.nz) * t * w, z = C.z + f.nz * w + f.nx * t * w;
+      if (Math.abs(i) === 1) { addBoxI(p, x, oy + 1.4, z, f.nx ? .12 : .62, 1.7, f.nx ? .62 : .12, 0x3f4650); }
+      else addBeamI(p, x, oy + .55, z, x, oy + 2.25, z, .085);
+    }
+    addBeamI(p, C.x + f.nx * w - f.nz * w, oy + 2.25, C.z + f.nz * w + f.nx * w,
+      C.x + f.nx * w + f.nz * w, oy + 2.25, C.z + f.nz * w - f.nx * w, .08);
+  }
+  const rf = newPart('roof', 5, new V3(C.x, oy + 2.7, C.z), { hh: 1, hangOff: .6, spread: 1.6, attY: .3, dur: .55 });
+  addBoxI(rf, C.x, oy + 2.5, C.z, 3.7, .16, 3.7, 0x6e7276);
+  addBoxI(rf, C.x, oy + 2.95, C.z, 2.7, .18, 2.7, 0x74787c);
+  addBoxI(rf, C.x, oy + 3.3, C.z, 1.5, .16, 1.5, 0x6a6e72);
+  /* 塔尖：三节收拢 + 天线 */
+  const sp = [[oy + 3.4, 1.15, .72, .09], [oy + 4.4, .72, .44, .075], [oy + 5.3, .44, .2, .062]];
+  sp.forEach((s, i) => {
+    const y0 = i === 0 ? oy + 3.35 : sp[i - 1][0], y1 = s[0];
+    const p = newPart('spire', 5, new V3(C.x, (y0 + y1) / 2, C.z), { hh: y1 - y0 + .8, hangOff: (y1 - y0) / 2 + .45, spread: .8, attY: .25, dur: .5, tiltAmp: .05 });
+    latticeBox(p, y0, y1, i === 0 ? 1.15 : sp[i - 1][1], s[1], s[3], Math.max(.054, s[3] * .8));
+    WALKS.push({ y: y1, r: s[1] + .3, h: y1 });
+  });
+  const ant = newPart('antenna', 5, new V3(C.x, TOWER.top - 1.2, C.z), { hh: 2.4, hangOff: 1.2, spread: .5, attY: .2, dur: .6, tiltAmp: .03 });
+  addBeamI(ant, C.x, TOWER.top - 2.4, C.z, C.x, TOWER.top, C.z, .11, 0xb8b0a4);
+  addBoxI(ant, C.x, TOWER.top - 1.4, C.z, .34, .3, .34, IRONC[2]);
+  addBoxI(ant, C.x, TOWER.top - .5, C.z, .2, 1.0, .2, 0xc8bfae);
+}
+/* ---- 6.6 生成 & 排程 & 烘焙 ---- */
+buildFoundations(); buildLegs(); buildArches(); buildPlatform(TOWER.y1, 5.2, 2, false);
+buildP2(); buildUpper(); buildCrown();
+
+function finalizeSchedule() {
+  for (let s = 0; s < 6; s++) {
+    const list = SCHED[s], st = STAGES[s], n = list.length;
+    list.forEach((p, k) => {
+      if (p.t !== undefined) p.tStart = p.t;
+      else {
+        const crew = k % NCREW, span = Math.max(.06, (st.b - st.a) - 1.7);
+        p.tStart = st.a + .08 + crew * .12 + span * (n > 1 ? k / (n - 1) : 0);
+      }
+      p.dur = p.dur || (.72 + rnd(p.seed, 9) * .3);
+      p.tEnd = p.tStart + p.dur;
+    });
+  }
+  /* 起重机分配：地面吊就近三选一（轮流作业），高处构件交给爬升吊 */
+  PARTS.forEach((p, k) => {
+    if (p.origin.y < 12.5) {
+      const arr = CRANES.slice(0, 6).map((c, i) => ({ i, d: (p.origin.x - c.x) ** 2 + (p.origin.z - c.z) ** 2 })).sort((a, b) => a.d - b.d);
+      p.crane = arr[k % 3].i;
+    } else {
+      const dot = (p.origin.x - C.x) * .707 + (p.origin.z - C.z) * .707;
+      p.crane = dot > 0 ? 6 : 7;
+    }
+  });
+  /* 起吊点：就在负责吊机的脚下料场（地面）或下方平台的堆料处（高处） */
+  PARTS.forEach(p => {
+    if (p.kind === 'caisson') return;
+    const cr = CRANES[p.crane];
+    if (p.origin.y < 12.5) {
+      const a = Math.atan2(cr.x - C.x, cr.z - C.z);
+      const rr = Math.hypot(cr.x - C.x, cr.z - C.z) - (2.1 + rnd(p.seed, 12) * 1.5);
+      p.pickup.set(C.x + Math.sin(a) * rr, GRADE + .75, C.z + Math.cos(a) * rr);
+      p.riseH = 1.4 + rnd(p.seed, 13) * .9;
+    } else {
+      const py = p.origin.y < TOWER.y2 + .6 ? TOWER.y1 : (p.origin.y < TOWER.y3 + .6 ? TOWER.y2 : TOWER.y3);
+      const a = Math.atan2(cr.sx, cr.sz);
+      p.pickup.set(C.x + Math.sin(a) * (TOWER.d(py) + 1.25), py + .62, C.z + Math.cos(a) * (TOWER.d(py) + 1.25));
+      p.riseH = .85; p.dropH = 1.15; p.bulge = .9;
+    }
+  });
+}
+function timeAtHeight(y) { let m = 14; for (const p of PARTS) if (p.top >= y - .06 && p.tEnd < m) m = p.tEnd; return m; }
+function buildTopTrack() {
+  TOPTRK = new Float32Array(145);
+  for (let i = 0; i <= 144; i++) {
+    const t = i * .1; let m = GRADE;
+    for (const p of PARTS) if (p.tEnd <= t && p.top > m) m = p.top;
+    TOPTRK[i] = m;
+  }
+}
+let TOPTRK = null;
+const topAt = t => TOPTRK[Math.max(0, Math.min(144, Math.round(t * 10)))];
+
+/* ---- 6.7 起重机（地面蒸汽吊 ×6 + 爬升吊 ×2） ---- */
+const CRANES = [];
+function makeCrane(x, z, baseY, mastH, jib, climb, sx, sz) {
+  const grp = new THREE.Group(); grp.position.set(x, baseY, z); scene.add(grp);
+  const mW = new THREE.MeshStandardMaterial({ color: 0x6a4a2f, roughness: .78 });
+  const mI = new THREE.MeshStandardMaterial({ color: 0x3c4147, roughness: .55, metalness: .35 });
+  const mD = new THREE.MeshStandardMaterial({ color: 0x27221e, roughness: .85 });
+  const add = (g, mat, sx_, sy_, sz_, px, py, pz, shadow) => {
+    const m = new THREE.Mesh(g, mat); m.scale.set(sx_, sy_, sz_); m.position.set(px, py, pz);
+    m.castShadow = shadow !== false; m.receiveShadow = true; grp.add(m); return m;
+  };
+  if (!climb) {
+    add(G.round, mD, 2.5, .55, 2.5, 0, .27, 0);
+    add(G.round, mI, 1.25, 1.05, 1.05, -.95, .95, 0);
+    add(G.box, mD, .3, 1.4, .3, -.95, 2.1, 0);
+    add(G.round, new THREE.MeshStandardMaterial({ color: 0x4b4438, roughness: .9 }), .9, .8, .9, -.55, 1.7, 0);
+    add(G.box, mI, 1.1, .16, .7, .55, .62, 0);
+  } else {
+    add(G.box, mI, 1.5, .3, 1.5, 0, .15, 0);
+    add(G.round, mI, .9, .8, .9, -.6, .7, 0);
+  }
+  add(G.box, mW, .4, mastH, .4, 0, mastH / 2, 0);
+  for (let i = 0; i < 3; i++) add(G.box, mW, .95 - i * .22, .1, .95 - i * .22, 0, mastH * (.28 + i * .28), 0, false);
+  add(G.box, mW, .16, .5, .16, 0, mastH + .25, 0, false);
+  const jibG = new THREE.Group(); jibG.position.y = mastH; grp.add(jibG);
+  const jb = new THREE.Mesh(G.box, mW); jb.scale.set(.22, .34, jib); jb.position.z = jib / 2;
+  jb.castShadow = true; jibG.add(jb);
+  for (let i = 1; i <= 3; i++) {
+    const d = new THREE.Mesh(G.box, mD); const L = Math.hypot(.55, jib * i / 4);
+    d.scale.set(.07, .07, L); d.position.set(0, .3, jib * i / 8 - .05);
+    d.rotation.x = -Math.atan2(.55, jib * i / 4); jibG.add(d);
+  }
+  const hook = new THREE.Mesh(G.box, mD); hook.scale.set(.34, .36, .34); hook.castShadow = true; scene.add(hook);
+  const cr = { x, z, baseY, mastH, jib, grp, jibG, hook, tip: new V3(), apex: mastH + .5, yaw: 0, climb, sx, sz, load: null, smoke: new V3() };
+  CRANES.push(cr); return cr;
+}
+for (let k = 0; k < 6; k++) {                        // 45°,90°,135°,225°,270°,315°（避开河侧）
+  const a = (Math.PI / 4) * (k < 3 ? k + 1 : k + 2);
+  const r = 9.5 + (k % 2) * .9;
+  makeCrane(C.x + Math.sin(a) * r, Math.max(1.5, C.z + Math.cos(a) * r), GRADE, 9.5, 8.8, false, 0, 0);
+}
+makeCrane(0, 0, GRADE, 4.2, 6.4, true, .707, .707);
+makeCrane(0, 0, GRADE, 4.2, 6.4, true, -.707, -.707);
+rodMesh = new THREE.InstancedMesh(G.box, M.rod, ROD_CAP);
+rodMesh.frustumCulled = false; rodMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(rodMesh);
+function rod(ax, ay, az, bx, by, bz, th) {
+  if (rodN >= ROD_CAP) return;
+  const dx = bx - ax, dy = by - ay, dz = bz - az, L = Math.hypot(dx, dy, dz);
+  if (L < 1e-4) return;
+  qToY(dx, dy, dz, _q);
+  _m4.compose(_v1.set((ax + bx) / 2, (ay + by) / 2, (az + bz) / 2), _q, _v2.set(th, L, th));
+  rodMesh.setMatrixAt(rodN++, _m4);
+}
+
+/* ---- 6.8 木脚手架（随塔身搭设，末尾拆除） ---- */
+const scaf = new Timed(G.box, M.wood, 1100, true);
+function buildScaffold() {
+  for (let si = 0; si < 4; si++) {
+    const s = LEGDIR[si];
+    for (let i = 0; i < 16; i++) {
+      const y = GRADE + .4 + i * 1.62;
+      if (y > 29.5) break;
+      const t0 = timeAtHeight(y - .5) + .1;
+      const vanish = 12.45 + (1 - (y - GRADE) / 30) * .95 + rnd(si * 31 + i, 3) * .18;
+      const d = TOWER.d(y), h = legHalf(y) + .62;
+      const cx = C.x + s.x * d, cz = C.z + s.z * d;
+      const sd = si * 71 + i * 13;
+      for (const o of [[-1, -1], [1, -1], [1, 1], [-1, 1]])
+        scaf.add(cx + o[0] * h, y + .85, cz + o[1] * h, .13, 1.8, .13, WOODC[(i + si) % 3], t0, vanish, .3);
+      for (let k = 0; k < 4; k++) {
+        const a = [[-1, -1], [1, -1], [1, 1], [-1, 1]][k], b = [[-1, -1], [1, -1], [1, 1], [-1, 1]][(k + 1) & 3];
+        scaf.add(cx + (a[0] + b[0]) / 2 * h, y + 1.5, cz + (a[1] + b[1]) / 2 * h,
+          Math.abs(a[0] - b[0]) > .1 ? 1.3 : .1, .09, Math.abs(a[1] - b[1]) > .1 ? 1.3 : .1, 0x8a6a44, t0 + .05, vanish, .3);
+      }
+      scaf.add(cx, y + 1.58, cz, h * 2.5, .09, h * 2.5, i % 2 ? 0x9a7b4e : 0x8b6d45, t0 + .08, vanish, .3);
+    }
+  }
+  /* 上部桁架外的环形笼架 + 临时踏板 */
+  for (let i = 0; i < 9; i++) {
+    const y = TOWER.y2 + .6 + i * 1.6;
+    if (y > 28.5) break;
+    const t0 = timeAtHeight(y - .5) + .05, vanish = 12.4 + (1 - (y - GRADE) / 30) * .8;
+    const r = TOWER.d(y) + .95;
+    for (const c of [[r, -r], [r, r], [-r, r], [-r, -r]])
+      scaf.add(C.x + c[0], y + .8, C.z + c[1], .11, 1.7, .11, WOODC[i % 3], t0, vanish, .3);
+    scaf.add(C.x, y + 1.55, C.z, r * 2.05, .08, r * 2.05, 0x8b6d45, t0 + .06, vanish, .3);
+    scaf.add(C.x + r, y + .8, C.z, .09, .09, r * 2, 0x7a5c3c, t0 + .04, vanish, .3);
+    scaf.add(C.x - r, y + .8, C.z, .09, .09, r * 2, 0x7a5c3c, t0 + .04, vanish, .3);
+  }
+}
+/* ---- 6.9 土方：基坑开挖 / 场地清表 / 弃土堆 / 回填 ---- */
+const soil = new Timed(G.box, M.vox, 1500, true);
+function buildSoil() {
+  for (let i = 0; i < 4; i++) {
+    const pit = PITS[i];
+    for (let x = Math.floor(pit.x - 2.4); x <= pit.x + 2.4; x++)
+      for (let z = Math.floor(pit.z - 2.4); z <= pit.z + 2.4; z++) {
+        const cx = x + .5, cz = z + .5, dx = cx - pit.x, dz = cz - pit.z;
+        if (dx * dx + dz * dz > 5.6) continue;
+        const sd = Math.round(cx * 13 + cz * 7 + i * 31);
+        for (let y = 1.5; y <= 3.5; y += 1) {
+          const tv = .12 + (3.5 - y) * .5 + rnd(sd, Math.round(y * 3)) * .34;
+          soil.add(cx, y, cz, .97, .97, .97, shade(0x5b4630, .82 + rnd(sd, 2) * .34), 0, tv, .16);
+        }
+        /* 回填（锚座之后） */
+        soil.add(cx, 3.82, cz, .97, .5, .97, shade(0x634d34, .9 + rnd(sd, 4) * .2), 2.92 + rnd(sd, 5) * .3, 1e9, .4);
+      }
+  }
+  /* 场地土堆（清表） */
+  for (let x = -19; x <= 19; x++) for (let z = 1; z <= 15; z++) {
+    const cx = x + .5, cz = z + .5;
+    if (inPit(cx, cz) >= 0) continue;
+    const n = vn2(cx * .3, cz * .3, 41);
+    if (n < .55) continue;
+    const hh = n > .78 ? 2 : 1;
+    const sd = Math.round(cx * 11 + cz * 5);
+    for (let k = 0; k < hh; k++)
+      soil.add(cx, GRADE + .5 + k, cz, .98, .98, .98, shade(0x6a5238, .84 + rnd(sd, 6) * .3),
+        0, .3 + rnd(sd, 7) * 1.9 + k * .12, .22);
+  }
+  /* 弃土堆（越挖越高） */
+  for (let i = 0; i < 130; i++) {
+    const a = rnd(i, 80) * Math.PI * 2, r = 12 + rnd(i, 81) * 5.5;
+    const x = C.x + Math.cos(a) * r, z = C.z + Math.sin(a) * r * .85;
+    if (Math.abs(x) > 19 || z < 1 || z > 15.4) continue;
+    const hh = 1 + Math.floor(rnd(i, 82) * 2);
+    for (let k = 0; k < hh; k++)
+      soil.add(x, GRADE + .5 + k, z, 1.0, .98, 1.0, shade(0x5f4930, .8 + rnd(i, 83) * .35), .4 + rnd(i, 84) * 1.6 + k * .2, 1e9, .35);
+  }
+}
+/* ---- 6.10 铆接点 / 走道 ---- */
+function buildRivets() {
+  for (const p of PARTS) {
+    const n = p.items.length > 14 ? 2 : 1;
+    for (let i = 0; i < n; i++) {
+      const it = p.items[Math.floor(rnd(p.seed, 20 + i) * p.items.length) % p.items.length];
+      RIVETS.push({ x: it.bm.elements[12], y: it.bm.elements[13], z: it.bm.elements[14], t: p.tEnd + .04 + i * .16, s: p.seed + i });
+    }
+  }
+  RIVETS.sort((a, b) => a.t - b.t);
+  WALKS.forEach(w => { w.t0 = timeAtHeight(w.h); });
+  WALKS.sort((a, b) => a.t0 - b.t0);
+}
+/* ---- 6.11 烘焙熟铁 InstancedMesh ---- */
+function bakeIron() {
+  let n = 0;
+  PARTS.forEach(p => p.items.forEach(it => { it.i = n++; }));
+  ironMesh = new THREE.InstancedMesh(G.box, M.iron, Math.max(1, n));
+  ironMesh.frustumCulled = false; ironMesh.castShadow = true; ironMesh.receiveShadow = true;
+  ironMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  for (const p of PARTS) for (const it of p.items) ironMesh.setColorAt(it.i, _c1.setHex(it.col).convertSRGBToLinear());
+  ironMesh.count = n;
+  if (ironMesh.instanceColor) ironMesh.instanceColor.needsUpdate = true;
+  scene.add(ironMesh);
+}
+/* ---- 6.12 逐帧更新 ---- */
+const POSE = { p: new V3(), q: new THREE.Quaternion(), m: new THREE.Matrix4() };
+const AIR = [];
+function partPose(p, t) {
+  const u = clamp((t - p.tStart) / p.dur, 0, 1), O = p.origin, P = p.pickup;
+  if (u < .30) {
+    const s = sm(u / .30);
+    POSE.p.set(P.x, P.y + p.riseH * s, P.z); POSE.phase = 0;
+  } else if (u < .74) {
+    const s = sm((u - .30) / .44);
+    const ax = P.x, ay = P.y + p.riseH, az = P.z, bx = O.x, by = O.y + p.dropH, bz = O.z;
+    POSE.p.set(lerp(ax, bx, s), lerp(ay, by, s), lerp(az, bz, s));
+    const rl = Math.hypot(bx - ax, bz - az) || 1;
+    let px = -(bz - az) / rl, pz = (bx - ax) / rl;
+    const cx = (ax + bx) / 2 - C.x, cz = (az + bz) / 2 - C.z;
+    const sg = (px * cx + pz * cz) >= 0 ? 1 : -1, bul = Math.sin(s * Math.PI) * p.bulge;
+    POSE.p.x += px * bul * sg; POSE.p.z += pz * bul * sg;
+    POSE.phase = 1;
+  } else {
+    const s = sm((u - .74) / .26);
+    POSE.p.set(O.x, O.y + p.dropH * (1 - s) + Math.sin(s * Math.PI) * .05, O.z);
+    POSE.phase = u < .93 ? 2 : 3;
+  }
+  const al = sstep(.48, .88, u), tl = (1 - al) * p.tiltAmp * (.55 + .45 * Math.sin(u * 11));
+  POSE.q.setFromAxisAngle(p.tiltAxis, tl);
+  POSE.m.compose(POSE.p, POSE.q, _v1.set(1, 1, 1));
+  p.hook.set(POSE.p.x, POSE.p.y + p.hangOff, POSE.p.z);
+  p.u = u; p.phase = POSE.phase;
+}
+function updateCranes(t) {
+  for (const cr of CRANES) cr.load = null;
+  for (const p of AIR) { const cr = CRANES[p.crane]; if (cr && (!cr.load || p.tStart > cr.load.tStart)) cr.load = p; }
+  rodN = 0;
+  for (let ci = 0; ci < CRANES.length; ci++) {
+    const cr = CRANES[ci];
+    if (cr.climb) {
+      /* 末段撤下爬升起重机 */
+      const gone = t > 13.55;
+      if (cr.grp.visible === gone) { cr.grp.visible = !gone; cr.hook.visible = !gone; }
+      if (gone) { cr.load = null; continue; }
+      cr.baseY = topAt(t) + .25;
+      const r = TOWER.d(cr.baseY) + 1.15;
+      cr.x = C.x + cr.sx * r; cr.z = C.z + cr.sz * r;
+      cr.grp.position.set(cr.x, cr.baseY, cr.z);
+    }
+    let tx, tz;
+    if (cr.load) { tx = cr.load.hook.x; tz = cr.load.hook.z; }
+    else { const a = t * .13 + ci * 1.9; tx = cr.x + Math.sin(a) * cr.jib * .66; tz = cr.z + Math.cos(a) * cr.jib * .66; }
+    const dx = tx - cr.x, dz = tz - cr.z, dist = Math.hypot(dx, dz), my = cr.baseY + cr.mastH;
+    const yaw = Math.atan2(dx, dz);
+    let pitch = Math.acos(clamp(dist / cr.jib, 0, 1));      // 变幅：吊臂端落在载荷正上方
+    if (cr.load) {
+      const need = cr.load.hook.y + .5 - my;
+      if (need > 0) pitch = Math.max(pitch, Math.asin(clamp(need / cr.jib, 0, .97)));
+    }
+    pitch = clamp(pitch, .10, 1.30);
+    const ux = Math.sin(yaw) * Math.cos(pitch), uy = Math.sin(pitch), uz = Math.cos(yaw) * Math.cos(pitch);
+    cr.grp.rotation.y = yaw;
+    cr.jibG.rotation.x = -pitch;
+    const tipY = my + uy * cr.jib, tipX = cr.x + ux * cr.jib, tipZ = cr.z + uz * cr.jib;
+    cr.tip.set(tipX, tipY, tipZ);
+    cr.hook.position.set(tipX, tipY - .34, tipZ);
+    cr.smoke.set(cr.x - (cr.climb ? .6 : .95), cr.baseY + (cr.climb ? 1.5 : 2.75), cr.z);
+    const ay = my + cr.apex;
+    rod(cr.x, ay, cr.z, cr.x + ux * cr.jib * .5, my + uy * cr.jib * .5, cr.z + uz * cr.jib * .5, .042);
+    rod(cr.x, ay, cr.z, tipX, tipY, tipZ, .038);
+    if (cr.load) {
+      const p = cr.load, cyy = p.hook.y - p.hangOff + p.attY;
+      const cdx = tipX - p.hook.x, cdz = tipZ - p.hook.z, cl = Math.hypot(cdx, cdz) || 1;
+      const perx = -cdz / cl, perz = cdx / cl, sp = p.spread;
+      rod(tipX, tipY, tipZ, p.hook.x + perx * sp, cyy, p.hook.z + perz * sp, .035);
+      rod(tipX, tipY, tipZ, p.hook.x - perx * sp, cyy, p.hook.z - perz * sp, .035);
+    }
+  }
+  rodMesh.count = rodN; rodMesh.instanceMatrix.needsUpdate = true;
+}
+function updateTower(t) {
+  AIR.length = 0;
+  for (let i = 0; i < PARTS.length; i++) {
+    const p = PARTS[i], st = t < p.tStart ? 0 : (t < p.tEnd ? 1 : 2);
+    if (st === 1 || st !== p.state) {
+      if (st === 2) { for (const it of p.items) ironMesh.setMatrixAt(it.i, it.bm); }
+      else if (st === 0) { for (const it of p.items) ironMesh.setMatrixAt(it.i, ZM); }
+      else {
+        partPose(p, t);
+        for (const it of p.items) { _m4b.multiplyMatrices(POSE.m, it.lm); ironMesh.setMatrixAt(it.i, _m4b); }
+        AIR.push(p);
+      }
+      p.state = st;
+    }
+  }
+  ironMesh.instanceMatrix.needsUpdate = true;
+  scaf.update(t); soil.update(t);
+  updateCranes(t);
+}
+finalizeSchedule(); buildTopTrack(); buildRivets(); bakeIron(); buildScaffold(); buildSoil();
+
+/* ======================================================================
+   7. 人物 / 车马 / 蒸汽船 / 鸽群 / 火星 / 蒸汽
+   ====================================================================== */
+const SKIN = [0xecc79c, 0xdca87c, 0xc08a5e, 0xf2d6b2, 0xa8724c];
+const COAT = [0x2f3a4a, 0x3d3a34, 0x5a4a3a, 0x6b6355, 0x27303c, 0x7a4a3a, 0x8a8272, 0x4a4f57];
+const PANT = [0x2b2b30, 0x3a3630, 0x4a4238, 0x33383f];
+const DRESS = [0x6d4a56, 0x7a6a4a, 0x4a5568, 0x8a7a8a, 0x5c4033];
+function outfit(sd, role) {
+  const o = {
+    skin: SKIN[Math.floor(rnd(sd, 1) * SKIN.length) % SKIN.length],
+    coat: COAT[Math.floor(rnd(sd, 2) * COAT.length) % COAT.length],
+    pant: PANT[Math.floor(rnd(sd, 3) * PANT.length) % PANT.length],
+    hatc: 0x2b2622, hat: 'none', para: 0
+  };
+  if (role === 'worker') {
+    o.coat = [0x35506b, 0x8a4a2a, 0x4a5a3a, 0x6b6355, 0x8f8f7a][Math.floor(rnd(sd, 4) * 5) % 5];
+    o.hat = rnd(sd, 5) > .45 ? 'cap' : 'none'; o.hatc = 0x9a8a68;
+  } else if (role === 'gent') { o.coat = 0x22262c; o.pant = 0x1d2026; o.hat = 'top'; o.hatc = 0x191a1e; }
+  else if (role === 'lady') { o.coat = DRESS[Math.floor(rnd(sd, 6) * DRESS.length) % DRESS.length]; o.pant = o.coat; o.para = [0x8a4a5a, 0x4a6a8a, 0xd8cfae, 0x6b6b7a][Math.floor(rnd(sd, 7) * 4) % 4]; }
+  return o;
+}
+const PEOPLE = [], SPARKS = [];
+function sqPoint(r, a) {
+  const seg = Math.floor(a) & 3, f = a - Math.floor(a);
+  const C4 = [[r, -r], [r, r], [-r, r], [-r, -r]];
+  const p0 = C4[seg], p1 = C4[(seg + 1) & 3];
+  return { x: p0[0] + (p1[0] - p0[0]) * f, z: p0[1] + (p1[1] - p0[1]) * f, yaw: Math.atan2(p1[0] - p0[0], p1[1] - p0[1]) };
+}
+/* --- 7.1 塔上工人：走梁 / 挥锤铆接（结构到位后出现） --- */
+WALKS.forEach((w, i) => {
+  const n = 2 + (i % 2);
+  for (let k = 0; k < n; k++) {
+    const sd = i * 37 + k * 11 + 3;
+    const P = sqPoint(w.r, rnd(sd, 8) * 4);
+    const t1 = 13.25 + vr(sd, 12, 0, .4);
+    const base = {
+      y: w.y, r: w.r, spd: vr(sd, 9, .22, .55) * (rnd(sd, 10) > .5 ? 1 : -1), ph: rnd(sd, 11) * 10,
+      t0: w.t0, t1, s: vr(sd, 13, .94, 1.08), g: vr(sd, 14, 6, 9),
+      tool: k === 0 || rnd(sd, 15) > .45 ? 'hammer' : 'none', c: outfit(sd, 'worker')
+    };
+    if (k === 0) PEOPLE.push(Object.assign(base, { k: 'rivet', x: C.x + P.x, z: C.z + P.z, yaw: Math.atan2(-P.x, -P.z) }));
+    else PEOPLE.push(Object.assign(base, { k: 'ring' }));
+  }
+  /* 铆接火星事件（持续作业） */
+  const nr = 6;
+  for (let j = 0; j < nr; j++) {
+    const P = sqPoint(w.r, rnd(i * 5 + j, 60) * 4);
+    const t0 = w.t0 + .3 + j * .55;
+    for (let q = 0; q * .8 + t0 < 13.2; q++)
+      SPARKS.push({ x: C.x + P.x + vr(i + j, 61, -.3, .3), y: w.y + vr(i + j, 62, -.2, .3), z: C.z + P.z + vr(i + j, 63, -.3, .3), t: t0 + q * .8 + vr(i * 3 + j + q, 64, 0, .3), s: (i * 91 + j * 7 + q * 3) | 0 });
+  }
+});
+/* --- 7.2 地面工人：挖土 / 搬运 / 吊装指挥 --- */
+for (let i = 0; i < 24; i++) {
+  const pit = PITS[i % 4], a = rnd(i, 20) * Math.PI * 2, r = pit.r + .7 + rnd(i, 21) * 1.3;
+  const x = pit.x + Math.cos(a) * r, z = pit.z + Math.sin(a) * r;
+  PEOPLE.push({
+    k: 'dig', x, z, y: Math.max(1.15, GRADE - vr(i, 22, .3, 2.5)), yaw: Math.atan2(pit.x - x, pit.z - z),
+    t0: 0, t1: 2.5 + vr(i, 23, 0, .6), s: vr(i, 24, .94, 1.06), ph: rnd(i, 25) * 10, g: 7,
+    tool: 'pick', c: outfit(i * 7 + 1, 'worker')
+  });
+}
+for (let i = 0; i < 34; i++) {
+  const a = { x: vr(i, 30, -13.5, 13.5), z: vr(i, 31, 1.2, 14.6) };
+  const b = { x: vr(i, 32, -13.5, 13.5), z: vr(i, 33, 1.2, 14.6) };
+  PEOPLE.push({ k: 'walk', a, b, spd: vr(i, 34, .035, .1), ph: rnd(i, 35) * 10, t0: 0, t1: 14, s: vr(i, 37, .94, 1.07), g: vr(i, 38, 5.5, 8.5), tool: rnd(i, 36) > .45 ? 'carry' : 'hammer', c: outfit(i * 13 + 5, 'worker') });
+}
+for (let i = 0; i < 14; i++) {
+  const cr = CRANES[i % 6], a = rnd(i, 44) * Math.PI * 2, r = 3 + rnd(i, 45) * 1.6;
+  PEOPLE.push({
+    k: 'guide', x: cr.x + Math.cos(a) * r, z: cr.z + Math.sin(a) * r, y: GRADE, yaw: Math.atan2(cr.x - (cr.x + Math.cos(a) * r), cr.z - (cr.z + Math.sin(a) * r)),
+    t0: 0, t1: 13.6, s: vr(i, 46, .95, 1.06), ph: rnd(i, 47) * 10, g: 7, tool: 'none', c: outfit(i * 3 + 9, 'worker')
+  });
+}
+/* --- 7.3 围观者：高礼帽 / 阳伞（随工程进展越来越多） --- */
+function spectator(x, z, yaw, sd, t0) {
+  const role = rnd(sd, 50) > .48 ? 'gent' : 'lady';
+  PEOPLE.push({ k: 'stand', x, y: GRADE, z, yaw, t0, t1: 14, s: vr(sd, 51, .93, 1.07), ph: rnd(sd, 52) * 10, g: 5, tool: role === 'lady' ? 'para' : 'none', c: outfit(sd, role) });
+}
+for (let i = 0; i < 58; i++) {
+  const x = vr(i, 53, -23, 23);
+  spectator(x, vr(i, 54, 16.4, 17.1), Math.atan2(C.x - x, C.z - 17), i * 17 + 3, i < 22 ? 0 : vr(i, 55, .2, 6.5));
+}
+for (let i = 0; i < 26; i++) {
+  const x = vr(i, 56, -20, 20), z = RIV.c(x) + RIV.h(x) + 2.1;
+  spectator(x, z, Math.atan2(C.x - x, C.z - z), i * 23 + 11, i < 8 ? 0 : vr(i, 57, .3, 7.5));
+}
+for (let i = 0; i < 18; i++) spectator(vr(i, 58, -28, 28), -22.3, Math.atan2(C.x, C.z + 22), i * 19 + 5, vr(i, 59, 0, 5));
+/* --- 7.4 桥上 / 河岸行走者 --- */
+for (let i = 0; i < 26; i++) {
+  const bx = i % 2 ? -14 : 13;
+  const zA = RIV.c(bx) - RIV.h(bx) - 1.6, zB = RIV.c(bx) + RIV.h(bx) + 1.6;
+  const dir = rnd(i, 70) > .5 ? 1 : -1;
+  PEOPLE.push({
+    k: 'bridge', bx, zA, zB, dir, spd: vr(i, 71, .05, .1), ph: rnd(i, 72) * 10, t0: 0, t1: 14,
+    s: vr(i, 73, .94, 1.07), g: vr(i, 74, 5.5, 8), tool: rnd(i, 75) > .7 ? 'para' : 'none',
+    c: outfit(i * 29 + 7, rnd(i, 76) > .5 ? 'gent' : 'lady')
+  });
+}
+/* --- 7.5 运铁马车（工地环路 + 外围运送） --- */
+const PATHS = [
+  { pts: [[-13, 2.2], [13, 2.2], [13, 14.5], [-13, 14.5]], L: [] },
+  { pts: [[17.8, 2.6], [17.8, 14.2], [-17.8, 14.2], [-17.8, 2.6]], L: [] },
+  { pts: [[-14, 18.3], [14.5, 18.3], [13, 14.5], [-14, 2]], L: [] }
+];
+PATHS.forEach(p => { let tt = 0; for (let i = 0; i < p.pts.length; i++) { const a = p.pts[i], b = p.pts[(i + 1) % p.pts.length]; const L = Math.hypot(b[0] - a[0], b[1] - a[1]); p.L.push(L); tt += L; } p.total = tt; });
+function loopPath(p, u) {
+  let d = (u - Math.floor(u)) * p.total;
+  for (let i = 0; i < p.pts.length; i++) {
+    if (d <= p.L[i]) {
+      const a = p.pts[i], b = p.pts[(i + 1) % p.pts.length], f = p.L[i] ? d / p.L[i] : 0;
+      return { x: lerp(a[0], b[0], f), z: lerp(a[1], b[1], f), yaw: Math.atan2(b[0] - a[0], b[1] - a[1]) };
+    } d -= p.L[i];
+  }
+  const a = p.pts[0]; return { x: a[0], z: a[1], yaw: 0 };
+}
+const CARTS = [];
+for (let i = 0; i < 7; i++) {
+  const pi = i < 4 ? 0 : (i < 6 ? 1 : 2);
+  CARTS.push({ p: PATHS[pi], ph: rnd(i, 80), spd: 1 / (PATHS[pi].total / vr(i, 81, 1.5, 2.3)), load: rnd(i, 82) > .25, s: 1 + rnd(i, 83) * .1, dir: 1 });
+}
+/* 桥上马车交会 */
+const COACHES = [];
+for (let i = 0; i < 4; i++) {
+  const bx = i % 2 ? -14 : 13;
+  COACHES.push({ bx, zA: RIV.c(bx) - RIV.h(bx) - 2, zB: RIV.c(bx) + RIV.h(bx) + 2, dir: i % 2 ? 1 : -1, ph: rnd(i, 90), spd: vr(i, 91, .045, .075) });
+}
+/* --- 7.6 蒸汽船 --- */
+const BOATS = [
+  { x0: -27, dir: 1, spd: 2.05, pos: new V3(-27, WATER, -11), dv: new V3(1, 0, 0), big: true },
+  { x0: 28, dir: -1, spd: 1.85, pos: new V3(28, WATER, -11), dv: new V3(-1, 0, 0), big: false }
+];
+/* --- 7.7 鸽群 --- */
+const BIRDS = [];
+for (let f = 0; f < 3; f++) for (let i = 0; i < 13; i++) {
+  const sd = f * 61 + i * 7;
+  BIRDS.push({ cx: C.x + vr(sd, 100, -3, 3), cz: C.z + vr(sd, 101, -3, 3), y: 8 + f * 7 + vr(sd, 102, -1, 1), r: 8 + f * 3.5 + vr(sd, 103, 0, 3), spd: vr(sd, 104, .5, .9) * (f % 2 ? -1 : 1), ph: rnd(sd, 105) * 10, c: [0x8d8d92, 0x6f6f78, 0xa9a9ad][f] });
+}
+RIVETS.forEach(r => SPARKS.push(r));
+SPARKS.sort((a, b) => a.t - b.t);
+
+/* --- 7.8 动态体素批（人物 / 车马 / 船 / 鸟） --- */
+let dynMesh = null, dynN = 0, DYN_CAP = 0;
+const _qy2 = new THREE.Quaternion(), _qp2 = new THREE.Quaternion();
+function putQ(x, y, z, sx, sy, sz, c, q) {
+  if (!dynMesh || dynN >= DYN_CAP) return;
+  _m4.compose(_v1.set(x, y, z), q, _v2.set(sx, sy, sz));
+  dynMesh.setMatrixAt(dynN, _m4);
+  dynMesh.setColorAt(dynN, _c1.setHex(c).convertSRGBToLinear());
+  dynN++;
+}
+function put(x, y, z, sx, sy, sz, c, ry) {
+  if (!dynMesh) return;
+  _e.set(0, ry || 0, 0); _q.setFromEuler(_e);
+  putQ(x, y, z, sx, sy, sz, c, _q);
+}
+function rotY(lx, ly, lz, yaw) { const c = Math.cos(yaw), s = Math.sin(yaw); return [lx * c + lz * s, ly, -lx * s + lz * c]; }
+DYN_CAP = PEOPLE.length * 9 + 520;
+dynMesh = new THREE.InstancedMesh(G.soft, M.vox, DYN_CAP);
+dynMesh.frustumCulled = false; dynMesh.castShadow = true; dynMesh.receiveShadow = true;
+dynMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+for (let i = 0; i < DYN_CAP; i++) dynMesh.setColorAt(i, _c1.setHex(0xffffff).convertSRGBToLinear());
+scene.add(dynMesh);
+
+function drawPerson(pr, t) {
+  if (t < pr.t0 || t > pr.t1 + .95) return;
+  let px, py, pz, yaw = pr.yaw || 0, walking = 0, act = 0;
+  if (pr.k === 'ring') {
+    let r = pr.r, yy = pr.y;
+    const dv = sstep(pr.t1, pr.t1 + .9, t);
+    if (dv > 0) { yy = lerp(pr.y, GRADE, dv); r = pr.r + dv * 5.5; }
+    const P = sqPoint(r, (t * pr.spd + pr.ph) * .6366);
+    px = C.x + P.x; pz = C.z + P.z; py = yy; yaw = P.yaw; walking = 1;
+  } else if (pr.k === 'rivet') { px = pr.x; py = pr.y; pz = pr.z; act = 1; }
+  else if (pr.k === 'dig') { px = pr.x; py = pr.y; pz = pr.z; act = 1; }
+  else if (pr.k === 'walk') {
+    const u = tri(t * pr.spd + pr.ph);
+    px = lerp(pr.a.x, pr.b.x, u); pz = lerp(pr.a.z, pr.b.z, u); py = GRADE;
+    yaw = u < .5 ? Math.atan2(pr.b.x - pr.a.x, pr.b.z - pr.a.z) : Math.atan2(pr.a.x - pr.b.x, pr.a.z - pr.b.z);
+    walking = 1;
+  } else if (pr.k === 'bridge') {
+    const u = tri(t * pr.spd + pr.ph);
+    px = pr.bx; pz = lerp(pr.zA, pr.zB, u); py = 4.95;
+    const fz2 = pr.zB - pr.zA;
+    yaw = u < .5 ? Math.atan2(0, fz2) : Math.atan2(0, -fz2); walking = 1;
+  } else { px = pr.x; py = pr.y; pz = pr.z; yaw = pr.yaw; }
+  const s = pr.s, c = pr.c;
+  const g = walking ? Math.sin(t * pr.g + pr.ph) : Math.sin(t * 1.1 + pr.ph) * .3;
+  const bob = walking ? Math.abs(Math.sin(t * pr.g + pr.ph)) * .022 : 0;
+  const fx = Math.sin(yaw), fz = Math.cos(yaw);
+  put(px, py + .60 * s + bob, pz, .145 * s, .14 * s, .145 * s, c.skin, yaw);
+  if (c.hat === 'top') { put(px, py + .735 * s + bob, pz, .125 * s, .18 * s, .125 * s, c.hatc, yaw); put(px, py + .655 * s + bob, pz, .205 * s, .035 * s, .205 * s, c.hatc, yaw); }
+  else if (c.hat === 'cap') put(px, py + .685 * s + bob, pz, .16 * s, .075 * s, .16 * s, c.hatc, yaw);
+  else put(px, py + .665 * s + bob, pz, .152 * s, .055 * s, .152 * s, c.hatc, yaw);
+  const bend = act ? .07 : 0;
+  put(px, py + .385 * s + bob - bend, pz, .205 * s, .3 * s, .135 * s, c.coat, yaw);
+  const sw = walking ? g : .1;
+  put(px + fx * sw * .062, py + .13 * s - Math.abs(sw) * .012, pz + fz * sw * .062, .086 * s, .27 * s, .1 * s, c.pant, yaw);
+  put(px - fx * sw * .062, py + .13 * s - Math.abs(sw) * .012, pz - fz * sw * .062, .086 * s, .27 * s, .1 * s, c.pant, yaw);
+  if (pr.tool === 'hammer' || pr.tool === 'pick') {
+    const hsw = act ? Math.sin(t * 7.5 + pr.ph) : Math.sin(t * 1.4 + pr.ph) * .25;
+    const th = -1.32 + 1.32 * hsw + .18;
+    const ly = -.16 * Math.cos(th) - .2 * Math.sin(th), lz = -.16 * Math.sin(th) + .2 * Math.cos(th);
+    _qy2.setFromAxisAngle(_ax.set(0, 1, 0), yaw); _qp2.setFromAxisAngle(_ax.set(1, 0, 0), th); _qy2.multiply(_qp2);
+    const shx = px + fx * .1, shy = py + .44 * s, shz = pz + fz * .1;
+    putQ(shx, shy + ly * .5, shz + lz * .5, .055 * s, .3 * s, .055 * s, c.coat, _qy2);
+    if (pr.tool === 'hammer') putQ(shx, shy + ly, shz + lz, .05 * s, .26 * s, .05 * s, 0x4a3c2c, _qy2);
+    else putQ(shx, shy + ly * 1.1, shz + lz * 1.1, .045 * s, .5 * s, .045 * s, 0x5a4a34, _qy2);
+  } else if (pr.tool === 'carry') {
+    put(px + fx * .02, py + .5 * s, pz + fz * .02, .1, .1, 1.15, IRONC[2], yaw);
+    put(px - fx * .1, py + .4 * s, pz - fz * .1, .05 * s, .26 * s, .05 * s, c.coat, yaw);
+  } else if (pr.tool === 'para') {
+    put(px + fx * .05, py + .95 * s, pz + fz * .05, .035, .85, .035, 0x3a3f4a, yaw);
+    put(px + fx * .05, py + 1.34 * s, pz + fz * .05, .64 * s, .05, .18 * s, c.para, yaw);
+    put(px + fx * .05, py + 1.34 * s, pz + fz * .05, .18 * s, .05, .64 * s, c.para, yaw);
+  } else {
+    put(px + fx * .12, py + .38 * s, pz + fz * .12, .05 * s, .26 * s, .05 * s, c.coat, yaw);
+    put(px - fx * .12, py + .38 * s, pz - fz * .12, .05 * s, .26 * s, .05 * s, c.coat, yaw);
+  }
+}
+function drawCart(cr, t) {
+  const P = loopPath(cr.p, t * cr.spd + cr.ph);
+  const x = P.x, z = P.z, yaw = P.yaw, y = GRADE + .01, fx = Math.sin(yaw), fz = Math.cos(yaw);
+  put(x + fx * 1.12, y + .64, z + fz * 1.12, .38 * cr.s, .46 * cr.s, .95 * cr.s, 0x4a3a2c, yaw);
+  put(x + fx * 1.6, y + .9, z + fz * 1.6, .24 * cr.s, .3 * cr.s, .36 * cr.s, 0x3f3126, yaw);
+  put(x + fx * 1.78, y + 1.04, z + fz * 1.78, .1 * cr.s, .17 * cr.s, .3 * cr.s, 0x2e2620, yaw);
+  put(x + fx * .72, y + 1.02, z + fz * .72, .07, .5, .07, 0x2e2620, yaw);
+  const tr = Math.sin(t * 8.5 + cr.ph * 9);
+  for (const s of [[-.15, 1], [.15, 1], [-.15, -1], [.15, -1]]) {
+    const o = rotY(s[0], 0, 0, yaw);
+    put(x + fx * (1.12 + s[1] * .35) + o[0], y + .27 - (s[1] > 0 ? Math.abs(tr) * .04 : 0), z + fz * (1.12 + s[1] * .35) + o[2], .1, .5, .1, 0x3a2d22, yaw);
+  }
+  put(x - fx * .4, y + .44, z - fz * .4, .84 * cr.s, .15, 1.35 * cr.s, 0x7a5c38, yaw);
+  put(x - fx * .4, y + .66, z - fz * .4, .84 * cr.s, .3, .1, 0x6b4f30, yaw);
+  put(x - fx * 1.05, y + .66, z - fz * 1.05, .84 * cr.s, .3, .1, 0x6b4f30, yaw);
+  for (const s of [-1, 1]) {
+    const o = rotY(s * .46, 0, 0, yaw);
+    put(x - fx * .4 + o[0], y + .38, z - fz * .4 + o[2], .09, .74, .74, 0x2b241d, yaw);
+  }
+  if (cr.load) for (let i = 0; i < 3; i++) put(x - fx * .4, y + .6 + i * .15, z - fz * .4, .15, .15, 1.25, IRONC[i % 4], yaw);
+  put(x + fx * .82, y + .66, z + fz * .82, .1, .1, .72, 0x5a4530, yaw);
+}
+function drawCoach(ch, t) {
+  const u = tri(t * ch.spd + ch.ph);
+  const z = lerp(ch.zA, ch.zB, u);
+  const dirz = u < .5 ? 1 : -1;
+  const yaw = Math.atan2(0, dirz), fx = 0, fz = dirz, y = 4.95;
+  put(ch.bx, y + .66, z + fz * 1.05, .38, .46, .95, 0x3b3128, yaw);
+  put(ch.bx, y + .92, z + fz * 1.5, .24, .3, .34, 0x332a22, yaw);
+  for (const s of [[-.15, 1], [.15, 1], [-.15, -1], [.15, -1]])
+    put(ch.bx + s[0], y + .28, z + fz * (1.05 + s[1] * .35), .1, .5, .1, 0x2f2620, yaw);
+  put(ch.bx, y + .78, z - fz * .3, .8, .5, 1.25, 0x1e2a3a, yaw);
+  put(ch.bx, y + 1.1, z - fz * .3, .86, .12, 1.32, 0x141c26, yaw);
+  put(ch.bx, y + 1.28, z - fz * .3, .5, .28, .9, 0x141c26, yaw);
+  for (const s of [-1, 1]) { const o = rotY(s * .44, 0, 0, yaw); put(ch.bx + o[0], y + .4, z - fz * .35 + o[2], .08, .7, .7, 0x2b241d, yaw); }
+  put(ch.bx, y + 1.16, z - fz * 1.02, .06, .3, .06, 0x2b241d, yaw);
+  put(ch.bx, y + 1.16, z + fz * .42, .06, .3, .06, 0x2b241d, yaw);
+}
+function drawBoat(b, t) {
+  const x = b.x0 + b.dir * b.spd * t;
+  const z = RIV.c(x), yaw = Math.atan2(b.dir, 0), y = WATER + .08;
+  const fx = b.dir, fz = 0;
+  const L = b.big ? 5.8 : 4.4, W = b.big ? 1.75 : 1.4;
+  put(x, y + .22, z, W, .5, L, 0x2b2f33, yaw);
+  put(x, y + .5, z, W * .9, .16, L * .9, 0x8a7a5c, yaw);
+  put(x - fx * .7, y + .72, z, W * .78, .62, L * .34, 0xd8cdb4, yaw);
+  put(x - fx * .7, y + 1.08, z, W * .66, .12, L * .3, 0x6e7276, yaw);
+  put(x - fx * .7, y + 1.45, z, .28, .95, .28, 0x24272b, yaw);
+  put(x + fx * L * .33, y + .38, z, W * .95, .46, .3, 0x33383d, yaw);
+  put(x + fx * L * .44, y + .8, z, .07, 1.5, .07, 0x4a4034, yaw);
+  put(x + fx * L * .44, y + 1.55, z, .3, .3, .05, 0x6b5a44, yaw);
+  put(x - fx * L * .46, y + .12, z, W * .8, .2, .3, 0x2b2f33, yaw);
+  for (let i = 0; i < 4; i++) put(x - fx * (.2 + i * .5), y + .58, z + (i % 2 ? .3 : -.3), .12, .12, .12, 0x2b241d, yaw);
+  b.pos.set(x, WATER, z); b.dv.set(b.dir, 0, 0);
+}
+function drawBird(b, t) {
+  const a = t * b.spd + b.ph;
+  const x = b.cx + Math.cos(a) * b.r, z = b.cz + Math.sin(a) * b.r, y = b.y + Math.sin(a * 2.3 + b.ph) * .9;
+  const yaw = a + (b.spd > 0 ? Math.PI / 2 : -Math.PI / 2);
+  const flap = Math.sin(t * 15 + b.ph) * .85;
+  put(x, y, z, .14, .1, .27, b.c, yaw);
+  _qy2.setFromAxisAngle(_ax.set(0, 1, 0), yaw); _qp2.setFromAxisAngle(_ax.set(0, 0, 1), flap); _qy2.multiply(_qp2);
+  for (const s of [-1, 1]) {
+    const o = rotY(s * .19, Math.sin(flap) * .12, 0, yaw);
+    putQ(x + o[0], y + o[1], z + o[2], .22, .025, .13, shade(b.c, 1.15), _qy2);
+  }
+  const o = rotY(0, 0, .17, yaw);
+  put(x + o[0] * Math.sign(Math.cos(a)), y, z, .06, .05, .12, 0x55555c, yaw);
+}
+function updateLife(t) {
+  dynN = 0;
+  for (let i = 0; i < PEOPLE.length; i++) drawPerson(PEOPLE[i], t);
+  for (let i = 0; i < CARTS.length; i++) drawCart(CARTS[i], t);
+  for (let i = 0; i < COACHES.length; i++) drawCoach(COACHES[i], t);
+  for (let i = 0; i < BOATS.length; i++) drawBoat(BOATS[i], t);
+  for (let i = 0; i < BIRDS.length; i++) drawBird(BIRDS[i], t);
+  dynMesh.count = dynN; dynMesh.instanceMatrix.needsUpdate = true;
+  if (dynMesh.instanceColor) dynMesh.instanceColor.needsUpdate = true;
+}
+/* --- 7.9 火星（铆接）与蒸汽 --- */
+const SPARK_LIFE = .46, SPK_MAX = 1500;
+function makePoints(frag, additive) {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(SPK_MAX * 3), 3).setUsage(THREE.DynamicDrawUsage));
+  g.setAttribute('aCol', new THREE.BufferAttribute(new Float32Array(SPK_MAX * 3), 3).setUsage(THREE.DynamicDrawUsage));
+  g.setAttribute('aSize', new THREE.BufferAttribute(new Float32Array(SPK_MAX), 1).setUsage(THREE.DynamicDrawUsage));
+  g.setAttribute('aAlpha', new THREE.BufferAttribute(new Float32Array(SPK_MAX), 1).setUsage(THREE.DynamicDrawUsage));
+  g.setDrawRange(0, 0);
+  const m = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending,
+    uniforms: { uScale: { value: 18 } },
+    vertexShader: `attribute float aSize; attribute float aAlpha; attribute vec3 aCol;
+      uniform float uScale; varying float vA; varying vec3 vC;
+      void main(){ vA=aAlpha; vC=aCol; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);
+        gl_PointSize=max(1.0, aSize*uScale); }`,
+    fragmentShader: frag
+  });
+  const p = new THREE.Points(g, m); p.frustumCulled = false; p.renderOrder = 3; scene.add(p); return p;
+}
+const sparkPts = makePoints(`varying float vA; varying vec3 vC;
+  void main(){ vec2 d=gl_PointCoord-0.5; float r=length(d);
+    float a=smoothstep(0.5,0.02,r)*vA; if(a<0.01) discard;
+    gl_FragColor=vec4(vC*a, a); }`, true);
+const smokePts = makePoints(`varying float vA; varying vec3 vC;
+  void main(){ vec2 d=gl_PointCoord-0.5; float r=length(d);
+    float a=smoothstep(0.5,0.12,r)*vA; if(a<0.01) discard;
+    gl_FragColor=vec4(vC, a); }`, false);
+const SMOKE_EM = [
+  { n: 26, period: 3.4, rise: 5.2, r0: .38, grow: 1.5, wind: .55, col: [0.62, 0.6, 0.58], p: new V3(ENGINE.x + .3, GRADE + 3.8, ENGINE.z - .3) },
+  { n: 15, period: 3.0, rise: 4.2, r0: .26, grow: 1.15, wind: .5, col: [0.58, 0.56, 0.55], p: new V3() }
+];
+CRANES.forEach((cr, i) => SMOKE_EM.push({ n: 11, period: 2.7, rise: 3.6, r0: .2, grow: .95, wind: .48, col: [.55, .53, .52], p: new V3(), cr }));
+BOATS.forEach(b => SMOKE_EM.push({ n: 18, period: 2.4, rise: 3.4, r0: .22, grow: 1.0, wind: .35, col: [.6, .58, .56], p: new V3(), boat: b }));
+function lb(arr, t) { let lo = 0, hi = arr.length; while (lo < hi) { const m = (lo + hi) >> 1; if (arr[m].t < t) lo = m + 1; else hi = m; } return lo; }
+function updateFx(t) {
+  /* 火星 */
+  let n = 0;
+  const i1 = lb(SPARKS, t), i0 = lb(SPARKS, t - SPARK_LIFE);
+  const P = sparkPts.geometry.attributes.position.array, Cl = sparkPts.geometry.attributes.aCol.array,
+        S = sparkPts.geometry.attributes.aSize.array, A = sparkPts.geometry.attributes.aAlpha.array;
+  for (let i = i0; i < i1 && n < SPK_MAX; i++) {
+    const e = SPARKS[i], u = (t - e.t) / SPARK_LIFE, tt = u * SPARK_LIFE;
+    for (let k = 0; k < 6 && n < SPK_MAX; k++) {
+      const a = rnd(e.s, 40 + k) * 6.2832, el = rnd(e.s, 80 + k) * 1.15, v = 1.4 + rnd(e.s, 120 + k) * 1.8;
+      const vx = Math.cos(a) * Math.sin(el) * v, vy = Math.cos(el) * v * 1.15 + .55, vz = Math.sin(a) * Math.sin(el) * v;
+      const x = e.x + vx * tt, y = e.y + vy * tt - 2.7 * tt * tt, z = e.z + vz * tt;
+      if (y < GRADE - 7) continue;
+      const j = n * 3; P[j] = x; P[j + 1] = y; P[j + 2] = z;
+      const f = (1 - u) * (1 - u);
+      Cl[j] = 2.9 * f; Cl[j + 1] = 1.15 * f; Cl[j + 2] = .30 * f;
+      S[n] = .1 + rnd(e.s, 160 + k) * .1; A[n] = f * .95;
+      n++;
+    }
+  }
+  sparkPts.geometry.setDrawRange(0, n);
+  for (const k of ['position', 'aCol', 'aSize', 'aAlpha']) sparkPts.geometry.attributes[k].needsUpdate = true;
+  /* 蒸汽 / 煤烟 */
+  let m = 0;
+  const P2 = smokePts.geometry.attributes.position.array, C2 = smokePts.geometry.attributes.aCol.array,
+        S2 = smokePts.geometry.attributes.aSize.array, A2 = smokePts.geometry.attributes.aAlpha.array;
+  for (const em of SMOKE_EM) {
+    if (em.cr) em.p.copy(em.cr.smoke);
+    else if (em.boat) em.p.copy(em.boat.pos).add(new V3(-em.boat.dv.x * .7, 1.55, 0));
+    for (let i = 0; i < em.n; i++) {
+      let u = (t - i * (em.period / em.n)) % em.period; if (u < 0) u += em.period; u /= em.period;
+      const j = m * 3;
+      P2[j] = em.p.x + Math.sin(u * 3.1 + i) * .3 * u + em.wind * u * 2.4;
+      P2[j + 1] = em.p.y + u * em.rise;
+      P2[j + 2] = em.p.z + Math.cos(u * 2.5 + i * .7) * .28 * u;
+      const f = (1 - u) * sstep(0, .12, u);
+      C2[j] = em.col[0] * (1 + u * .35); C2[j + 1] = em.col[1] * (1 + u * .3); C2[j + 2] = em.col[2] * (1 + u * .42);
+      S2[m] = em.r0 + u * em.grow; A2[m] = f * .5;
+      m++;
+    }
+  }
+  smokePts.geometry.setDrawRange(0, m);
+  for (const k of ['position', 'aCol', 'aSize', 'aAlpha']) smokePts.geometry.attributes[k].needsUpdate = true;
+}
+function updateWater(t) {
+  waterUni.uTime.value = t;
+  waterUni.uCam.value.copy(cam.position);
+  waterUni.uBoat.value.copy(BOATS[0].pos);
+  waterUni.uBoatDir.value.copy(BOATS[0].dv);
+  waterUni.uBoat2.value.copy(BOATS[1].pos);
+}
+
+/* ======================================================================
+   8. 正交运镜 / 回放界面 / 源码栏 / 逐帧采集
+   ====================================================================== */
+for (const k in BATCH) bake(BATCH[k]);
+
+const DEG = Math.PI / 180;
+const CAMKEY = [
+  { t: 0.0, x: 3.0, y: 2.6, z: 4.0, az: -27, el: 24, h: 27 },
+  { t: 1.7, x: 1.5, y: 3.4, z: 4.5, az: -25, el: 24, h: 30 },
+  { t: 3.2, x: 0.5, y: 4.8, z: 5.5, az: -22, el: 25, h: 34 },
+  { t: 5.0, x: 0.0, y: 6.2, z: 6.0, az: -18, el: 26, h: 38 },
+  { t: 7.2, x: 0.0, y: 8.6, z: 6.2, az: -13, el: 27, h: 43 },
+  { t: 9.6, x: 0.0, y: 12.5, z: 6.0, az: -8, el: 28, h: 49 },
+  { t: 11.8, x: 0.0, y: 18.5, z: 5.0, az: -4, el: 29, h: 57 },
+  { t: 13.3, x: 0.0, y: 22.5, z: 3.0, az: -2, el: 26, h: 65 },
+  { t: 14.0, x: 0.0, y: 19.0, z: 2.0, az: -1, el: 21, h: 80 }
+];
+const SUNDIR = new V3(0.34, 0.42, 0.85).normalize();
+let userAz = 0, userEl = 0, userZoom = 1, panX = 0, panY = 0, mode = 'auto', fitAz = -10, fitEl = 24, fitH = 80;
+let pxScale = 18, aspect = 16 / 9;
+const camTarget = new V3(), camDir = new V3(), camRight = new V3(), camUp = new V3();
+
+function updateCamera(t) {
+  let tx = 0, ty = 15, tz = 1, az = fitAz, el = fitEl, vh = fitH;
+  if (mode !== 'fit') {
+    let k = CAMKEY[0], k2 = CAMKEY[CAMKEY.length - 1];
+    for (let i = 0; i < CAMKEY.length - 1; i++) if (t >= CAMKEY[i].t && t <= CAMKEY[i + 1].t) { k = CAMKEY[i]; k2 = CAMKEY[i + 1]; break; }
+    if (t >= CAMKEY[CAMKEY.length - 1].t) { k = k2 = CAMKEY[CAMKEY.length - 1]; }
+    const u = k2.t > k.t ? sm((t - k.t) / (k2.t - k.t)) : 0;
+    tx = lerp(k.x, k2.x, u); ty = lerp(k.y, k2.y, u); tz = lerp(k.z, k2.z, u);
+    az = lerp(k.az, k2.az, u); el = lerp(k.el, k2.el, u); vh = lerp(k.h, k2.h, u);
+  }
+  az += userAz; el = clamp(el + userEl, 3, 82); vh = clamp(vh * userZoom, 12, 190);
+  const ar = az * DEG, er = el * DEG;
+  camDir.set(Math.cos(er) * Math.sin(ar), Math.sin(er), Math.cos(er) * Math.cos(ar));
+  camRight.set(camDir.z, 0, -camDir.x).normalize();
+  camUp.crossVectors(camRight, camDir).negate().normalize();
+  camTarget.set(tx, ty, tz).addScaledVector(camRight, panX).addScaledVector(camUp, panY);
+  cam.position.copy(camTarget).addScaledVector(camDir, 150);
+  cam.up.set(0, 1, 0); cam.lookAt(camTarget);
+  const vw = vh * aspect;
+  cam.left = -vw / 2; cam.right = vw / 2; cam.top = vh / 2; cam.bottom = -vh / 2;
+  cam.near = 1; cam.far = 420; cam.updateProjectionMatrix();
+  sun.position.copy(camTarget).addScaledVector(SUNDIR, 95);
+  sun.target.position.copy(camTarget); sun.target.updateMatrixWorld();
+  const ss = clamp(vh * .62, 24, 58);
+  sun.shadow.camera.left = -ss; sun.shadow.camera.right = ss;
+  sun.shadow.camera.top = ss * 1.08; sun.shadow.camera.bottom = -ss * 1.02;
+  sun.shadow.camera.updateProjectionMatrix();
+  const ch = renderer.domElement.height / renderer.getPixelRatio();
+  pxScale = ch / vh;
+  sparkPts.material.uniforms.uScale.value = pxScale;
+  smokePts.material.uniforms.uScale.value = pxScale;
+}
+
+/* ---------------- 8.1 源码栏数据（真实驱动代码 + 动作标记） ---------------- */
+const L = (c, a, j) => ({ c, a, j });
+const SRC = [
+  { t: '① 开挖与地基 · buildFoundations()', l: [
+    L('/* ---- 工序 ① 开挖与地基 · buildFoundations() ---- */'),
+    L('PITS.forEach((pit, pi) => {'),
+    L('  const px = pit.x, pz = pit.z;'),
+    L('  if (pi === 3) {                       // 塞纳河侧：沉箱下放', 'lift', .95),
+    L('    const p = newPart(\'caisson\', 0, new V3(px, 2.55, pz),'),
+    L('      { t: .95, dur: .95, hangOff: 1.75, spread: 2.1, tiltAmp: .045 });', 'lift', 1.05),
+    L('    for (const o of [[0,1],[1,0],[0,-1],[-1,0]])      // 四片井壁'),
+    L('      addBoxI(p, px + o[0]*1.78, 2.55, pz + o[1]*1.78,'),
+    L('               o[0] ? .2 : 3.75, 3.0, o[0] ? 3.75 : .2, 0x6d5536);'),
+    L('    p.pickup.set(px + 6.6, WATER + 1.0, pz - 5.6);    // 自河边浮运起吊', 'lift', 1.15),
+    L('  }'),
+    L('  const bed = newPart(\'bed\', 0, new V3(px, 1.35, pz), { t: 1.8 + pi*.1, dur: .5 });', 'align', 1.8),
+    L('  addBoxI(bed, px, 1.35, pz, 3.55, .5, 3.55, 0x7d7666);          // 垫层', 'align', 1.95),
+    L('  for (let c = 0; c < 2; c++) {                                   // 砌筑基础'),
+    L('    const y = 1.98 + c*.8, m = newPart(\'mason\', 0, new V3(px, y, pz),'),
+    L('      { t: 2.05 + pi*.08 + c*.22, dur: .48, spread: 1.75 });', 'align', 2.05),
+    L('    addBoxI(m, px - .82, y, pz, 1.53, .74, 3.14, 0x9a9384);'),
+    L('    addBoxI(m, px + .82, y, pz, 1.53, .74, 3.14, 0x908a7b);'),
+    L('  }'),
+    L('  const an = newPart(\'anchor\', 0, new V3(px, 3.62, pz), { t: 2.6 + pi*.06, dur: .42 });', 'seat', 2.6),
+    L('  addBoxI(an, px, 3.62, pz, 2.3, .34, 2.3, IRONC[1]);            // 塔脚锚座', 'seat', 2.68),
+    L('  for (const o of [[-1,-1],[1,-1],[1,1],[-1,1]])'),
+    L('    addBeamI(an, px+o[0]*.92, 3.62, pz+o[1]*.92, px+o[0]*.92, 4.3, pz+o[1]*.92, .11);', 'seat', 2.76),
+    L('  soil.add(cx, 3.82, cz, .97, .5, .97, 0x634d34, 2.92, 1e9, .4); // 回填', 'seat', 2.92),
+    L('});'),
+    L('// 挖土：soil.add(..., t0=0, t1=tv) 逐块消失，露出分层岩石与基坑')
+  ] },
+  { t: '② 四条弯曲塔腿 · legPanel()', l: [
+    L('/* ---- 工序 ② 四条弯曲塔腿 · legPanel() ---- */'),
+    L('function legPanel(si, y0, y1, stage) {'),
+    L('  const s = LEGDIR[si], d0 = TOWER.d(y0), d1 = TOWER.d(y1);   // 曲线轮廓'),
+    L('  const c0x = C.x + s.x*d0, c0z = C.z + s.z*d0;'),
+    L('  const h0 = legHalf(y0), h1 = legHalf(y1);'),
+    L('  const p = newPart(\'leg\', stage, new V3((c0x+c1x)/2, (y0+y1)/2, (c0z+c1z)/2),'),
+    L('    { hangOff: (y1-y0)/2 + .55, spread: 1.5, attY: .35 });', 'lift', 3.25),
+    L('  const th  = Math.max(.088, .16 - y0*.0024);          // 立柱截面'),
+    L('  const thx = Math.max(.054, .096 - (y0-GRADE)*.0013); // X 撑 0.096 → 0.054'),
+    L('  for (let k = 0; k < 4; k++)   // 4 根立柱（随高度内倾）'),
+    L('    addBeamI(p, A[k][0],A[k][1],A[k][2], B[k][0],B[k][1],B[k][2], th);', 'lift', 3.5),
+    L('  for (let k = 0; k < 4; k++)   // 顶横梁'),
+    L('    addBeamI(p, B[k][0],B[k][1],B[k][2], Bn[k][0],Bn[k][1],Bn[k][2], th*.8);'),
+    L('  for (let k = 0; k < 4; k++) { // 真正镂空的 X 形交叉撑'),
+    L('    addBeamI(p, A[k][0],A[k][1],A[k][2], Bn[k][0],Bn[k][1],Bn[k][2], thx);', 'align', 3.9),
+    L('    addBeamI(p, An[k][0],An[k][1],An[k][2], B[k][0],B[k][1],B[k][2], thx);', 'align', 4.1),
+    L('  }'),
+    L('}'),
+    L('function buildLegs() {'),
+    L('  for (let i = 0; i < 5; i++) {'),
+    L('    const a = GRADE + (TOWER.y1-GRADE)*i/5, b = GRADE + (TOWER.y1-GRADE)*(i+1)/5;'),
+    L('    for (let si = 0; si < 4; si++) { legPanel(si, a, b, 1); WALKS.push({ y: b, r: TOWER.d(b)+.12 }); }', 'lift', 4.6),
+    L('    ringPart(a, b, 1, false);        // 连接四腿的环梁', 'seat', 5.1),
+    L('  }'),
+    L('}'),
+    L('// 起吊点：塔腿外侧料场；吊臂摆转对位后下放连接'),
+    L('p.pickup.set(C.x + Math.sin(a)*(TOWER.d(y)+3.6), GRADE+.75, C.z + Math.cos(a)*(TOWER.d(y)+3.6));', 'lift', 5.5),
+    L('cr.jibG.rotation.x = -Math.asin(uy);          // 吊臂俯仰跟随载荷', 'align', 5.6),
+    L('rod(tip.x, tip.y, tip.z, hook.x + perx*sp, cyy, hook.z + perz*sp, .035);  // 吊索随载荷', 'seat', 5.8),
+    L('scaf.add(cx + o[0]*h, y + .85, cz + o[1]*h, .13, 1.8, .13, WOODC[i%3], t0, vanish, .3);')
+  ] },
+  { t: '③ 拱肋与第一平台 · buildArches()', l: [
+    L('/* ---- 工序 ③ 拱肋与第一平台 ---- */'),
+    L('function archPt(fi, s) {                     // 开放式拱肋：两侧分段接合'),
+    L('  const y = 4.95 + 3.55*(1 - s*s), r = TOWER.d(y) - .18, sh = TOWER.d(4.95) - 1.05;'),
+    L('  const f = FACE[fi];'),
+    L('  return [C.x + f.nx*r + (-f.nz)*s*sh, y, C.z + f.nz*r + f.nx*s*sh];'),
+    L('}'),
+    L('for (let fi = 0; fi < 4; fi++) for (const sgn of [1, -1]) {'),
+    L('  const c = archPt(fi, sgn*.52);'),
+    L('  const p = newPart(\'arch\', 2, new V3(c[0], c[1], c[2]), { hangOff: .75, spread: 1.6, bulge: 1.6 });', 'lift', 6.05),
+    L('  for (let i = 0; i < 6; i++) {'),
+    L('    const s0 = sgn*(1 - i/6), s1 = sgn*(1 - (i+1)/6);'),
+    L('    const a = archPt(fi, s0), b = archPt(fi, s1);'),
+    L('    addBeamI(p, a[0], a[1]+.42, a[2], b[0], b[1]+.42, b[2], .105);   // 上弦'),
+    L('    addBeamI(p, a[0], a[1]-.42, a[2], b[0], b[1]-.42, b[2], .105);   // 下弦', 'align', 6.6),
+    L('    addBeamI(p, a[0], a[1]-.42, a[2], a[0], a[1]+.42, a[2], .086);   // 竖杆'),
+    L('    addBeamI(p, a[0], a[1]-.42, a[2], b[0], b[1]+.42, b[2], .076);   // 斜腹杆'),
+    L('  }'),
+    L('}'),
+    L('/* 第一平台：先吊主梁横梁，再铺走道、装栏杆 */'),
+    L('function buildPlatform(py, half, stage, thin) {'),
+    L('  for (let k = 0; k < 4; k++) {                 // 周边主梁（上下弦 + 竖杆）'),
+    L('    const p = newPart(\'girder\', stage, new V3(...), { dur: .6 });', 'lift', 6.9),
+    L('    addBeamI(p, C.x+a[0], py+.2, C.z+a[1], C.x+b[0], py+.2, C.z+b[1], .27);', 'align', 7.1),
+    L('    addBeamI(p, C.x+a[0], py-.3, C.z+a[1], C.x+b[0], py-.3, C.z+b[1], .2);'),
+    L('  }'),
+    L('  for (let i = 1; i < nc; i++)                  // 横梁'),
+    L('    addBeamI(newPart(\'cross\',...), C.x+u, py+.18, C.z-half, C.x+u, py+.18, C.z+half, .17);', 'align', 7.6),
+    L('  for (let r = 0; r < rows; r++) {              // 走道板分条吊装'),
+    L('    const p = newPart(\'deck\', stage, new V3(C.x, py+.5, C.z+(z0+z1)/2), { dur: .48 });', 'seat', 8.0),
+    L('    addBoxI(p, C.x+x0+half/cols, py+.47, ..., 2*half/cols*.88, .1, (z1-z0)*.84, 0x8a6f4a);', 'seat', 8.15),
+    L('  }'),
+    L('  for (let k = 0; k < 4; k++) { ... addBeamI(p, C.x+x, py+.56, C.z+z, C.x+x, py+1.16, C.z+z, .068); }', 'seat', 8.4),
+    L('}')
+  ] },
+  { t: '④ 第二平台 · shaftLevel()', l: [
+    L('/* ---- 工序 ④ 第二平台：小型蒸汽爬升起重机随塔身上移 ---- */'),
+    L('function buildP2() {'),
+    L('  const n = 4, y0 = TOWER.y1, y1 = TOWER.y2;'),
+    L('  for (let i = 0; i < n; i++) shaftLevel(y0 + (y1-y0)*i/n, y0 + (y1-y0)*(i+1)/n, 3);', 'lift', 8.5),
+    L('  buildPlatform(TOWER.y2, 3.5, 3, true);'),
+    L('}'),
+    L('function shaftLevel(y0, y1, stage) {          // 逐段接高上部斜腿'),
+    L('  const p = newPart(\'shaft\', stage, new V3(C.x, (y0+y1)/2, C.z),'),
+    L('    { hangOff: (y1-y0)/2 + .6, spread: 2.3, attY: .32, dur: .85 });', 'lift', 8.7),
+    L('  const d0 = TOWER.d(y0), d1 = TOWER.d(y1), h0 = legHalf(y0), h1 = legHalf(y1);'),
+    L('  const th = Math.max(.08, .152 - y0*.0021);'),
+    L('  for (let si = 0; si < 4; si++) {             // 四条斜腿的本层分段'),
+    L('    for (let k = 0; k < 4; k++) addBeamI(p, A[k][0],A[k][1],A[k][2], B[k][0],B[k][1],B[k][2], th);', 'align', 9.0),
+    L('    for (let k = 0; k < 4; k++) { addBeamI(p, a0..., b1..., thx); addBeamI(p, b0..., a1..., thx); }', 'align', 9.2),
+    L('  }'),
+    L('  for (let k = 0; k < 4; k++) {                // 面间交叉撑（半搭、梁端裸露）'),
+    L('    addBeamI(p, cs1[k], cs1[(k+1)&3], thx*1.1);'),
+    L('    addBeamI(p, cs0[k], cs1[(k+1)&3], thx*.95);', 'align', 9.6),
+    L('    addBeamI(p, cs0[(k+1)&3], cs1[k], thx*.95);'),
+    L('  }'),
+    L('  WALKS.push({ y: y1 + .04, r: TOWER.d(y1) + .12, h: y1 });   // 高处走梁'),
+    L('}'),
+    L('/* 爬升吊：底座随已落座构件的最高点上升 */'),
+    L('cr.baseY = topAt(t) + .25;'),
+    L('cr.x = C.x + cr.sx*(TOWER.d(cr.baseY) + 1.15); cr.z = C.z + cr.sz*(TOWER.d(cr.baseY) + 1.15);', 'seat', 10.2),
+    L('buildPlatform(TOWER.y2, 3.5, 3, true);        // 完成二层平台', 'seat', 10.4)
+  ] },
+  { t: '⑤ 上部铁架 · buildUpper()', l: [
+    L('/* ---- 工序 ⑤ 上部铁架：越来越窄的镂空桁架 ---- */'),
+    L('function buildUpper() {'),
+    L('  const n = 7, y0 = TOWER.y2, y1 = TOWER.y3;      // 17.5 → 29'),
+    L('  for (let i = 0; i < n; i++)'),
+    L('    shaftLevel(y0 + (y1-y0)*i/n, y0 + (y1-y0)*(i+1)/n, 4);', 'lift', 10.6),
+    L('}'),
+    L('// TOWER.d(y) = 0.5 + 5.9 * (1 - y/36.6)^1.5   ← 收分曲线'),
+    L('// legHalf(y) = 0.32 + 0.52 * (1 - (y-GRADE)/32)'),
+    L('// 截面厚度：立柱 th = .152 - y*.0021，X 撑 thx = .094 - (y-GRADE)*.0012'),
+    L('// 顶部最细斜撑 ≈ 0.054，近看仍可分辨梁件、接头与构件间的空隙'),
+    L(''),
+    L('/* 高处工人在窄梁和临时踏板上走动、铆接 */'),
+    L('PEOPLE.push({ k: \'ring\', y: w.y, r: w.r, spd: vr(sd,9,.22,.55), t0: w.t0, t1: 13.25 });', 'align', 11.2),
+    L('const P = sqPoint(r, (t*pr.spd + pr.ph)*.6366);   // 沿方环走梁'),
+    L('PEOPLE.push({ k: \'rivet\', x: C.x+P.x, z: C.z+P.z, tool: \'hammer\' });', 'seat', 11.6),
+    L('const th = -1.32 + 1.32*hsw;                       // 挥锤'),
+    L('SPARKS.push({ x: C.x+P.x, y: w.y, z: C.z+P.z, t: t0 + q*.8 });   // 铆接火星'),
+    L(''),
+    L('/* 塔顶只有骨架的过程：构件还在吊索上 */'),
+    L('if (st === 1) { partPose(p, t); for (const it of p.items) ironMesh.setMatrixAt(it.i, POSE.m*it.lm); }', 'lift', 12.0),
+    L('scaf.add(C.x + c[0], y + .8, C.z + c[1], .11, 1.7, .11, WOODC[i%3], t0, vanish, .3);', 'seat', 12.2)
+  ] },
+  { t: '⑥ 塔尖合拢 · buildCrown()', l: [
+    L('/* ---- 工序 ⑥ 塔尖合拢 ---- */'),
+    L('buildPlatform(TOWER.y3, 1.95, 5, true);            // 顶层平台', 'lift', 12.5),
+    L('const fl = newPart(\'obs\', 5, new V3(C.x, oy+.35, C.z), { dur: .6 });'),
+    L('addBoxI(fl, C.x, oy+.3, C.z, 3.5, .22, 3.5, IRONC[3]);   // 观测室楼面', 'align', 12.8),
+    L('for (const f of FACE) {                            // 观测室墙体 + 窗洞'),
+    L('  const p = newPart(\'wall\', 5, new V3(C.x+f.nx*w, oy+1.4, C.z+f.nz*w), { dur: .6 });', 'align', 13.0),
+    L('  if (Math.abs(i) === 1) addBoxI(p, x, oy+1.4, z, f.nx?.12:.62, 1.7, f.nx?.62:.12, 0x3f4650);'),
+    L('  else addBeamI(p, x, oy+.55, z, x, oy+2.25, z, .085);'),
+    L('}'),
+    L('const rf = newPart(\'roof\', 5, new V3(C.x, oy+2.7, C.z), { dur: .55 });', 'seat', 13.3),
+    L('addBoxI(rf, C.x, oy+2.5, C.z, 3.7, .16, 3.7, 0x6e7276);   // 灰锌屋顶'),
+    L(''),
+    L('/* 塔尖：三节收拢 + 天线 */'),
+    L('const sp = [[oy+3.4,1.15,.72,.09],[oy+4.4,.72,.44,.075],[oy+5.3,.44,.2,.062]];'),
+    L('sp.forEach((s, i) => {'),
+    L('  const p = newPart(\'spire\', 5, new V3(C.x,(y0+y1)/2,C.z), { hangOff: (y1-y0)/2+.45, dur: .5 });', 'align', 13.55),
+    L('  latticeBox(p, y0, y1, w0, s[1], s[3], Math.max(.054, s[3]*.8));'),
+    L('});'),
+    L('const ant = newPart(\'antenna\', 5, new V3(C.x, TOWER.top-1.2, C.z), { dur: .6 });', 'seat', 13.8),
+    L('addBeamI(ant, C.x, TOWER.top-2.4, C.z, C.x, TOWER.top, C.z, .11, 0xb8b0a4);', 'seat', 13.9),
+    L(''),
+    L('/* 撤下临时脚手架与起重设备：vanish = 12.45 + (1 - h/30)*.95（自上而下） */'),
+    L('scaf.update(t); soil.update(t);'),
+    L('/* 末帧：完整铁塔 + 浮岛全景（h: 57 → 80, el: 29° → 21°） */')
+  ] }
+];
+const codeEl = document.getElementById('code'), pSub = document.getElementById('p-sub');
+let codeMode = 'stage', curStage = -1, lastPhase = -1, rows = [], tagRows = [];
+function buildCode() {
+  codeEl.innerHTML = ''; rows = []; tagRows = [];
+  let lines;
+  if (codeMode === 'full') lines = document.getElementById('app').textContent.split('\n').map(s => ({ c: s }));
+  else lines = SRC[curStage < 0 ? 0 : curStage].l;
+  lines.forEach((ln, i) => {
+    const d = document.createElement('div');
+    d.className = 'cl' + (ln.c.trim().startsWith('//') || ln.c.trim().startsWith('/*') ? ' k' : '');
+    const n = document.createElement('span'); n.className = 'ln'; n.textContent = i + 1;
+    const t = document.createElement('span'); t.className = 'tx'; t.textContent = ln.c.length ? ln.c : ' ';
+    d.appendChild(n); d.appendChild(t);
+    if (ln.a) { d.classList.add('tag'); d.dataset.a = ln.a; d.dataset.j = ln.j; d.addEventListener('dblclick', () => { seek(ln.j); toast('跳到 ' + ln.j.toFixed(2) + 's · ' + ({ lift: '起吊', align: '对位', seat: '落座' })[ln.a]); }); }
+    codeEl.appendChild(d); rows.push(d);
+    if (ln.a) tagRows.push(d);
+  });
+  pSub.textContent = codeMode === 'full' ? '完整场景源码 (' + lines.length + ' 行)' : SRC[curStage < 0 ? 0 : curStage].t;
+}
+function updateCodeHl(t) {
+  if (codeMode !== 'stage' || curStage < 0) return;
+  const st = STAGES[curStage];
+  let focus = null;
+  for (const p of SCHED[curStage]) {
+    if (t >= p.tStart && t < p.tEnd) { if (!focus || p.tStart > focus.tStart) focus = p; }
+  }
+  if (!focus) { for (const p of SCHED[curStage]) if (p.tStart > t && (!focus || p.tStart < focus.tStart)) focus = p; }
+  if (!focus) focus = SCHED[curStage][SCHED[curStage].length - 1];
+  const ph = focus ? (t < focus.tStart ? 'lift' : (focus.phase <= 0 ? 'lift' : focus.phase === 1 ? 'align' : 'seat')) : 'lift';
+  if (ph === lastPhase && Math.abs(t - (updateCodeHl.t || 0)) < .001) return;
+  updateCodeHl.t = t; lastPhase = ph;
+  let best = null, bd = 1e9;
+  for (const r of tagRows) {
+    const a = r.dataset.a;
+    r.classList.toggle('a-lift', a === 'lift' && ph === 'lift');
+    r.classList.toggle('a-align', a === 'align' && ph === 'align');
+    r.classList.toggle('a-seat', a === 'seat' && ph === 'seat');
+    const d = Math.abs(t - parseFloat(r.dataset.j));
+    if (ph === a && d < bd) { bd = d; best = r; }
+  }
+  rows.forEach(r => r.classList.remove('cur'));
+  if (best) {
+    best.classList.add('cur');
+    const bo = best.offsetTop, sc = codeEl.scrollTop, hh = codeEl.clientHeight;
+    if (bo < sc + 24 || bo > sc + hh - 40) codeEl.scrollTop = bo - hh * .35;
+  }
+}
+
+/* ---------------- 8.2 界面 ---------------- */
+const $ = id => document.getElementById(id);
+const tl = $('tl'), tlfill = $('tlfill'), tlhand = $('tlhand'), tlsegs = $('tlsegs'),
+      clock = $('clock'), hudT = $('hud-t'), hudS = $('hud-s'), hudH = $('hud-h');
+STAGES.forEach((s, i) => {
+  const d = document.createElement('div'); d.className = 'seg';
+  d.style.left = (s.a / DUR * 100) + '%'; d.style.width = ((s.b - s.a) / DUR * 100) + '%';
+  d.style.background = 'hsla(' + (18 + i * 9) + ',48%,' + (34 + i * 2) + '%,.55)';
+  d.innerHTML = '<span>' + (i + 1) + ' ' + s.n + '</span>';
+  tlsegs.appendChild(d);
+});
+const stageBtns = [];
+STAGES.forEach((s, i) => {
+  const b = document.createElement('button'); b.textContent = (i + 1) + '·' + s.n; b.title = s.n + '  ' + s.a.toFixed(2) + 's';
+  b.onclick = () => { seek(s.a + .02); toast('工序 ' + (i + 1) + ' · ' + s.n); };
+  $('stages').appendChild(b); stageBtns.push(b);
+});
+const SPD = [1, .5, .25], spdBtns = [];
+SPD.forEach(v => {
+  const b = document.createElement('button'); b.textContent = v + '×';
+  b.onclick = () => { speed = v; spdBtns.forEach((x, i) => x.classList.toggle('on', SPD[i] === v)); };
+  $('speeds').appendChild(b); spdBtns.push(b);
+});
+spdBtns[0].classList.add('on');
+let speed = 1, playing = !CAPTURE, tCur = 0;
+function toast(msg) { const el = $('toast'); el.textContent = msg; el.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove('on'), 1500); }
+function setPlay(p) { playing = p; $('b-play').textContent = p ? '❚❚' : '▶'; $('b-play').classList.toggle('on', p); }
+$('b-play').onclick = () => setPlay(!playing);
+$('b-restart').onclick = () => { seek(0); setPlay(true); };
+$('b-fit').onclick = () => {
+  mode = 'fit';
+  let az = -10, el = 24;
+  const k = CAMKEY[CAMKEY.length - 1];
+  for (let i = 0; i < CAMKEY.length - 1; i++) if (tCur >= CAMKEY[i].t && tCur <= CAMKEY[i + 1].t) {
+    const u = sm((tCur - CAMKEY[i].t) / (CAMKEY[i + 1].t - CAMKEY[i].t));
+    az = lerp(CAMKEY[i].az, CAMKEY[i + 1].az, u); el = lerp(CAMKEY[i].el, CAMKEY[i + 1].el, u); break;
+  }
+  if (tCur >= CAMKEY[CAMKEY.length - 1].t) { az = k.az; el = k.el; }
+  fitAz = az + userAz; fitEl = el + userEl; fitH = 82; userAz = userEl = 0; userZoom = 1; panX = panY = 0;
+  toast('全景 · 整座浮岛入镜');
+};
+$('b-reset').onclick = () => { mode = 'auto'; userAz = userEl = 0; userZoom = 1; panX = panY = 0; toast('复位默认运镜'); };
+$('b-full').onclick = () => { codeMode = codeMode === 'full' ? 'stage' : 'full'; $('b-full').textContent = codeMode === 'full' ? '本工序' : '完整源码'; buildCode(); codeEl.scrollTop = 0; };
+$('b-copy').onclick = async () => {
+  const txt = codeMode === 'full' ? document.getElementById('app').textContent : SRC[curStage < 0 ? 0 : curStage].l.map(l => l.c).join('\n');
+  try { await navigator.clipboard.writeText(txt); toast('已复制 ' + txt.split('\n').length + ' 行源码'); }
+  catch (e) { toast('复制失败：请手动选择'); }
+};
+function seek(t) { tCur = clamp(t, 0, DUR); }
+/* 时间轴拖动 */
+let dragTL = false;
+function tlSeek(e) {
+  const r = tl.getBoundingClientRect();
+  tCur = clamp((e.clientX - r.left) / r.width, 0, 1) * DUR;
+}
+tl.addEventListener('pointerdown', e => { dragTL = true; tl.setPointerCapture(e.pointerId); tlSeek(e); });
+tl.addEventListener('pointermove', e => { if (dragTL) tlSeek(e); });
+tl.addEventListener('pointerup', e => { dragTL = false; });
+/* 分隔线 */
+const split = $('split'), right = $('right');
+let dragSP = false;
+split.addEventListener('pointerdown', e => { dragSP = true; split.setPointerCapture(e.pointerId); });
+split.addEventListener('pointermove', e => {
+  if (!dragSP) return;
+  const w = clamp(window.innerWidth - e.clientX, 220, window.innerWidth * .72);
+  right.style.flex = '0 0 ' + w + 'px';
+});
+split.addEventListener('pointerup', () => { dragSP = false; });
+split.addEventListener('dblclick', () => { right.style.flex = '0 0 380px'; });
+/* 画布交互：滚轮缩放 / 左键环绕 / Shift 拖动平移 */
+const cvw = $('cvwrap');
+let dragCam = false, lx = 0, ly = 0, shift = false;
+cvw.addEventListener('wheel', e => {
+  e.preventDefault();
+  userZoom = clamp(userZoom * Math.exp(e.deltaY * .0011), .2, 6);
+}, { passive: false });
+cvw.addEventListener('pointerdown', e => { dragCam = true; shift = e.shiftKey; lx = e.clientX; ly = e.clientY; cvw.classList.add('drag'); cvw.setPointerCapture(e.pointerId); });
+cvw.addEventListener('pointermove', e => {
+  if (!dragCam) return;
+  const dx = e.clientX - lx, dy = e.clientY - ly; lx = e.clientX; ly = e.clientY;
+  if (e.shiftKey) {
+    const k = (cam.top - cam.bottom) / cvw.clientHeight;
+    panX -= dx * k; panY += dy * k;
+  } else {
+    userAz -= dx * .38; userEl = clamp(userEl + dy * .3, -60, 60);
+  }
+});
+cvw.addEventListener('pointerup', () => { dragCam = false; cvw.classList.remove('drag'); });
+cvw.addEventListener('dblclick', () => { mode = 'auto'; userAz = userEl = 0; userZoom = 1; panX = panY = 0; });
+
+function updateUI(t) {
+  const pct = t / DUR * 100;
+  tlfill.style.width = pct + '%'; tlhand.style.left = pct + '%';
+  clock.textContent = t.toFixed(2).padStart(5, '0') + ' / 14.00';
+  hudT.textContent = t.toFixed(2) + 's';
+  const s = stageAt(t);
+  if (s !== curStage) {
+    curStage = s;
+    hudS.textContent = (s + 1) + ' · ' + STAGES[s].n;
+    stageBtns.forEach((b, i) => b.classList.toggle('on', i === s));
+    if (codeMode === 'stage') { buildCode(); codeEl.scrollTop = 0; }
+  }
+  hudH.textContent = CRANES.length + ' 台吊机 · ' + PEOPLE.length + ' 名人物 · ' + AIR.length + ' 件吊装中';
+  updateCodeHl(t);
+}
+/* ---------------- 8.3 逐帧渲染 ---------------- */
+let T = 0;
+function updateWorld(t) {
+  updateCamera(t);
+  updateTower(t);
+  updateLife(t);
+  updateFx(t);
+  updateWater(t);
+  if (!CAPTURE) updateUI(t);
+  else $('capinfo').textContent = 'renderAt(' + t.toFixed(4) + ') · f' + Math.round(t * FPS);
+}
+window.renderAt = function (t) {
+  T = clamp(+t || 0, 0, DUR); tCur = T;
+  updateWorld(T);
+  composer.render();
+  return T;
+};
+window.captureFrame = function (n) { return window.renderAt(clamp(n, 0, FRAMES - 1) / FPS); };
+window.captureAll = async function (dl) {
+  for (let n = 0; n < FRAMES; n++) {
+    window.captureFrame(n);
+    if (dl) { await new Promise(r => setTimeout(r, 0)); }
+  }
+  return FRAMES;
+};
+function resize() {
+  let w, h;
+  if (CAPTURE) { w = 1280; h = 720; }
+  else {
+    w = cvw.clientWidth || 800; h = cvw.clientHeight || 500;
+    right.style.flex = right.style.flex || '0 0 380px';
+  }
+  aspect = w / h;
+  renderer.setPixelRatio(CAPTURE ? 1 : Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(w, h, false);
+  composer.setSize(w, h);
+  bloom.setSize(w, h);
+}
+window.addEventListener('resize', resize);
+if (typeof ResizeObserver !== 'undefined') new ResizeObserver(resize).observe(cvw);
+resize();
+setPlay(playing);
+buildCode(); codeEl.scrollTop = 0;
+window.renderAt(0);
+let lastNow = performance.now();
+function tick(now) {
+  const dt = Math.min(.08, (now - lastNow) / 1000); lastNow = now;
+  if (playing) { tCur += dt * speed; if (tCur >= DUR) tCur -= DUR; if (tCur < 0) tCur += DUR; }
+  window.renderAt(tCur);
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+console.log('%cEIFFEL 1887-1889', 'color:#e08b3c;font-weight:bold', '· parts:' + PARTS.length,
+  'iron:' + ironMesh.count, 'people:' + PEOPLE.length, 'soil:' + soil.list.length, 'scaffold:' + scaf.list.length,
+  '\n采集: window.captureFrame(n) / renderAt(n/30)  ·  ?capture 打开纯画布模式');
+
+</script>
+</body>
+</html>

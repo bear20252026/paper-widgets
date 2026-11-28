@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cathedral Walk — Reconstructed Source</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="app">
+  <section class="intro" id="intro">
+    <div class="topline">AN INTERACTIVE ARCHITECTURAL EXPERIENCE</div>
+    <h1>Cathedral Walk</h1>
+    <p>Walk through a quiet cathedral of stone, light and time.</p>
+    <button id="enter">Enter the cathedral</button>
+    <small>WASD / arrows to walk · Drag to look · Shift to move faster · T to change time</small>
+  </section>
+  <div id="world" aria-label="3D cathedral environment"></div>
+  <aside class="panel">
+    <div class="panel-head"><strong>Cathedral Walk</strong><button id="hidePanel" aria-label="Hide settings">×</button></div>
+    <label>Camera look<select id="camera"><option value="drag">Drag to look</option><option value="pointer">Pointer look</option></select></label>
+    <h3>Graphics settings</h3>
+    <label>Render quality<select id="quality"><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></label>
+    <label class="toggle"><input type="checkbox" id="shadows" checked> Area lights and soft shadows</label>
+    <label class="toggle"><input type="checkbox" id="glow" checked> Baked-style ambient lighting</label>
+    <h3>Visitor guide</h3>
+    <label>Visit a place<select id="destination"><option value="nave">The Nave</option><option value="altar">The Altar</option><option value="chapel">The Side Chapel</option></select></label>
+    <button id="go">Go</button>
+    <div class="guide">
+      <p><b>Walk</b><span>W A S D</span></p><p><b>Walk and turn</b><span>Arrow keys</span></p>
+      <p><b>Look around</b><span>Drag or click</span></p><p><b>Walk faster</b><span>Shift</span></p>
+      <p><b>Release mouse</b><span>Esc</span></p><p><b>Time of day</b><span>T</span></p>
+    </div>
+    <p class="hint">Use the keyboard to walk. Drag anywhere in the cathedral to look around.</p>
+    <label>Time of day <output id="timeLabel">14:30</output></label>
+    <input id="time" type="range" min="0" max="24" step=".25" value="14.5">
+    <div class="ticks"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>
+    <p class="foot">A procedural artistic reconstruction. Original artwork and source assets are not included.</p>
+  </aside>
+  <button id="showPanel" class="show-panel">☰ Settings</button>
+  <div class="crosshair">+</div>
+  <div class="toast" id="toast">Opening the walk…</div>
+</main>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+/* The page's tokens. The stage is 1080 × 1080 px, scaled as a whole; the scene inside it is zoomed 1.18 about
+   (540, 560) and raised 20 px. Timing is in src/lib/timeline.ts, Pip's face in src/lib/led.ts. */
+:root {
+  --page: #e6e4df;
+  --stage: 1080px;
+  --stage-glow: radial-gradient(ellipse at 50% 40%, #efeee9 0%, #e3e1db 70%, #dad7d0 100%);
+  --scene-zoom: translateY(-20px) scale(1.18);
+
+  --font: Geist, sans-serif;
+  --mono: "Geist Mono", monospace;
+
+  /* Ink */
+  --ink: #151515;
+  --muted: #8a877f;
+  --placeholder: #9a978f;
+  --white: #fff;
+  --error: #d93f44;
+
+  /* Card */
+  --card: #fbfaf8;
+  --card-rim: rgba(0, 0, 0, 0.06);
+  --card-radius: 32px;
+  --card-pad: 44px;
+  --cap-size: 12px;
+  --cap-tracking: 1px;
+  --title-size: 40px;
+  --title-weight: 500;
+  --title-tracking: -1.2px;
+
+  /* Fields and button */
+  --field-h: 56px;
+  --field-fill: #f1efeb;
+  --field-rim: rgba(0, 0, 0, 0.08);
+  --field-size: 17px;
+  --label-w: 96px;
+  --label-size: 14px;
+  --dots-size: 20px;
+  --dots-tracking: 4px;
+  --caret-w: 2px;
+  --caret-h: 22px;
+  --button: #151515;
+
+  /* Pip */
+  --pip-green: #8ff0c2;
+  --led-dark: #0a0a0b;
+}

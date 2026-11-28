@@ -1,0 +1,281 @@
+@import "tailwindcss";
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB',
+      'Microsoft YaHei', sans-serif;
+    background-color: #F9FAFB;
+    color: #111827;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.006em;
+  }
+
+  code,
+  pre,
+  .font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    letter-spacing: 0;
+  }
+
+  ::selection {
+    background-color: #FFEDD5;
+    color: #9A3412;
+  }
+}
+
+/* 细滚动条，保持极简视觉 */
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: #E2E6EB;
+  border-radius: 9999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #CBD2DA;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-page-enter {
+  animation: pageEnter 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes paneIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-pane-in { animation: paneIn 0.16s ease-out; }
+
+@keyframes undoProgress {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+.undo-progress { animation: undoProgress 8s linear forwards; }
+
+.density-compact table tbody td { padding-top: 0.45rem !important; padding-bottom: 0.45rem !important; }
+.density-compact table thead th { padding-top: 0.48rem !important; padding-bottom: 0.48rem !important; }
+.density-compact :is(.space-y-5, .space-y-6) > * + * { margin-top: 0.7rem !important; }
+.density-compact .rounded-2xl.p-5 { padding: 0.85rem !important; }
+.density-compact .rounded-2xl.p-6 { padding: 1rem !important; }
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-modal-in {
+  animation: modalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-toast-in {
+  animation: toastIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 极简黑色滑块 */
+.range-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  width: 100%;
+  border-radius: 9999px;
+  background: #E5E7EB;
+  outline: none;
+  cursor: pointer;
+}
+
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 16px;
+  width: 16px;
+  border-radius: 9999px;
+  background: #111827;
+  border: 3px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.25);
+  cursor: grab;
+  transition: transform 0.12s ease;
+}
+
+.range-slider::-webkit-slider-thumb:active {
+  transform: scale(1.12);
+  cursor: grabbing;
+}
+
+.range-slider::-moz-range-thumb {
+  height: 16px;
+  width: 16px;
+  border-radius: 9999px;
+  background: #111827;
+  border: 3px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.25);
+  cursor: grab;
+}
+
+.range-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: #E5E7EB;
+}
+
+/* 隐藏日期选择器的默认图标颜色差异 */
+input[type='date']::-webkit-calendar-picker-indicator {
+  opacity: 0.4;
+  cursor: pointer;
+}
+
+input[type='checkbox'] {
+  border-radius: 4px;
+}
+
+/* 多行截断补充 */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 骨架屏流光 */
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f1f3f5 0%, #f8f9fa 40%, #f1f3f5 80%);
+  background-size: 800px 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+
+/* 顶部路由进度条 */
+@keyframes routeProgress {
+  0% {
+    width: 0%;
+    opacity: 1;
+  }
+  70% {
+    width: 78%;
+    opacity: 1;
+  }
+  100% {
+    width: 100%;
+    opacity: 0;
+  }
+}
+
+.route-progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #f97316, #fb923c);
+  box-shadow: 0 0 8px rgba(249, 115, 22, 0.55);
+  animation: routeProgress 0.32s ease-out forwards;
+}
+
+/* 拖拽中的元素统一不可选中文字 */
+[draggable='true'] {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* 键盘可访问性：统一焦点环 */
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid rgba(249, 115, 22, 0.55);
+  outline-offset: 2px;
+}
+
+/* 尊重系统“减少动态效果”设置 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 大屏滚动字幕：风控拦截流 */
+@keyframes marqueeX {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-33.333%);
+  }
+}
+
+.animate-marquee {
+  animation: marqueeX 18s linear infinite;
+  width: max-content;
+}
+
+/* 热力呼吸点 */
+@keyframes heatPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.18);
+  }
+}
+
+.animate-heat {
+  animation: heatPulse 2.4s ease-in-out infinite;
+}

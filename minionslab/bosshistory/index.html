@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Minion Lab · Boss History</title>
+<meta name="description" content="Drag a banana through 66 million years of Minion history: every boss Stuart ever served, from a T. rex to Gru.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Minion Lab">
+<meta property="og:title" content="Minion Lab · Boss History">
+<meta property="og:description" content="Drag a banana through 66 million years of Minion history: every boss Stuart ever served, from a T. rex to Gru.">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Minion Lab · Boss History">
+<meta name="twitter:description" content="Drag a banana through 66 million years of Minion history: every boss Stuart ever served, from a T. rex to Gru.">
+<meta name="theme-color" content="#F2F0EE">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  /* layout borrowed from Touch the Cloud: paper page, tiny spaced title, everything centred, text-only controls */
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; }
+  body { background:#F2F0EE; font-family:ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold","Yuanti SC","PingFang SC","Helvetica Neue",sans-serif; color:#4a453e; overflow:hidden;
+    display:flex; flex-direction:column; height:100%; -webkit-font-smoothing:antialiased; }
+  header { height:48px; flex:0 0 auto; }
+  header .title { font-size:10px; letter-spacing:5px; color:#8b8478; text-transform:uppercase; }
+  main { flex:1 1 auto; min-height:0; width:100%; display:flex; align-items:center; justify-content:center; }
+  #wrap { position:relative; display:flex; flex-direction:column; align-items:center; }
+  .icon { background:none; border:0; padding:4px; cursor:pointer; color:#948d81; display:inline-flex; transition:color .2s; }
+  .icon:hover { color:#575146; }
+  .icon .x { display:none; }
+  .icon.off .w1, .icon.off .w2 { display:none; }
+  .icon.off .x { display:block; }
+  #stage canvas { cursor:pointer; transition:opacity .45s; }
+  #stage.egg canvas { opacity:0; }
+  #evilVid { position:absolute; left:50%; top:50%; width:150%; transform:translate(-50%,-44%);
+    opacity:0; pointer-events:none; transition:opacity .45s; }       /* frames are matted onto the paper colour in the file itself */
+  #stage.egg #evilVid { opacity:1; }
+  #stage { height:clamp(260px, calc(100dvh - 436px), min(560px, 60vh)); aspect-ratio:10/14; position:relative; }      /* same shape as the frame canvas */
+  #stage canvas { display:block; width:100%; height:100%; }
+  #status { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#8b8478; }
+  #cap { margin:14px 0 6px; display:flex; flex-direction:column; align-items:center; gap:3px; user-select:none; min-height:88px; }
+  #capAvatar { width:46px; height:46px; border-radius:999px; background:#e9e5dc; box-shadow:0 0 0 2px #F2F0EE, 0 0 0 3.5px #d9d4c8; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:22px; margin-bottom:5px; }
+  #capAvatar { position:relative; }
+  #capAvatar img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:top; display:block; opacity:0; transition:opacity .15s; }
+  #capAvatar img.on { opacity:1; }
+  #capName { font-size:14px; font-weight:600; color:#2e2a23; letter-spacing:.2px; }
+  #capWhen { font-size:11.5px; color:#948d81; letter-spacing:.4px; }
+  #slider { width:min(640px, 90vw); height:100px; touch-action:none; user-select:none; -webkit-user-select:none; cursor:grab; display:block; }
+  #slider.drag { cursor:grabbing; }
+  footer { height:112px; flex:0 0 auto; }
+  footer a { color:inherit; text-decoration:none; }
+  footer a:hover { color:#575146; }
+  #likeBtn { background:none; border:none; padding:0; margin:0 3px; cursor:pointer; display:inline-flex; align-items:center; vertical-align:-3px; font-size:14px; line-height:1; }
+  #likeBtn .nana { display:none; }
+  #likeBtn.liked .heart { display:none; }
+  #likeBtn.liked .nana { display:inline; }
+  #likeBtn > span { display:inline-block; transform-origin:center; }
+  #likeBtn.pop > span { animation:likePop .35s ease; }
+  #likeBtn:hover > span { animation:likeSway .7s ease-in-out infinite; }
+  @keyframes likeSway { 0%,100%{ transform:rotate(0) scale(1);} 25%{ transform:rotate(-11deg) scale(1.12);} 75%{ transform:rotate(11deg) scale(1.12);} }
+  @keyframes likePop { 0%{ transform:scale(1);} 45%{ transform:scale(1.4);} 100%{ transform:scale(1);} } }
+</style>
+</head>
+<body>
+<script src="../ml-chrome.js" data-page="bosshistory"></script>
+<header aria-hidden="true"></header>
+<main>
+  <div id="wrap">
+
+    <div id="stage"><div id="status">loading…</div>
+      <video id="evilVid" src="assets/video/evil-banana.mp4" playsinline preload="auto"></video>
+    </div>
+    <div id="cap"><div id="capAvatar"></div>
+      <div id="capName"></div>
+      <div id="capWhen"></div></div>
+    <svg id="slider" viewBox="0 0 640 100" aria-label="timeline"></svg>
+  </div>
+</main>
+<footer aria-hidden="true"></footer>
+
+<script src="assets/vendor/three.js"></script>
+<script src="assets/timeline-sprites.js?v=1792363505"></script>
+<script type="module">
+const status = document.getElementById('status');
+const THREE = window.THREE;
+if (!THREE || !window.FRAMES){ status.textContent='three.js or timeline-sprites.js missing'; throw new Error('deps'); }
+
+/* ---------- the eras ---------- */
+const ERAS = [
+  { key:'dawn',      boss:'T. rex',           when:'66,000,000 BC', span:0.5 },
+  { key:'caveman',   boss:'Caveman',          when:'10,000 BC',     span:0.4 },
+  { key:'pharaoh',   boss:'Pharaoh',          when:'2500 BC',       span:0.7 },
+  { key:'dracula',   boss:'Dracula',          when:'1600',          span:0.9 },
+  { key:'napoleon',  boss:'Napoleon',         when:'1812',          span:0.35 },
+  { key:'ice',       boss:'No boss',          when:'1900',          span:1.0 },
+  { key:'hollywood', boss:'Film director',    when:'1927',          span:0.5 },
+  { key:'scarlet',   boss:'Scarlet Overkill', when:'1968',          span:0.3 },
+  { key:'gru-young', boss:'Gru, age 8',       when:'1968',          span:0.3 },
+  { key:'gru-kid',   boss:'Gru, age 12',      when:'1976',          span:0.5 },
+  { key:'gru',       boss:'Gru',              when:'2010 →',        span:1.0 },
+];
+const N = ERAS.length;
+
+/* ---------- renderer: a square stage in [-0.5,0.5]², feet at FEET ---------- */
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ alpha:true, antialias:true });
+renderer.setPixelRatio(Math.min(2, devicePixelRatio||1));
+stage.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 1);
+const FEET = -0.20, FIG_H = 1.0;                   // the canvas fills the stage; body centred, feet at 940/1400
+
+// soft ground shadow
+const shadowTex = (()=>{ const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d');
+  const g=x.createRadialGradient(64,64,0,64,64,64); g.addColorStop(0,'rgba(60,50,30,.28)'); g.addColorStop(1,'rgba(60,50,30,0)'); x.fillStyle=g; x.fillRect(0,0,128,128);
+  return new THREE.CanvasTexture(c); })();
+const shadow = new THREE.Mesh(new THREE.PlaneGeometry(0.34,0.06), new THREE.MeshBasicMaterial({map:shadowTex, transparent:true, depthWrite:false}));
+shadow.position.set(0, FEET+0.005, -0.1); scene.add(shadow);
+
+/* ---------- textures: every frame is on the same 1000×1400 canvas, so one plane fits all ---------- */
+const TEX = {};
+let pending = 0, FRAME_ASPECT = 1000/1400;
+for (const e of ERAS){
+  const f = window.FRAMES[e.key]; if (!f) continue;
+  pending++; FRAME_ASPECT = f.w/f.h;
+  const img = new Image();
+  img.onload = ()=>{ const tx=new THREE.Texture(img); tx.needsUpdate=true; tx.minFilter=THREE.LinearFilter; tx.generateMipmaps=false; tx.colorSpace=THREE.SRGBColorSpace;
+    TEX[e.key] = tx; if (--pending===0) ready(); };
+  img.src = f.src;
+}
+
+/* ---------- the video frames (user-generated transitions) packed in one atlas: 10 frames per era pair ---------- */
+let atlasTex = null, ATLAS = null, useVideo = false;
+fetch('assets/era-atlas.json').then(r=>r.json()).then(j=>{ ATLAS=j; const img=new Image(); img.onload=()=>{ atlasTex=new THREE.Texture(img); atlasTex.flipY=false; atlasTex.needsUpdate=true; atlasTex.minFilter=THREE.LinearFilter; atlasTex.generateMipmaps=false; atlasTex.colorSpace=THREE.SRGBColorSpace; }; img.src='assets/era-atlas.jpg'; }).catch(()=>{});
+const ATLAS_FRAG = `
+precision highp float; varying vec2 vUv;
+uniform sampler2D atlas; uniform float cols, rows, fa, fb, mixv;
+vec2 cell(float k, vec2 uv){ float c = mod(k, cols), r = floor(k / cols); return vec2((c + uv.x) / cols, (r + (1.0 - uv.y)) / rows); }
+void main(){ vec4 c = mix(texture2D(atlas, cell(fa, vUv)), texture2D(atlas, cell(fb, vUv)), mixv);
+  // the frames sit on white: make white (and the JPEG's near-white) transparent so only the Minion is printed on the paper
+  float lo = min(c.r, min(c.g, c.b)), sat = max(c.r, max(c.g, c.b)) - lo;
+  float white = smoothstep(0.80, 0.96, lo) * (1.0 - smoothstep(0.05, 0.16, sat));
+  float a = 1.0 - white; vec3 rgb = a > 0.02 ? clamp((c.rgb - (1.0 - a)) / a, 0.0, 1.0) : c.rgb;   // un-mix the white fringe
+  gl_FragColor = vec4(rgb, a);
+  #include <colorspace_fragment>
+}`;
+const atlasMat = new THREE.ShaderMaterial({ vertexShader:`varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`, fragmentShader:ATLAS_FRAG, depthWrite:false, transparent:true,
+  uniforms:{ atlas:{value:null}, cols:{value:10}, rows:{value:10}, fa:{value:0}, fb:{value:0}, mixv:{value:0} } });
+function renderAtlas(p){
+  const per = ATLAS.perSeg, last = ATLAS.n - 1;
+  const x = Math.max(0, Math.min(last, p*per)), a = Math.floor(x), b = Math.min(last, a+1);
+  atlasMat.uniforms.atlas.value = atlasTex; atlasMat.uniforms.cols.value = ATLAS.cols; atlasMat.uniforms.rows.value = ATLAS.rows;
+  atlasMat.uniforms.fa.value = a; atlasMat.uniforms.fb.value = b; atlasMat.uniforms.mixv.value = x - a;
+}
+
+/* ---------- the figure: one plane; the slider position crossfades neighbouring frames ---------- */
+const FADE_VERT = `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
+const FADE_FRAG = `
+precision highp float; varying vec2 vUv;
+uniform sampler2D texA, texB; uniform float mixv;
+void main(){ gl_FragColor = mix(texture2D(texA,vUv), texture2D(texB,vUv), mixv);
+  #include <colorspace_fragment>
+}`;
+const fadeMat = new THREE.ShaderMaterial({ vertexShader:FADE_VERT, fragmentShader:FADE_FRAG, transparent:true, depthWrite:false,
+  uniforms:{ texA:{value:null}, texB:{value:null}, mixv:{value:0} } });
+const figure = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), fadeMat);
+figure.position.set(0, 0, 0); figure.frustumCulled=false; scene.add(figure);
+const smooth = x => x*x*(3-2*x);
+function render(p){                             // p: continuous slider position
+  if (useVideo && atlasTex){ figure.material = atlasMat; renderAtlas(p); return; }
+  figure.material = fadeMat;
+  const i = Math.max(0, Math.min(N-2, Math.floor(p))), f = p - i;
+  fadeMat.uniforms.texA.value = TEX[ERAS[i].key]; fadeMat.uniforms.texB.value = TEX[ERAS[i+1].key];
+  fadeMat.uniforms.mixv.value = smooth(Math.max(0, Math.min(1, f)));
+}
+
+/* ---------- sounds: a synthesized detent "click" per tick while sliding, a Minion "hello" per new boss ---------- */
+let soundOn = !(window.mlcMuted && window.mlcMuted()), ac = null, lastHello = 0;   // the site's mute key (ml-chrome) rules here too
+window.addEventListener('ml-mute', e => { soundOn = !e.detail.muted; const v = document.getElementById('evilVid'); if (v) v.muted = !soundOn; });
+// the hello clip plays through this same context: a context that a gesture has resumed plays whenever asked, while an
+// <audio> element on Safari and iOS only starts inside a user gesture — and the hello fires on arrival at a peg, mid-drag
+// or while the banana settles, never inside the gesture itself. Decoded on arrival through an offline context (no gesture needed).
+let helloBuf = null;
+fetch('assets/sounds/hello.mp3').then(r=>r.arrayBuffer()).then(b => new (window.OfflineAudioContext||window.webkitOfflineAudioContext)(1, 1, 48000).decodeAudioData(b)).then(buf => { helloBuf = buf; }).catch(()=>{});
+function ctx(){ if (!ac){ ac = new (window.AudioContext||window.webkitAudioContext)(); } if (ac.state==='suspended') ac.resume(); return ac; }
+// the tick: a 4 ms noise burst through a band-pass plus a tiny thump — like a mechanical dial clicking past a notch
+let noiseBuf = null;
+function tick(strength=1){
+  if (!soundOn) return; const c = ctx(), t = c.currentTime;
+  if (!noiseBuf){ noiseBuf = c.createBuffer(1, c.sampleRate*0.03, c.sampleRate); const d=noiseBuf.getChannelData(0); for (let i=0;i<d.length;i++) d[i]=(Math.random()*2-1); }
+  const src = c.createBufferSource(); src.buffer = noiseBuf;
+  const bp = c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value = 2400 + Math.random()*600; bp.Q.value = 1.2;
+  const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.09*strength, t+0.002); g.gain.exponentialRampToValueAtTime(0.0001, t+0.028);
+  src.connect(bp).connect(g).connect(c.destination); src.start(t); src.stop(t+0.04);
+  const o = c.createOscillator(); o.type='sine'; o.frequency.setValueAtTime(190, t); o.frequency.exponentialRampToValueAtTime(90, t+0.03);
+  const g2 = c.createGain(); g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime(0.05*strength, t+0.003); g2.gain.exponentialRampToValueAtTime(0.0001, t+0.045);
+  o.connect(g2).connect(c.destination); o.start(t); o.stop(t+0.05);
+}
+function hello(kind='hello'){                     // kind: 'hello' | 'boss' — a "big boss" clip for Gru can join helloBuf the same way (assets/sounds/boss.mp3)
+  if (!soundOn || !helloBuf) return; const now = performance.now(); if (now - lastHello < 350) return; lastHello = now;
+  const c = ctx(), s = c.createBufferSource(); s.buffer = helloBuf; const g = c.createGain(); g.gain.value = 0.45;
+  s.connect(g).connect(c.destination); s.start();
+}
+// sound is always on (the browser only lets it start after the first gesture, i.e. the first drag or click)
+
+/* ---------- the easter egg: click the Minion → PX-41 mutant, bouncing around until the slider is touched ---------- */
+let evilTex = null;
+if (window.EVIL){ const img=new Image(); img.onload=()=>{ evilTex=new THREE.Texture(img); evilTex.needsUpdate=true; evilTex.minFilter=THREE.LinearFilter; evilTex.generateMipmaps=false; evilTex.colorSpace=THREE.SRGBColorSpace; }; img.src=window.EVIL.src; }
+const mut = { on:false, x:0, y:0, vx:0, vy:0, mix:0, sq:0, back:false };
+const evilVid = document.getElementById('evilVid'); window.evilVidEl = evilVid;
+let egg = false;
+function mutate(){
+  if (egg) return; egg = true;
+  for (let k=0;k<6;k++) setTimeout(()=>tick(1.4), k*45);              // a little rattle as it changes
+  stage.classList.add('egg'); evilVid.muted = !soundOn; evilVid.volume = 0.5; evilVid.currentTime = 0; evilVid.play().catch(()=>{});
+}
+function unmutate(){ if (egg){ egg = false; stage.classList.remove('egg'); setTimeout(()=>{ if(!egg){ evilVid.pause(); } }, 450); } }
+evilVid.addEventListener('ended', unmutate);          // plays once, then the Minion is back
+
+renderer.domElement.addEventListener('pointerdown', e=>{ e.preventDefault(); ctx(); mutate(); });
+function mutantStep(dt){
+  const G = 5.5, FLOOR = 0, WALL = 0.30;
+  if (mut.on){
+    mut.mix += (1-mut.mix)*Math.min(1, dt*7);
+    mut.vy -= G*dt; mut.x += mut.vx*dt; mut.y += mut.vy*dt;
+    if (mut.y <= FLOOR){ mut.y = FLOOR; mut.vy = 1.2 + Math.random()*1.1; mut.vx = (Math.random()<0.5?-1:1)*(0.25+Math.random()*0.6); mut.sq = 1; tick(1.2); }
+    if (mut.x >  WALL){ mut.x =  WALL; mut.vx = -Math.abs(mut.vx); }
+    if (mut.x < -WALL){ mut.x = -WALL; mut.vx =  Math.abs(mut.vx); }
+  } else if (mut.back){
+    mut.mix += (0-mut.mix)*Math.min(1, dt*6); mut.x += (0-mut.x)*Math.min(1, dt*6); mut.y += (0-mut.y)*Math.min(1, dt*6); mut.vx = mut.vy = 0;
+    if (Math.abs(mut.mix) < 0.01 && Math.abs(mut.x) < 0.002 && Math.abs(mut.y) < 0.002){ mut.back=false; mut.mix=0; mut.x=mut.y=0; render(pos); return; }
+  } else return;
+  mut.sq += (0-mut.sq)*Math.min(1, dt*9);
+  fadeMat.uniforms.texA.value = TEX[ERAS[Math.round(pos)].key]; fadeMat.uniforms.texB.value = evilTex; fadeMat.uniforms.mixv.value = mut.mix;
+  const stretch = Math.max(-0.25, Math.min(0.25, mut.vy*0.08));
+  figure.scale.set(1 - stretch*0.5 + mut.sq*0.18, 1 + stretch - mut.sq*0.22, 1);
+  figure.position.set(mut.x, mut.y + (figure.scale.y-1)*(0.5+FEET), 0);
+  figure.rotation.z = -mut.vx*0.18;
+  shadow.position.x = mut.x; shadow.scale.set(Math.max(0.3, 1 - mut.y*1.4), 1, 1); shadow.material.opacity = Math.max(0, 1 - mut.y*1.8);
+}
+
+// the stills / video switch is gone from the page (stills only); the video frames stay in the code for the easter egg
+
+/* ---------- state ---------- */
+let pos = 0, cur = 0;
+let avatarsBuilt = false;
+function avatars(){
+  if (avatarsBuilt || !window.BOSSES) return; avatarsBuilt = true;
+  const box = document.getElementById('capAvatar'); box.innerHTML = '';
+  for (const e of ERAS){ const b = window.BOSSES[e.key]; if (!b) continue; const im = new Image(); im.src = b.src; im.alt = ''; im.dataset.era = e.key; box.appendChild(im); }
+}
+function setEra(i){
+  const prev = cur; cur = i; const e = ERAS[i], boss = window.BOSSES && window.BOSSES[e.key];
+  if (prev !== i && Object.keys(TEX).length) helloDue = i;      // the "hello" waits until the banana actually reaches the peg
+  avatars();                                                                                  // every portrait lives in the caption from the start (decoded once), only the current one shows
+  document.querySelectorAll('#capAvatar img').forEach(im => im.classList.toggle('on', im.dataset.era === e.key));
+  document.getElementById('capName').textContent = e.boss;
+  document.getElementById('capWhen').textContent = e.when;
+}
+function ready(){ status.remove(); setEra(0); render(0); }
+
+
+/* ---------- the slider: a field of thin bars, one thin handle line (rubbery follow) ---------- */
+const svg = document.getElementById('slider');
+const X0=40, X1=600, BASE=80, NB=47;
+const posToX = p => X0 + (X1-X0)*p/(N-1);
+const xToPos = x => Math.max(0, Math.min(N-1, (x-X0)/(X1-X0)*(N-1)));
+let hx = posToX(0);
+function drawSlider(){
+  const ns='http://www.w3.org/2000/svg', el=(n,a)=>{ const k=document.createElementNS(ns,n); for (const q in a) k.setAttribute(q,a[q]); return k; };
+  svg.innerHTML='';
+  // the ticks are little pegs with the same light as the banana: lit from the upper left, a soft shadow on the paper
+  const defs=el('defs',{}); svg.appendChild(defs);
+  const grad=el('linearGradient',{id:'peg', x1:0, y1:0, x2:1, y2:0});
+  grad.appendChild(el('stop',{offset:'0', 'stop-color':'#b9b2a4'})); grad.appendChild(el('stop',{offset:'0.45', 'stop-color':'#8f8879'})); grad.appendChild(el('stop',{offset:'1', 'stop-color':'#6b6557'}));
+  defs.appendChild(grad);
+  const sh=el('filter',{id:'pegShadow', x:'-50%', y:'-20%', width:'200%', height:'160%'});
+  sh.appendChild(el('feDropShadow',{dx:0.8, dy:1.2, stdDeviation:0.8, 'flood-color':'#4a453e', 'flood-opacity':0.18})); defs.appendChild(sh);
+  const bsh=el('filter',{id:'bananaShadow', x:'-50%', y:'-50%', width:'200%', height:'200%'});
+  bsh.appendChild(el('feDropShadow',{dx:1.5, dy:3, stdDeviation:2.2, 'flood-color':'#4a453e', 'flood-opacity':0.28})); defs.appendChild(bsh);
+  for (let k=0;k<NB;k++){
+    const x = X0 + (X1-X0)*k/(NB-1), p = xToPos(x);
+    const i=Math.min(N-2,Math.floor(p)), f=p-i, span = ERAS[i].span*(1-f)+ERAS[i+1].span*f;
+    const d=(x-hx)/44, lift = 22*Math.exp(-d*d), near = Math.exp(-d*d*0.5);
+    const h = 7 + span*18 + lift;
+    svg.appendChild(el('rect',{x:x-0.9, y:BASE-h, width:1.8, height:h, rx:0.9, fill:'url(#peg)', opacity:(0.3+0.7*near).toFixed(2), filter:'url(#pegShadow)'}));
+  }
+  const t = el('text',{x:hx, y:BASE+2, 'font-size':44, 'text-anchor':'middle', transform:`rotate(-12 ${hx} ${BASE-16})`, style:'user-select:none', filter:'url(#bananaShadow)'});
+  t.textContent='🍌'; svg.appendChild(t);
+}
+let dragging=false, snap=false;
+const toX = e=>{ const r=svg.getBoundingClientRect(); return (e.clientX-r.left)/r.width*640; };
+let lastBar = -1;
+let helloDue = null, prevPos = 0;
+// the hello sounds when the banana reaches the new era's peg: when it passes over the peg between two pointer events
+// (a fast flick jumps a quarter era per event and would skip a ±0.12 window) or when it settles within 0.12 of it
+function arrive(){
+  if (helloDue === null) return; const k = helloDue;
+  if ((prevPos - k) * (pos - k) < 0 || Math.abs(pos - k) < 0.12){ helloDue = null; hello(ERAS[k].key.startsWith('gru') ? 'boss' : 'hello'); }
+}
+function setPos(p){
+  unmutate();
+  prevPos = pos; pos = p; arrive();                                         // the peg the banana was heading for: passed on the way?
+  const i = Math.round(pos); if (i !== cur) setEra(i); arrive();           // the new era's peg: already on it?
+  if (Object.keys(TEX).length && !mut.on && !mut.back) render(pos);
+  const bar = Math.round(pos/(N-1)*(NB-1)); if (bar !== lastBar){ if (lastBar >= 0) tick(0.9 + 0.3*Math.random()); lastBar = bar; }
+}
+svg.addEventListener('pointerdown', e=>{ dragging=true; svg.classList.add('drag'); svg.setPointerCapture(e.pointerId); ctx(); setPos(xToPos(toX(e))); });
+svg.addEventListener('pointermove', e=>{ if(!dragging) return; setPos(xToPos(toX(e))); });
+const end=()=>{ dragging=false; svg.classList.remove('drag'); snap=true; };
+svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', end);
+addEventListener('keydown', e=>{ if(e.key==='ArrowLeft') setPos(Math.max(0,Math.round(pos)-1)); if(e.key==='ArrowRight') setPos(Math.min(N-1,Math.round(pos)+1)); snap=true; });
+
+/* ---------- loop ---------- */
+function resize(){ const r=stage.getBoundingClientRect(); renderer.setSize(r.width, r.height, false); }
+addEventListener('resize', resize); resize();
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(0.05,(now-last)/1000); last=now;
+  if (snap && !dragging){ const target=Math.round(pos); prevPos = pos; pos += (target-pos)*Math.min(1,dt*9); if (Math.abs(target-pos)<0.002){ pos=target; snap=false; } arrive(); if (Object.keys(TEX).length && !mut.on && !mut.back) render(pos); }
+  const tx = posToX(pos); if (Math.abs(tx-hx)>0.05) hx += (tx-hx)*Math.min(1,dt*14);
+  drawSlider();
+  if (false) mutantStep(dt);
+  else { const b = 1 + Math.sin(now/1000*2.1)*0.006; figure.scale.set(1, b, 1); figure.position.set(0, (b-1)*(0.5+FEET), 0); figure.rotation.z = 0; shadow.position.x = 0; shadow.scale.set(1,1,1); shadow.material.opacity = 1; }   // idle breath, feet stay put
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+drawSlider(); requestAnimationFrame(frame);
+window.addEventListener('ml-like', e=>{ if (!e.detail.liked){ ctx(); mutate(); } });       // heart → banana → heart again: the egg
+</script>
+</body>
+</html>

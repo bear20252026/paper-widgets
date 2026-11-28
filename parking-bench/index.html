@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Parking Bench</title>
+  <meta name="description" content="Race Gemini 4 Hydrogen and Decisions API across 5 solvable 6x6 3D sliding-car puzzles with live visual thinking traces and Lyria 3.5 audio.">
+  <meta property="og:title" content="Parking Bench">
+  <meta property="og:description" content="Race Gemini 4 Hydrogen and Decisions API across 5 solvable 6x6 3D sliding-car puzzles with live visual thinking traces and Lyria 3.5 audio.">
+  <link rel="icon" href="data:,">
+
+  <!-- Sandbox Storage & History Guard -->
+  <script id="sandbox-storage-shim">
+    (function() {
+      const memStore = {};
+      const safeStorage = {
+        getItem: function(k) { return Object.prototype.hasOwnProperty.call(memStore, k) ? memStore[k] : null; },
+        setItem: function(k, v) { memStore[k] = String(v); },
+        removeItem: function(k) { delete memStore[k]; },
+        clear: function() { for (const k in memStore) delete memStore[k]; }
+      };
+      try {
+        const testKey = "__pb_test__";
+        window.localStorage.setItem(testKey, testKey);
+        window.localStorage.removeItem(testKey);
+      } catch (_) {
+        try { Object.defineProperty(window, "localStorage", { value: safeStorage, configurable: true }); } catch (_) {}
+        try { Object.defineProperty(window, "sessionStorage", { value: safeStorage, configurable: true }); } catch (_) {}
+      }
+      try {
+        const origReplace = history.replaceState;
+        const origPush = history.pushState;
+        history.replaceState = function() { try { return origReplace.apply(this, arguments); } catch (_) {} };
+        history.pushState = function() { try { return origPush.apply(this, arguments); } catch (_) {} };
+      } catch (_) {}
+    })();
+  </script>
+
+  <link rel="stylesheet" href="/src/styles.css">
+</head>
+<body>
+  <div id="app" class="app-root">
+    <!-- Left ~66%: Sunlit 3D Dual-Board White-Oak Stage + Floating Race HUD -->
+    <div class="stage-workspace" id="stage-workspace">
+      <main class="stage-container" id="stage-container">
+        <canvas id="stage-canvas" class="stage-canvas" aria-label="Parking Bench 6x6 head-to-head wooden tabletop race"></canvas>
+      </main>
+
+      <!-- Pass-Through Floating Cotton-Cardstock Motorsport HUD Strictly Centered Over Left 3D Stage -->
+      <div class="hud-layer">
+        <!-- Zone 1: Top Floating Race Bar -->
+        <header class="hud-top-bar" role="banner">
+          <div class="hud-brand">
+            <svg class="hud-brand-mark" width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
+              <path d="M15.5 6.25V5.25C15.5 4.145 14.605 3.25 13.5 3.25H5.25C4.145 3.25 3.25 4.145 3.25 5.25V14.75C3.25 15.855 4.145 16.75 5.25 16.75H13.5C14.605 16.75 15.5 15.855 15.5 14.75V13.75" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+              <path class="hud-brand-accent" d="M7.75 10H17.25M14.6 7.35L17.25 10L14.6 12.65" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <h1 id="hud-title" class="hud-title">Parking Bench</h1>
+            <span class="hud-grid-badge tabular-nums">6×6 Race</span>
+          </div>
+
+          <!-- 2-Way Opponent Model Switcher -->
+          <div class="model-seg-group" role="radiogroup" aria-label="Select AI Opponent Model">
+            <button
+              type="button"
+              role="radio"
+              class="model-seg-btn is-active"
+              id="btn-model-hydrogen"
+              data-demo-id="model-hydrogen"
+              data-model-id="gemini-4-hydrogen"
+              aria-checked="true"
+              title="Race against Gemini 4 Hydrogen"
+            >
+              Gemini 4 Hydrogen
+            </button>
+            <button
+              type="button"
+              role="radio"
+              class="model-seg-btn"
+              id="btn-model-decisions"
+              data-demo-id="model-decisions"
+              data-model-id="gemini-decision-1"
+              aria-checked="false"
+              title="Race against Decisions API"
+            >
+              Decisions API
+            </button>
+          </div>
+
+          <!-- Primary Race Action CTA -->
+          <button
+            type="button"
+            class="race-start-btn"
+            id="btn-start-race"
+            data-demo-id="action-start-race"
+            data-demo-alias="toggle-autoplay"
+            title="Start 5-Lap Head-to-Head Race"
+          >
+            <svg class="race-start-icon" width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+              <path id="icon-start-race-path" d="M5.25 3.5L12.5 8L5.25 12.5V3.5Z" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span id="label-start-race">Start Race</span>
+          </button>
+        </header>
+
+        <!-- Big Center 3 · 2 · 1 · GO! Countdown Overlay -->
+        <div
+          id="race-countdown-overlay"
+          class="race-countdown-overlay"
+          role="status"
+          aria-live="assertive"
+          hidden
+        >
+          <div class="countdown-medallion" id="countdown-medallion">
+            <span class="countdown-eyebrow" id="countdown-eyebrow">5-LAP TABLETOP RACE</span>
+            <span class="countdown-numeral tabular-nums" id="countdown-numeral">3</span>
+            <span class="countdown-matchup" id="countdown-matchup">YOU vs. Gemini 4 Hydrogen</span>
+          </div>
+        </div>
+
+        <!-- Checkered-Flag Race Finish / Podium Banner -->
+        <section id="win-card" class="win-card" role="status" aria-live="polite" hidden>
+          <div class="win-copy">
+            <div class="win-title-row">
+              <span class="win-flag-badge" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" focusable="false">
+                  <path d="M3 2.5V13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  <path d="M3 3H12.5V9.5H3V3Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+                  <rect x="3.5" y="3.5" width="2.2" height="2.8" fill="currentColor"/>
+                  <rect x="7.9" y="3.5" width="2.2" height="2.8" fill="currentColor"/>
+                  <rect x="5.7" y="6.3" width="2.2" height="2.7" fill="currentColor"/>
+                  <rect x="10.1" y="6.3" width="2.0" height="2.7" fill="currentColor"/>
+                </svg>
+              </span>
+              <h2 id="win-heading" class="win-title">You Defeated Gemini 4 Hydrogen!</h2>
+            </div>
+            <p class="win-summary tabular-nums" id="win-summary">YOU 00:00.0 · Gemini 4 Hydrogen 00:00.0</p>
+          </div>
+          <div class="win-actions">
+            <button
+              type="button"
+              class="win-btn win-btn-secondary"
+              id="btn-win-switch-opponent"
+              data-demo-id="action-switch-opponent"
+              title="Switch AI Opponent Model"
+            >
+              Switch Opponent
+            </button>
+            <button
+              type="button"
+              class="win-btn win-btn-primary"
+              id="btn-win-rematch"
+              data-demo-id="action-rematch"
+              data-demo-alias="action-replay"
+              title="Start a Fresh 5-Lap Rematch"
+            >
+              Rematch
+            </button>
+          </div>
+        </section>
+
+        <!-- Pre-Race Dual-Board Callout -->
+        <p class="hud-micro-prompt" id="hud-micro-prompt">
+          Front board: <strong>YOU</strong> · Back board: <strong id="prompt-opponent-name">Gemini 4 Hydrogen</strong> — Press <strong>Start Race</strong>
+        </p>
+
+        <!-- Zone 2: Slim Bottom Dock (Human Controls + Camera + Audio) -->
+        <footer class="hud-bottom-dock" role="toolbar" aria-label="Player Board &amp; Camera Controls">
+          <div class="dock-action-cluster">
+            <button
+              type="button"
+              class="dock-btn"
+              id="btn-undo"
+              data-demo-id="action-undo"
+              title="Undo Your Last Move (Z)"
+              disabled
+            >
+              <svg class="dock-icon" width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+                <path d="M6 4.5L2.5 8L6 11.5M3 8H9.75C11.821 8 13.5 9.679 13.5 11.75V12.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>Undo</span>
+            </button>
+
+            <button
+              type="button"
+              class="dock-btn"
+              id="btn-reset-lap"
+              data-demo-id="action-reset-lap"
+              data-demo-alias="action-reset"
+              title="Reset Your Current Lap Board (R)"
+            >
+              <svg class="dock-icon" width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+                <path d="M3.25 6.25A5.25 5.25 0 1 1 4.15 11.35M3 3.25V6.4H6.15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>Reset Lap</span>
+            </button>
+
+            <button
+              type="button"
+              class="dock-btn"
+              id="btn-scramble-race"
+              data-demo-id="action-scramble-race"
+              data-demo-alias="action-scramble"
+              title="Deal a Fresh 5-Lap Race Pack"
+            >
+              <svg class="dock-icon" width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+                <path d="M2.5 5H5.4C6.6 5 7.4 5.7 8.2 7L9.8 9.6C10.5 10.7 11.3 11.2 12.5 11.2H13.5M11.6 9.3L13.6 11.2L11.6 13.1M2.5 11.2H5.4C6.4 11.2 7.1 10.8 7.7 9.9M9.7 6.5C10.3 5.5 11.1 5 12.4 5H13.5M11.6 3.1L13.6 5L11.6 6.9" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>Scramble Race</span>
+            </button>
+          </div>
+
+          <span class="dock-sep" aria-hidden="true"></span>
+
+          <!-- 3-Way Tactile Segmented Camera Pill: [Race View] [Overhead] [Macro] -->
+          <div
+            class="camera-seg-group"
+            id="btn-camera"
+            data-demo-id="toggle-camera"
+            data-camera-mode="3d"
+            role="group"
+            aria-label="Camera View (C)"
+            title="Camera (C)"
+          >
+            <button
+              type="button"
+              class="cam-seg-btn is-active"
+              data-camera-mode="3d"
+              data-demo-id="camera-3d"
+              aria-pressed="true"
+              title="Dual-Board Race View (C)"
+            >
+              Race View
+            </button>
+            <button
+              type="button"
+              class="cam-seg-btn"
+              data-camera-mode="top"
+              data-state="topdown"
+              data-demo-id="camera-top"
+              data-demo-alias="camera-toggle"
+              aria-pressed="false"
+              title="90° Overhead Flat-Lay (C)"
+            >
+              Overhead
+            </button>
+            <button
+              type="button"
+              class="cam-seg-btn"
+              data-camera-mode="macro"
+              data-state="macro"
+              data-demo-id="camera-macro"
+              aria-pressed="false"
+              title="Collector Grazing Macro (C)"
+            >
+              Macro
+            </button>
+          </div>
+
+          <span class="dock-sep dock-sep-audio" aria-hidden="true"></span>
+
+          <button
+            type="button"
+            class="dock-btn dock-btn-audio"
+            id="btn-audio"
+            data-demo-id="toggle-audio"
+            aria-pressed="true"
+            aria-label="Audio On"
+            title="Audio On (M)"
+          >
+            <svg class="dock-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+              <path d="M2.5 6.25H5L8.5 3.25V12.75L5 9.75H2.5V6.25Z" stroke="currentColor" stroke-width="1.45" stroke-linejoin="round"/>
+              <path id="icon-audio-waves" d="M11 5.6C11.9 6.5 11.9 9.5 11 10.4M12.85 3.85C14.5 5.5 14.5 10.5 12.85 12.15" stroke="currentColor" stroke-width="1.45" stroke-linecap="round"/>
+            </svg>
+            <span id="label-audio" class="audio-btn-label">Audio</span>
+          </button>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Right ~34%: Race Timing Tower & Live AI Vision Feed -->
+    <aside id="hydrogen-panel" class="hydrogen-panel" aria-label="Race Timing Tower and Live AI Vision">
+      <!-- Top Section: Overall Race Clock & 5-Lap Motorsport Split Board -->
+      <header class="timing-tower">
+        <div class="tower-clock-row">
+          <div class="tower-clock-block">
+            <div class="tower-eyebrow-row">
+              <span class="tower-phase-dot" id="tower-phase-dot" data-phase="setup" aria-hidden="true"></span>
+              <span class="tower-eyebrow" id="tower-phase-label">5-LAP RACE · PRE-START</span>
+            </div>
+            <div class="tower-clock-digits tabular-nums" id="race-overall-clock" aria-label="Overall Race Timer">
+              00:00.0
+            </div>
+          </div>
+
+          <div class="tower-meta-block">
+            <div class="tower-pills-row">
+              <span class="tower-lap-pill tabular-nums" id="tower-active-lap-pill">LAP 1/5</span>
+              <div
+                class="hydrogen-status-pill"
+                id="hydrogen-status-pill"
+                data-status="idle"
+                role="status"
+                aria-live="polite"
+              >
+                <span class="status-pill-dot" aria-hidden="true"></span>
+                <span id="hydrogen-status-label">Ready</span>
+              </div>
+            </div>
+            <div class="tower-moves-sub tabular-nums" id="tower-moves-sub">
+              YOU: 0 MOVES · F3 EXIT GATE
+            </div>
+          </div>
+        </div>
+
+        <!-- Motorsport 5-Lap Split Table (L1..L5 + TOTAL) -->
+        <div class="lap-table-card">
+          <table class="lap-split-table tabular-nums" aria-label="5-Lap Motorsport Split Times">
+            <thead>
+              <tr>
+                <th scope="col" class="col-lap">LAP</th>
+                <th scope="col" class="col-you">YOU <span class="th-sub">(Front)</span></th>
+                <th scope="col" class="col-ai">
+                  <span id="lap-th-opponent">Gemini 4 Hydrogen</span>
+                  <span class="th-sub">(Back)</span>
+                </th>
+                <th scope="col" class="col-delta">DELTA</th>
+              </tr>
+            </thead>
+            <tbody id="lap-split-tbody">
+              <tr class="lap-row is-active-lap" data-lap-row="1">
+                <th scope="row" class="col-lap"><span class="lap-tag">L1</span></th>
+                <td class="col-you" data-cell="you">—</td>
+                <td class="col-ai" data-cell="ai">—</td>
+                <td class="col-delta"><span class="delta-chip" data-cell="delta">—</span></td>
+              </tr>
+              <tr class="lap-row" data-lap-row="2">
+                <th scope="row" class="col-lap"><span class="lap-tag">L2</span></th>
+                <td class="col-you" data-cell="you">—</td>
+                <td class="col-ai" data-cell="ai">—</td>
+                <td class="col-delta"><span class="delta-chip" data-cell="delta">—</span></td>
+              </tr>
+              <tr class="lap-row" data-lap-row="3">
+                <th scope="row" class="col-lap"><span class="lap-tag">L3</span></th>
+                <td class="col-you" data-cell="you">—</td>
+                <td class="col-ai" data-cell="ai">—</td>
+                <td class="col-delta"><span class="delta-chip" data-cell="delta">—</span></td>
+              </tr>
+              <tr class="lap-row" data-lap-row="4">
+                <th scope="row" class="col-lap"><span class="lap-tag">L4</span></th>
+                <td class="col-you" data-cell="you">—</td>
+                <td class="col-ai" data-cell="ai">—</td>
+                <td class="col-delta"><span class="delta-chip" data-cell="delta">—</span></td>
+              </tr>
+              <tr class="lap-row" data-lap-row="5">
+                <th scope="row" class="col-lap"><span class="lap-tag">L5</span></th>
+                <td class="col-you" data-cell="you">—</td>
+                <td class="col-ai" data-cell="ai">—</td>
+                <td class="col-delta"><span class="delta-chip" data-cell="delta">—</span></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="lap-total-row" id="lap-total-row">
+                <th scope="row" class="col-lap">TOTAL</th>
+                <td class="col-you" id="lap-total-human">—</td>
+                <td class="col-ai" id="lap-total-ai">—</td>
+                <td class="col-delta"><span class="delta-chip" id="lap-total-delta">—</span></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </header>
+
+      <!-- Live Vision Stream Section Bar -->
+      <div class="vision-feed-bar">
+        <span class="vision-feed-title" id="vision-feed-title">Model's View and Live Thoughts</span>
+      </div>
+
+      <!-- Bottom Section: Scrolling Live AI Board PNG + Multi-Move Plan & Thoughts Stream -->
+      <div class="hydrogen-feed" id="hydrogen-feed" role="log" aria-live="polite" aria-relevant="additions text">
+        <!-- Stream Notice (Shown only on API error) -->
+        <section class="hydrogen-error-banner" id="hydrogen-error-banner" role="alert" hidden>
+          <div class="error-banner-eyebrow" id="hydrogen-error-eyebrow">AI OPPONENT STREAM NOTICE</div>
+          <p class="error-banner-body" id="hydrogen-error-msg">
+            Live AI request was interrupted. Press Restart Race to launch a fresh heat.
+          </p>
+        </section>
+
+        <!-- Pre-Race Ready Header (Zero Image & Zero Thoughts Shown Until Sent to Model) -->
+        <section class="hydrogen-welcome-card" id="hydrogen-welcome-card">
+          <div class="welcome-png-header">
+            <span class="welcome-eyebrow" id="welcome-eyebrow">Lap 1 Preview</span>
+            <span class="welcome-model-badge" id="welcome-model-badge">Low Thinking</span>
+          </div>
+          <p class="welcome-body" id="welcome-body">
+            Press <strong>Start Race</strong> — each board image and live thought stream appear here as soon as they are sent to the model.
+          </p>
+        </section>
+
+        <!-- Streamed AI Turn Cards ([LAP/TURN Header -> Sent 4:3 AI Board PNG -> Live Thoughts -> Multi-Move Badges]) -->
+        <div class="hydrogen-turns-list" id="hydrogen-turns-list" hidden></div>
+      </div>
+
+      <button
+        type="button"
+        class="jump-live-pill"
+        id="btn-jump-live-turn"
+        hidden
+        title="Re-pin feed to latest live turn"
+      >
+        ↓ Live Turn
+      </button>
+    </aside>
+
+    <!-- Click-to-Inspect Modal Preview of Exact AI 6×6 Back-Board Screenshot -->
+    <div
+      class="frame-modal-backdrop"
+      id="hydrogen-frame-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="frame-modal-title"
+      hidden
+    >
+      <div class="frame-modal-card">
+        <div class="frame-modal-header">
+          <div class="frame-modal-title-group">
+            <h3 class="frame-modal-title" id="frame-modal-title">AI 6×6 Back-Board Input</h3>
+            <span class="frame-modal-meta tabular-nums" id="frame-modal-meta">Angled WebGL Screenshot · Blind Vision</span>
+          </div>
+          <button
+            type="button"
+            class="frame-modal-close"
+            id="btn-close-frame-modal"
+            aria-label="Close frame preview"
+            title="Close (Esc)"
+          >
+            Close
+          </button>
+        </div>
+        <div class="frame-modal-stage">
+          <img
+            id="hydrogen-modal-img"
+            class="frame-modal-img"
+            alt="Full-resolution AI 6x6 back-board screenshot"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

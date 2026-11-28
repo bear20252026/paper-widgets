@@ -1,0 +1,30 @@
+/* Page tokens. The tank, the glass and the bubble are drawn in code: their colours are in src/lib/palette.ts and their
+   sizes in layout() (src/lib/engine.ts). */
+:root {
+  /* The room and its text colour. The engine rewrites both every frame from the light (palette.ts: PAGE_BG, PAGE_FG);
+     these are the first paint: day, or night for dark-mode viewers (the page opens on night for them). */
+  --bg: #f7f5f3;
+  --fg: #2b2412;
+  /* The room's breathing space round the pill, and the widest the column gets (the pill itself stops at 800 px) */
+  --stage-pad-block: 32px;
+  --stage-pad-inline: 16px;
+  --wrap-max: 900px;
+  /* Keyboard focus on the switch */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 6px;
+  /* The demo pointer (?demo=1): a 28 px arrow, and its shadow */
+  --cursor-size: 28px;
+  --cursor-shadow: drop-shadow(0 1.5px 2px rgba(0, 0, 0, 0.35));
+  --cursor-press: 0.88;
+}
+/* every room is light, so the colour scheme stays light */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #e4e7f2;
+    --fg: #0b1222;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #e4e7f2;
+  --fg: #0b1222;
+}

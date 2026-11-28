@@ -1,0 +1,21 @@
+/* Palette and type for the finance dashboard.
+
+   The shelf is paper-white with one ultramarine accent; this piece is the warm one — cream paper, warm ink,
+   and a single orange. It is still one accent on one light room, just a warmer mix than its neighbours. */
+:root {
+  --frame: #07080a; /* the dark room the dashboard hangs in */
+  --paper: #eaeae6; /* the dashboard's own surface */
+  --card: #ffffff;
+  --ink: #141310;
+  --muted: #8e8a82;
+  --soft: #f4f1eb;
+  --line: #e7e3da;
+
+  /* one accent, all the way down */
+  --accent: #ff5b14;
+  --accent-deep: #f1500a;
+  --peach: #ffbb98;
+  --blue: #5b76a1;
+
+  --font: "DM Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}

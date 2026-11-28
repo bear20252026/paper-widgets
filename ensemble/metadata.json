@@ -1,0 +1,8 @@
+{
+  "name": "Ensemble",
+  "description": "Build an ensemble then watch Genie 4 perform it — a one-minute live audio-video music scene generated from your prompt.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

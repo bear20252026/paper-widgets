@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Seam Transitions | Demo 3 | Codrops</title>
+    <meta name="description" content="A hand-woven blanket frays at its hem as the page scrolls: its weft pulled out row by row, its warp left hanging as a fringe. A WebGL scroll transition with GSAP." />
+    <meta name="keywords" content="fringe, textile, unravel, scroll transition, section transition, scroll animation, WebGL, GLSL shaders, GSAP, ScrollTrigger" />
+    <meta name="theme-color" content="#111" />
+    <meta property="og:type" content="website" />
+    <meta property="og:description" content="A hand-woven blanket frays at its hem as the page scrolls: its weft pulled out row by row, its warp left hanging as a fringe. A WebGL scroll transition with GSAP." />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Seam Transitions: misty pines bleeding like ink into the white page that scrolls up over them, under the name Canopy" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:description" content="A hand-woven blanket frays at its hem as the page scrolls: its weft pulled out row by row, its warp left hanging as a fringe. A WebGL scroll transition with GSAP." />
+    <meta name="twitter:image:alt" content="Seam Transitions: misty pines bleeding like ink into the white page that scrolls up over them, under the name Canopy" />
+    <link rel="icon" type="image/svg+xml" href="https://tympanus.net/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="https://tympanus.net/favicon/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500&display=swap" />
+    <link rel="stylesheet" type="text/css" href="css/base.css" />
+    <script>
+      document.documentElement.className = 'js';
+    </script>
+    <!-- Added on the live server only, leave commented out in the repo -->
+  </head>
+
+  <body class="demo-3 loading" data-seam="fray">
+    <div id="smooth-wrapper">
+      <main id="smooth-content">
+        <section class="hero">
+          <header class="frame">
+            <h1 class="frame__title">Seam Transitions</h1>
+            <nav class="frame__links">
+              <a href="https://tympanus.net/codrops/hub/">All demos</a>
+              <a href="https://github.com/codrops/SeamTransitions">GitHub</a>
+            </nav>
+            <nav class="frame__tags">
+              <a href="https://tympanus.net/codrops/hub/tag/scroll/">#scroll</a>
+              <a href="https://tympanus.net/codrops/hub/tag/webgl/">#webgl</a>
+              <a href="https://tympanus.net/codrops/hub/tag/gsap/">#gsap</a>
+            </nav>
+            <nav class="frame__demos">
+              <span class="frame__demos-label">Variations</span>
+              <a class="frame__demo" href="index.html">01</a>
+              <a class="frame__demo" href="index2.html">02</a>
+              <span class="frame__demo frame__demo--current">03</span>
+              <a class="frame__demo" href="index4.html">04</a>
+              <a class="frame__demo" href="index5.html">05</a>
+              <a class="frame__demo" href="index6.html">06</a>
+              <a class="frame__demo" href="index7.html">07</a>
+              <a class="frame__demo" href="index8.html">08</a>
+              <a class="frame__demo" href="index9.html">09</a>
+              <a class="frame__demo" href="index10.html">10</a>
+              <a class="frame__demo" href="index11.html">11</a>
+            </nav>
+          </header>
+          <img class="hero__img" src="img/hero-fray.jpg" width="1376" height="768" alt="A hand-woven wool blanket in narrow stripes of cream, grey, brown and rust, its weave close up" />
+          <div class="hero__content">
+            <h2 class="hero__title">Manta</h2>
+            <p class="hero__note">Hand-woven wool<br />Since 1952</p>
+          </div>
+          <p class="hero__scroll" aria-hidden="true">Scroll</p>
+
+        </section>
+        <div class="seam" aria-hidden="true"></div>
+        <section class="next">
+          <div class="next__intro">
+            <p class="next__label">(01) Mill</p>
+            <p class="next__text">We weave blankets on old wooden looms from the wool of the flocks in our valley, thread by thread and row by row.</p>
+          </div>
+          <ul class="projects">
+            <li>
+              <img src="img/manta-1.jpg" width="896" height="1200" alt="A folded wool blanket in cream and brown stripes on a wooden chair" />
+              <p>Valley Stripe <span>2025</span></p>
+            </li>
+            <li>
+              <img src="img/manta-2.jpg" width="896" height="1200" alt="A wooden floor loom with a half-woven blanket in a whitewashed mill" />
+              <p>The Loom <span>1952</span></p>
+            </li>
+            <li>
+              <img src="img/manta-3.jpg" width="896" height="1200" alt="Skeins of natural wool in cream, grey and brown hanging on wooden pegs" />
+              <p>Undyed Yarn <span>2024</span></p>
+            </li>
+            <li>
+              <img src="img/manta-4.jpg" width="896" height="1200" alt="A striped wool throw on a linen-covered bed" />
+              <p>Oat Throw <span>2024</span></p>
+            </li>
+            <li>
+              <img src="img/manta-5.jpg" width="896" height="1200" alt="The knotted fringe of a hand-woven wool blanket" />
+              <p>Fringe <span>2023</span></p>
+            </li>
+            <li>
+              <img src="img/manta-6.jpg" width="896" height="1200" alt="Sheep grazing on a misty hillside of stone walls" />
+              <p>The Flock <span>2022</span></p>
+            </li>
+          </ul>
+          <footer class="next__foot">
+            <a href="mailto:mill@manta.example">mill@manta.example</a>
+            <p class="next__credits">Inspired by <a href="https://mosaic.flabbergast.agency/">Mosaic</a> and Jesper Landberg’s <a href="https://tympanus.net/Demos/PaperDrops/">demo</a> on Codrops</p>
+            <span>(02) Blankets</span>
+          </footer>
+        </section>
+      </main>
+    </div>
+    <script src="js/gsap.min.js"></script>
+    <script src="js/ScrollTrigger.min.js"></script>
+    <script src="js/ScrollSmoother.min.js"></script>
+    <script src="js/SplitText.min.js"></script>
+    <script type="module" src="js/index.js"></script>
+    <!-- Added on the live server only, leave commented out in the repo -->
+  </body>
+</html>

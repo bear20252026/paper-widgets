@@ -1,0 +1,36 @@
+/* Page tokens. The dial itself (groove, arc, sphere, stars, night colours) is drawn by the shader: its numbers live
+   in src/lib/shaders.ts; the schedule and every timing in src/lib/timeline.ts; the bar and card colours in
+   src/lib/palette.ts. Everything is laid out on a 1080 × 1080 stage, centred and scaled to the window's shorter side. */
+:root {
+  --stage: 1080px;
+  /* The page and the soft light behind the card */
+  --page: #ebebef;
+  --glow: #f1f1f4;
+  /* The card: 800 × 920 at (140, 80), radius 72; the engine dims its colour at night */
+  --card: #f6f6f9;
+  --card-x: 140px;
+  --card-y: 80px;
+  --card-w: 800px;
+  --card-h: 920px;
+  --card-radius: 72px;
+  --card-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85), 0 48px 110px rgba(30, 30, 60, 0.1), 0 4px 12px rgba(30, 30, 60, 0.04);
+  /* The knobs: 64 px white discs; the moon (bedtime) is indigo, the sun (wake-up) amber */
+  --knob: 64px;
+  --knob-face: #fff;
+  --knob-shadow: 0 8px 20px rgba(30, 30, 70, 0.16), 0 1px 3px rgba(30, 30, 70, 0.1);
+  --moon: #3d40a8;
+  --sun: #f2a33a;
+  /* The 24 hour bars: 6 × 32, every 14 px, from (376, 888) */
+  --bars-x: 376px;
+  --bars-y: 888px;
+  --bars-w: 328px;
+  --bar-w: 6px;
+  --bar-h: 32px;
+  --bar-step: 14px;
+  --bar-radius: 4px;
+  --bar-empty: #e4e4ec;
+  /* The drawn cursor */
+  --cursor: #111;
+  --cursor-edge: #fff;
+  --cursor-shadow: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+}

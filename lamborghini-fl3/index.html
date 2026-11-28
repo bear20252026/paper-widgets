@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lamborghini FL3 · Bench Study (1961–1967)</title>
+
+  <!-- Typography: Bodoni Moda, Archivo, IBM Plex Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,700;1,6..96,400;1,6..96,700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- ES Module Importmap for three.js -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three.module.js"
+    }
+  }
+  </script>
+</head>
+<body>
+
+  <!-- Thin double frame and corner registration marks -->
+  <div class="plate-border"></div>
+  <div class="reg-mark reg-tl"></div>
+  <div class="reg-mark reg-tr"></div>
+  <div class="reg-mark reg-bl"></div>
+  <div class="reg-mark reg-br"></div>
+
+  <div class="plate-container">
+
+    <!-- Running Head Across the Top -->
+    <header class="running-head">
+      <div>
+        Bench study · <span class="sub">banco prova</span>
+      </div>
+      <div>
+        Air-cooled diesel · three cylinders · direct injection
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="color-bar">
+          <div class="color-bar-swatch" style="background:#E0561C;" title="Arancio #E0561C"></div>
+          <div class="color-bar-swatch" style="background:#58AED6;" title="Celeste #58AED6"></div>
+          <div class="color-bar-swatch" style="background:#1C1B19;" title="Nero #1C1B19"></div>
+          <div class="color-bar-swatch" style="background:#C8C2B2;" title="50% Nero"></div>
+        </div>
+        <div>Sheet 03</div>
+      </div>
+    </header>
+
+    <!-- Main Grid: Left Column (Controls), Centre (3D Engine), Right (Instruments) -->
+    <main class="main-grid">
+
+      <!-- LEFT COLUMN -->
+      <section class="left-col">
+        <div class="kicker">Lamborghini Trattori · 1961–1967</div>
+
+        <div class="title-lockup">
+          <span class="brand-script">Lamborghini</span>
+          <div class="title-fl3">FL<span>3</span></div>
+        </div>
+
+        <div class="deck">Three cylinders. <span>No radiator.</span></div>
+
+        <p class="lede">
+          Before the supercars, Lamborghini built tractors. The 2R of 1961 carried this engine: 2,193 cc of direct-injection diesel and no radiator, cooled by a belt-driven blower and cast fins. About 2,000 were sold by 1967, and tractor money paid for the move into cars in 1963.
+        </p>
+
+        <!-- Controls -->
+        <div class="controls-panel">
+
+          <!-- Ignition Key Switch -->
+          <div class="lever-group">
+            <div class="control-label">
+              <span>Ignition key</span>
+              <em>chiave accensione</em>
+            </div>
+            <div class="key-switch-row">
+              <button id="key-switch" class="key-switch-btn" title="Click or Space to Start/Stop"></button>
+              <div id="key-state-label" class="key-status-text">Stop</div>
+            </div>
+          </div>
+
+          <!-- Hand Throttle Lever -->
+          <div class="lever-group">
+            <div class="control-label">
+              <span>Hand throttle</span>
+              <em>acceleratore</em>
+            </div>
+            <div class="quadrant-box">
+              <input id="slider-throttle" class="quadrant-slider" type="range" min="0" max="1" step="0.01" value="0">
+              <span id="val-throttle" class="lever-val">700 rpm</span>
+            </div>
+          </div>
+
+          <!-- PTO Brake Lever -->
+          <div class="lever-group">
+            <div class="control-label">
+              <span>PTO brake</span>
+              <em>freno dinamometrico</em>
+            </div>
+            <div class="quadrant-box">
+              <input id="slider-pto" class="quadrant-slider" type="range" min="0" max="1" step="0.01" value="0">
+              <span id="val-pto" class="lever-val">0 %</span>
+            </div>
+          </div>
+
+          <!-- 4 View Buttons (Keys 1 to 4) -->
+          <div class="lever-group">
+            <div class="control-label">
+              <span>Perspective view</span>
+              <em>viste (1–4)</em>
+            </div>
+            <div class="view-btn-grid">
+              <button id="btn-view-painted" class="btn-ui active">1. Painted <em>verniciato</em></button>
+              <button id="btn-view-cutaway" class="btn-ui">2. Cutaway <em>spaccato</em></button>
+              <button id="btn-view-airflow" class="btn-ui">3. Airflow <em>flusso aria</em></button>
+              <button id="btn-view-exploded" class="btn-ui">4. Exploded <em>esploso</em></button>
+            </div>
+          </div>
+
+          <!-- Secondary Toggles -->
+          <div class="secondary-toggles">
+            <button id="btn-slowmo" class="btn-ui" title="Toggle Slow Motion (S)">Slow motion (S)</button>
+            <button id="btn-sound" class="btn-ui active" title="Toggle Sound">Sound (On)</button>
+            <button id="btn-reset-cam" class="btn-ui" title="Reset Camera">Reset view</button>
+          </div>
+
+        </div>
+
+        <!-- Narration Console Box -->
+        <div class="narration-box" id="narration-text">
+          Key ready. Click ignition switch or press Space to crank the electric starter.
+        </div>
+
+      </section>
+
+      <!-- CENTRE COLUMN: 3D Engine Viewport -->
+      <section class="centre-col">
+        <!-- Giant celeste numeral 3 printed faintly behind engine slightly out of register -->
+        <div class="watermark-3">3</div>
+        <div id="canvas3d-container"></div>
+        <div id="callouts-container"></div>
+      </section>
+
+      <!-- RIGHT COLUMN: 4 Live Instruments -->
+      <section class="right-col">
+
+        <!-- 1. Tachometer -->
+        <div class="instrument-card">
+          <div class="inst-header">
+            <span>Tachometer</span>
+            <em>contagiri x100</em>
+          </div>
+          <canvas id="canvas-tacho" class="inst-canvas" width="280" height="120"></canvas>
+        </div>
+
+        <!-- 2. The Cycle -->
+        <div class="instrument-card">
+          <div class="inst-header">
+            <span>The cycle (720°)</span>
+            <em>fasi cilindri 1–2–3</em>
+          </div>
+          <canvas id="canvas-cycle" class="inst-canvas" width="280" height="120"></canvas>
+        </div>
+
+        <!-- 3. Indicator Diagram -->
+        <div class="instrument-card">
+          <div class="inst-header">
+            <span>Indicator diagram</span>
+            <em>ciclo P-V cilindro 1</em>
+          </div>
+          <canvas id="canvas-pv" class="inst-canvas" width="280" height="110"></canvas>
+        </div>
+
+        <!-- 4. Chart Recorder -->
+        <div class="instrument-card">
+          <div class="inst-header">
+            <span>Chart recorder</span>
+            <em>registratore grafico</em>
+          </div>
+          <canvas id="canvas-chart" class="inst-canvas" width="280" height="110"></canvas>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- BOTTOM STRIP: 4 Live Blueline Drawings and Readings Card -->
+    <footer class="bottom-strip">
+
+      <!-- Front View -->
+      <div class="drawing-card">
+        <canvas id="canvas-front" class="drawing-canvas" width="240" height="175"></canvas>
+      </div>
+
+      <!-- Right Side View -->
+      <div class="drawing-card">
+        <canvas id="canvas-right" class="drawing-canvas" width="240" height="175"></canvas>
+      </div>
+
+      <!-- Plan View -->
+      <div class="drawing-card">
+        <canvas id="canvas-plan" class="drawing-canvas" width="240" height="175"></canvas>
+      </div>
+
+      <!-- Section A-A -->
+      <div class="drawing-card">
+        <canvas id="canvas-section" class="drawing-canvas" width="260" height="175"></canvas>
+      </div>
+
+      <!-- Readings Card -->
+      <div class="readings-card">
+        <div class="readings-header">
+          <span>Readings · <em>misure banco prova</em></span>
+          <span class="tag-modelled">LIVE, MODELLED</span>
+        </div>
+
+        <div class="readings-grid">
+          <div class="read-item">
+            <span class="read-label">Engine Speed</span>
+            <span id="read-speed" class="read-val">0 rpm</span>
+          </div>
+          <div class="read-item">
+            <span class="read-label">Brake Power (flywheel)</span>
+            <span id="read-power" class="read-val">0.0 hp (0.0 kW)</span>
+          </div>
+          <div class="read-item">
+            <span class="read-label">Flywheel Torque</span>
+            <span id="read-torque" class="read-val">0.0 N·m</span>
+          </div>
+          <div class="read-item">
+            <span class="read-label">Fuel Consumption</span>
+            <span id="read-fuel" class="read-val">0.00 l/h</span>
+          </div>
+          <div class="read-item">
+            <span class="read-label">Cooling Airflow</span>
+            <span id="read-air" class="read-val">0.0 m³/min</span>
+          </div>
+          <div class="read-item">
+            <span class="read-label">Cylinder Head Temp</span>
+            <span id="read-temp" class="read-val">20 °C</span>
+          </div>
+        </div>
+
+        <div class="readings-footnote">
+          Published: 3 cyl, bore 92 mm, stroke 110 mm, 2,193 cc, 39 hp at 2,200 rpm, Bosch injection, electric starter. All other figures modelled (compression ratio ~17:1, 120 rpm governor droop, temperatures, airflow, friction, thermal time 30x). Independent study, not affiliated with Lamborghini.
+        </div>
+      </div>
+
+    </footer>
+
+  </div>
+
+  <!-- Main Application Entrypoint -->
+  <script type="module">
+    import { FL3App } from './js/app.js';
+    window.addEventListener('DOMContentLoaded', () => {
+      window.app = new FL3App();
+    });
+  </script>
+
+</body>
+</html>
